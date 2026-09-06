@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Toasts</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+  .variant-caption {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  /* Matrix — в реальном NotificationsContainer тосты отрисовываются fixed
+     внизу по центру экрана (bottom: 0, left: 0, right: 0, align-items: center,
+     padding: 32 0). Тост НЕ имеет фиксированной ширины — он обнимает контент.
+     Source: NotificationsContainer/index.module.scss:19-28 */
+  .matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .matrix > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;   /* центрирует .toast, caption остаётся слева */
+  }
+  .variant-caption {
+    align-self: flex-start;
+  }
+  /* Toast сам по себе inline-flex (не растягивается на ширину родителя,
+     а обнимает контент). max-width страхует от лишнего расползания на
+     очень длинных сообщениях — в проде сам Toast ограничений не ставит,
+     но контейнер (.toastsContainer) ограничен размером viewport. */
+  .toast {
+    max-width: 720px;
+  }
+  .dom-tree {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-default);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  TOAST
+     ║  Source: src/services/notifications/components/Toast/index.tsx
+     ║  Source: src/services/notifications/components/Toast/index.module.scss
+     ║  Source: src/services/notifications/notifications.module.scss
+     ║  Source: src/services/notifications/constants.ts (icon dict)
+     ║
+     ║  DOM (Toast/index.tsx:35-74):
+     ║    div.root[variant]                    items-start, padding 12 16 12 8,
+     ║                                         radius 8, bg --notification-dark-container-color,
+     ║                                         color --neutral-on-color (= #ffffff)
+     ║      Icon.ml-8 (если variant !== neutral)  — size24, currentColor (= white)
+     ║      div.ml-8.mr-a.py-2                    — flex-child, отжимает следующие к правому краю
+     ║        Typography bodySmall                — 14/400/20, color inherit (white)
+     ║      FunctionButton[].ml-16 (optional)     — isDark=true, variant=secondary
+     ║      CloseButton.ml-16 (optional)          — theme=onDark, large24
+     ║
+     ║  Variants (NotificationVariants): info, success, warning, error, neutral.
+     ║  Default = warning. Для neutral иконка скрыта (Toast/index.tsx:37).
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  .toast {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--spacing-12) var(--spacing-16) var(--spacing-12) var(--spacing-8);
+    border-radius: var(--radius-8);
+    background-color: var(--notification-dark-container-color);
+    color: var(--neutral-on-color);
+  }
+
+  /* Variant colors — notifications.module.scss.
+     Toast использует --notification-dark-container-color (= --color-{variant}-soft)
+     и --notification-default-color для возможных индикаторов, но icon в Toast
+     не получает color override и наследует currentColor от root (= white). */
+  .toast.info {
+    --notification-dark-container-color: var(--info-soft);
+    --notification-default-color: var(--info-default);
+  }
+  .toast.success {
+    --notification-dark-container-color: var(--success-soft);
+    --notification-default-color: var(--success-default);
+  }
+  .toast.warning {
+    --notification-dark-container-color: var(--warning-soft);
+    --notification-default-color: var(--warning-default);
+  }
+  .toast.error {
+    --notification-dark-container-color: var(--error-soft);
+    --notification-default-color: var(--error-default);
+  }
+  .toast.neutral {
+    --notification-dark-container-color: var(--neutral-soft);
+    --notification-default-color: var(--neutral-default);
+  }
+
+  /* Icon — Icon default size24, 3-уровневая обёртка. Цвет наследуется от root
+     (currentColor = --neutral-on-color, белый). ml-8 от Toast/index.tsx:39. */
+  .toast-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    margin-left: var(--spacing-8);
+  }
+  .toast-icon-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+  }
+  .toast-icon-inner > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Text wrapper — div.ml-8.mr-a.py-2 (Toast/index.tsx:43).
+     mr-a распихивает текст и следующие элементы по краям (buttons/close к правому).
+     py-2 даёт +4px к высоте блока, выравнивая с высотой иконки 24. */
+  .toast-text {
+    margin-left: var(--spacing-8);
+    margin-right: auto;
+    padding: var(--spacing-2) 0;
+    min-width: 0;
+  }
+  /* Typography bodySmall → <span> (14/400/20). Toast/index.tsx:44 передаёт variant без className.
+     DOM: <span class="bodySmall">{message}</span> — bodySmall — это typographyStyles.bodySmall. */
+  .toast-text .bodySmall {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: inherit;
+  }
+
+  /* FunctionButton — ml-16, isDark, variant=secondary (Toast/index.tsx:50-62).
+     secondary + dark → color var(--neutral-50) из FunctionButton/index.module.scss:30-32.
+     size=large24 по умолчанию: gap-6, py-2, font bodySmallStrong (14/500/20). */
+  .toast-fn-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-6);
+    margin-left: var(--spacing-16);
+    padding: var(--spacing-2) 0;
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-6);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: var(--neutral-50);
+    white-space: nowrap;
+    height: max-content;
+    flex: none;
+  }
+  .toast-fn-btn:hover { color: var(--accent-100); }
+
+  /* CloseButton — ml-16, theme=onDark, size=large24 (Toast/index.tsx:64-70).
+     onDark → fg --neutral-50, bg transparent, hover-bg --neutral-700.
+     Source: CloseButton/index.module.scss:32-39 */
+  .toast-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-left: var(--spacing-16);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-6);
+    color: var(--neutral-50);
+    cursor: pointer;
+    flex: none;
+  }
+  .toast-close:hover { background: var(--neutral-700); }
+  .toast-close svg { width: 24px; height: 24px; }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  COMPONENT: Toasts                                ║
+       ║  NotificationVariants (5 вариантов)               ║
+       ║  + withCloseButton, + functionButtonProps         ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Структура · wrappers и отступы</p>
+    <p class="block-section-note">Toast — одноуровневый <code>div.root</code> в виде flex-row с <code>items-start</code>. Дочерние элементы в порядке: <code>Icon</code> (скрыт для <code>neutral</code>) → <code>div</code> с текстом (через <code>mr-a</code> распихивает остальные к правому краю) → опциональные <code>FunctionButton</code>'ы → опциональная <code>CloseButton</code>. Все внутренние margin'ы заданы utility-классами (<code>ml-8</code>, <code>ml-16</code>, <code>py-2</code>). Toast — «dark» тема нотификации: фон <code>--notification-dark-container-color</code> (= <code>--color-{variant}-soft</code>), цвет текста <code>--neutral-on-color</code> (белый).</p>
+    <p class="block-section-source">Source: Toast/index.tsx:24-75 + Toast/index.module.scss + notifications.module.scss</p>
+
+    <pre class="dom-tree">div.toast[variant]                  ← root: flex, items-start
+                                      padding: 12 16 12 8, radius 8
+                                      bg: --notification-dark-container-color
+                                      color: --neutral-on-color (#ffffff)
+  span.toast-icon                   ← ml-8, size 24×24, currentColor
+    span.toast-icon-inner
+      svg                           ← icon по NOTIFICATION_ICON_VARIANTS_DICT
+                                      (скрыт для variant=neutral)
+  div.toast-text                    ← ml-8, mr-a, py-2
+    span.bodySmall                  ← Typography bodySmall (14/400/20) → <span>
+  button.toast-fn-btn (optional)    ← ml-16, FunctionButton
+                                      isDark=true, variant=secondary
+  button.toast-close (optional)     ← ml-16, CloseButton onDark, 24×24</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Icon mapping (constants.ts)</p>
+    <pre class="dom-tree">info     → info-circle-filled
+success  → check-circle-filled
+warning  → warning-circle-filled
+error    → cancel-circle-filled
+neutral  → chevron-right-circle-filled (не отображается в Toast)</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. VARIANTS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">NotificationVariants — 5 состояний</p>
+    <p class="block-section-note">Пять вариантов из <code>NotificationVariants</code>. Default = <code>warning</code>. Для каждого — свой фон (<code>--color-{variant}-soft</code>, solid цвет). Иконка — белая (наследует от <code>color: var(--neutral-on-color)</code> на root). Для <code>neutral</code> иконка не рендерится (<code>Toast/index.tsx:37</code>).</p>
+    <p class="block-section-source">Source: Toast/index.tsx:36-42 + notifications.module.scss + types.ts (NotificationVariants)</p>
+
+    <div class="matrix">
+      <!-- info -->
+      <div>
+        <p class="variant-caption">info</p>
+        <div class="toast info">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Данные синхронизируются в фоне</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- success -->
+      <div>
+        <p class="variant-caption">success — типичный use-case (sendSuccessToast)</p>
+        <div class="toast success">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Животное добавлено</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- warning (default) -->
+      <div>
+        <p class="variant-caption">warning (default)</p>
+        <div class="toast warning">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Соединение нестабильно — часть данных может не сохраниться</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- error -->
+      <div>
+        <p class="variant-caption">error</p>
+        <div class="toast error">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#cancel-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Не удалось сохранить изменения</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- neutral — без иконки -->
+      <div>
+        <p class="variant-caption">neutral — без иконки (sendNeutralToast)</p>
+        <div class="toast neutral">
+          <div class="toast-text">
+            <span class="bodySmall">Передача данных в систему Хорриот прекращена</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. withCloseButton
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">withCloseButton — кнопка закрытия</p>
+    <p class="block-section-note">Если <code>withCloseButton=true</code>, в конце рендерится <code>CloseButton</code> с <code>theme=onDark</code> и <code>ml-16</code>. По умолчанию <code>false</code>, поскольку тосты закрываются автоматически по таймеру (<code>TOAST_TIMEOUT_MS</code>). <code>onDark</code> тема = transparent bg, color <code>--neutral-50</code>, hover bg <code>--neutral-700</code>.</p>
+    <p class="block-section-source">Source: Toast/index.tsx:28,64-72 + CloseButton/index.module.scss:32-39</p>
+
+    <div class="matrix">
+      <div>
+        <p class="variant-caption">success · withCloseButton</p>
+        <div class="toast success">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Отчёт отредактирован</span>
+          </div>
+          <button class="toast-close" aria-label="Закрыть">
+            <svg><use href="../../icons.svg#x-close"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">error · withCloseButton (ошибка — пользователь должен увидеть)</p>
+        <div class="toast error">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#cancel-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Не удалось подключиться к серверу. Проверьте интернет-соединение</span>
+          </div>
+          <button class="toast-close" aria-label="Закрыть">
+            <svg><use href="../../icons.svg#x-close"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. functionButtonProps
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">functionButtonProps — action-кнопки</p>
+    <p class="block-section-note">Один или несколько <code>FunctionButton</code> рендерятся перед close'ом. Каждый с <code>ml-16</code>, <code>isDark=true</code>, <code>variant=secondary</code> (color <code>--neutral-50</code>). <code>functionButtonProps</code> — либо один объект, либо массив. При нажатии вызывается сначала <code>onClose</code>, затем собственный <code>onPress</code> (<code>Toast/index.tsx:57-60</code>).</p>
+    <p class="block-section-source">Source: Toast/index.tsx:30-63 + FunctionButton/index.module.scss:25-33</p>
+
+    <div class="matrix">
+      <div>
+        <p class="variant-caption">1 кнопка — «Отменить»</p>
+        <div class="toast success">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Животное удалено</span>
+          </div>
+          <button class="toast-fn-btn">Отменить</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">2 кнопки — «Подробнее» + «Отменить»</p>
+        <div class="toast error">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#cancel-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Импорт прерван — 3 строки не прошли валидацию</span>
+          </div>
+          <button class="toast-fn-btn">Подробнее</button>
+          <button class="toast-fn-btn">Повторить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. COMBINED — fn-buttons + close + long text
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Комбо — кнопка + close + длинный текст</p>
+    <p class="block-section-note">Все слоты вместе: иконка, сообщение, action-кнопка, close. При длинном сообщении текст переносится по словам (<code>min-width: 0</code> на <code>.toast-text</code>), иконка и правые кнопки держатся на первой строке из-за <code>align-items: flex-start</code>. <code>mr-a</code> на тексте гарантирует, что правые кнопки прижаты к краю независимо от длины сообщения.</p>
+    <p class="block-section-source">Source: Toast/index.tsx:35-73 (все 3 слота) + index.module.scss (items-start)</p>
+
+    <div class="matrix">
+      <div>
+        <p class="variant-caption">warning · fn-btn + close · длинный текст с переносом</p>
+        <div class="toast warning">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Некоторые животные не прошли проверку на уникальность инвентарных номеров. Всего конфликтов: 7. Продолжить импорт можно, пропустив или заменив конфликтующие записи.</span>
+          </div>
+          <button class="toast-fn-btn">Просмотреть</button>
+          <button class="toast-close" aria-label="Закрыть">
+            <svg><use href="../../icons.svg#x-close"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">info · короткий текст · все слоты</p>
+        <div class="toast info">
+          <span class="toast-icon"><span class="toast-icon-inner"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+          <div class="toast-text">
+            <span class="bodySmall">Обновление доступно</span>
+          </div>
+          <button class="toast-fn-btn">Перезагрузить</button>
+          <button class="toast-close" aria-label="Закрыть">
+            <svg><use href="../../icons.svg#x-close"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

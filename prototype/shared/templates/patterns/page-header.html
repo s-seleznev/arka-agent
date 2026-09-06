@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Block: Page Header</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body (fullscreen flex with overflow hidden) —
+     block demo pages need normal scrolling */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 20px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+
+  /* Override page-header for block-demo: no content-grid-gap offset since each example is self-contained */
+  .block-section .page-header { padding: 0; padding-bottom: 0; }
+
+  /* Back-button icon: rotate arrow-up to point left */
+  .back-btn {
+    width: 36px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+  .back-btn svg { transform: rotate(-90deg); }
+
+  /* Title description (sub-text under title) */
+  .page-header-description {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+
+  /* titleBadge — ReactNode ребёнок h1. h1 = Typography с className 'flex items-center gap-12'.
+     Source: PageHeader/index.tsx:193 */
+  .page-header-title-with-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .page-header-title-with-badge .badge {
+    align-self: center;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  BLOCK: Page Header                               ║
+       ║  Source: PageHeader/index.tsx, heading2 title     ║
+       ║  padding-bottom: 24px                             ║
+       ║  title padding-block: 6px (когда нет rightContent)║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ======== 1. Только title ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 1 · title only</p>
+    <p class="block-section-note">Только заголовок. Нет actions, нет description. Title получает <code>padding-block: 6px</code> (:not(:has rightContent)).</p>
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-header-title">Причины выбытия</h1>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 2. Title + primary action ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 2 · title + primary action</p>
+    <p class="block-section-note">Заголовок и одна primary-кнопка справа. Классический паттерн для списочных страниц (Животные, Отчёты, Группы животных).</p>
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-header-title">Группы животных</h1>
+      </div>
+      <div class="page-header-right">
+        <button class="btn medium36 primary accent">
+          <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+          <span class="children">Создать группу</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 3. Title + secondary + primary ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 3 · title + secondary + primary</p>
+    <p class="block-section-note">Две кнопки справа: secondary (нейтральная) + primary (accent). Gap между ними 12px (через <code>.rightContent gap-12</code>).</p>
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-header-title">Животные</h1>
+      </div>
+      <div class="page-header-right">
+        <button class="btn medium36 secondary neutral">
+          <svg width="20" height="20"><use href="../../icons.svg#chevron-right-circle"/></svg>
+          <span class="children">Переместить</span>
+        </button>
+        <button class="btn medium36 primary accent">
+          <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+          <span class="children">Добавить</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 4. Title + description ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 4 · title + description</p>
+    <p class="block-section-note">Под заголовком — подпись (bodySmall, text-soft). В этом случае у header <code>align-items: flex-start</code>, не center.</p>
+
+    <div class="page-header" style="align-items: flex-start;">
+      <div class="page-header-left" style="display: grid; gap: 4px;">
+        <h1 class="page-header-title">История команд</h1>
+        <span class="page-header-description">Выявление (HDR), Стельность (PR) и Оплодотворяемость (CR) по дням в доении</span>
+      </div>
+      <div class="page-header-right">
+        <button class="btn medium36 secondary neutral">
+          <svg width="20" height="20"><use href="../../icons.svg#update"/></svg>
+          <span class="children">Обновить отчёт</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 5. Title + badge ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 5 · title + titleBadge</p>
+    <p class="block-section-note">titleBadge — <code>ReactNode</code>-ребёнок <strong>внутри</strong> <code>&lt;h1&gt;</code> (Typography heading2 с <code>className="flex items-center gap-12"</code>). Баджик выровнен по baseline текста. Использ. для подсказки статуса/количества.<br>Source: <code>src/features/layouts/components/PageHeader/index.tsx:189-199</code></p>
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-header-title page-header-title-with-badge">
+          Группы животных
+          <span class="badge small16 theme-default color-neutral"><span class="text">1 460 голов</span></span>
+        </h1>
+      </div>
+      <div class="page-header-right">
+        <button type="button" class="btn medium36 primary accent">
+          <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span>
+          <div class="children">Создать группу</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 6. Back-button + title ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 6 · back-button + title (second-level page)</p>
+    <p class="block-section-note">Детальная страница (cowId, groupId, report и т.п.). Back-button — Button ghost с arrow-up rotated left. Title остаётся heading2.</p>
+
+    <div class="page-header" style="align-items: center;">
+      <button class="btn medium36 ghost neutral back-btn" aria-label="Назад">
+        <svg width="20" height="20"><use href="../../icons.svg#arrow-up"/></svg>
+      </button>
+      <div class="page-header-left" style="margin-left: 0;">
+        <h1 class="page-header-title">Зорька 1234</h1>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 7. Back-button + title + description + actions ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 7 · back-button + title + description + actions</p>
+    <p class="block-section-note">Детальная страница с подзаголовком и действиями. Flex <code>align-items: flex-start</code>.</p>
+
+    <div class="page-header" style="align-items: flex-start;">
+      <button class="btn medium36 ghost neutral back-btn" aria-label="Назад">
+        <svg width="20" height="20"><use href="../../icons.svg#arrow-up"/></svg>
+      </button>
+      <div class="page-header-left" style="display: grid; gap: 4px;">
+        <h1 class="page-header-title page-header-title-with-badge">
+          Зорька 1234
+          <span class="badge small16 theme-default color-success"><span class="text">Стельная</span></span>
+        </h1>
+        <span class="page-header-description">3-я лактация · 145 ДВО · 28.5 кг/сутки</span>
+      </div>
+      <div class="page-header-right">
+        <button class="btn medium36 secondary neutral">
+          <svg width="20" height="20"><use href="../../icons.svg#edit"/></svg>
+          <span class="children">Редактировать</span>
+        </button>
+        <button class="btn medium36 primary accent">
+          <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+          <span class="children">Добавить событие</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- FIGMA HANDOFF
+    PageHeader — top section of any product page.
+    Source: src/features/layouts/components/PageHeader/index.tsx + index.module.scss
+
+    Структура:
+      <div.root [.items-start если есть description, else .items-center]>
+        optional <Button ghost arrow-up rotate-left> — back-button (если backLinkProps)
+        <div .grid gap-4 mr-a flex-1>   — title column
+          <div .flex items-center gap-16>   — title row
+            <h1 heading2 .flex items-center gap-12>
+              {title}
+              {titleBadge}
+            </h1>
+            {titleRightContent}
+          </div>
+          optional <Typography bodySmall text-soft>{description}</Typography>
+        </div>
+        optional <div .rightContent>   — всегда margin-left: auto
+          {rightContentElement}
+          <div.headerActionsElement gap-12>{headerActions}</div>
+        </div>
+      </div>
+
+    Typography:
+      - title: heading2 = 22/700/24
+      - description: bodySmall = 14/400/20, color fg-soft
+
+    Spacing:
+      - root padding-bottom: 24px
+      - title padding-block: 6px когда нет rightContent (через :has())
+      - headerContainer gap: 12px
+      - title row inner gap: 16px (между badge и title+titleRightContent)
+      - title inner gap: 12px (между title text и titleBadge)
+
+    Варианты actions:
+      - primary — ButtonVariants.primary (accent)
+      - secondary — ButtonVariants.secondary (neutral)
+      - ghost (back-button) — ButtonVariants.ghost + iconVariant arrowUp + rotate left
+      - context menu — ContextMenuButton
+
+    Back-button:
+      - icon arrowUp с rotate left (иконка стрелка вверх, повёрнутая на -90°)
+      - size: medium36 (desktop) / large48 (mobile)
+      - variant: ghost
+  -->
+
+</body>
+</html>

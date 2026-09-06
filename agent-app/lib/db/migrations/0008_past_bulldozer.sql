@@ -1,0 +1,1 @@
+ALTER TABLE "ReportView" ALTER COLUMN "schemaVersion" SET DEFAULT 5;

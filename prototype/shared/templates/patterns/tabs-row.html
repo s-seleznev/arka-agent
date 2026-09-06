@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Block: Tabs Row</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body to allow block-demo scrolling */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 20px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+
+  /* Tab — <a> (Link из tanstack-router, Tab/index.tsx:97-139).
+     UA-override: убираем только underline. Color — уже задан в .tab / .pill-tab
+     правилах (fg-soft default, fg-default active) и бьёт UA blue по специфичности.
+     Typography bodyMediumStrong/bodySmallStrong → <b> — UA font-weight 700 сбрасываем до 500. */
+  a.tab, a.pill-tab { text-decoration: none; }
+  .tab .bodyMediumStrong,
+  .tab .bodySmallStrong,
+  .pill-tab .bodyMediumStrong,
+  .pill-tab .bodySmallStrong {
+    font-weight: 500;
+    font-style: normal;
+    color: inherit;
+  }
+
+  /* Tabs row wrapper — tabs + right actions */
+  .tabs-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 36px;
+  }
+  .tabs-row .tabs { margin-bottom: 0; }
+  .tabs-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* Pill tabs — table variant (Tabs.table)
+     Source: src/shared/components/Tabs/index.module.scss .table
+     - gap: --spacing-8 = 8px
+     - padding: 3px 5px (spacing-4 - 1border, spacing-6 - 1border)
+     - border: 1px solid, radius 6
+     - bg: transparent / neutral-opaque-container-soft (hover/active)
+     - Text: bodySmallStrong 14/500/20 via Typography, +px-2 = 2px inline padding */
+  .pill-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill-tab {
+    display: flex;
+    align-items: center;
+    padding: 3px 5px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-6);
+    background: transparent;
+    color: var(--neutral-on-container, var(--fg-soft));
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s, color 0.1s;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    user-select: none;
+  }
+  .pill-tab > span { padding-inline: 2px; }
+  .pill-tab:hover {
+    background: var(--neutral-opaque-container-soft);
+    border-color: var(--neutral-opaque-container-soft);
+  }
+  .pill-tab.active {
+    background: var(--neutral-opaque-container-soft);
+    border-color: var(--neutral-opaque-container-soft);
+    color: var(--fg-default);
+  }
+  .pill-tab.active:hover {
+    border-color: var(--neutral-container-default);
+  }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  BLOCK: Tabs Row                                  ║
+       ║  Line tabs (variants)  +  Pill tabs (table)       ║
+       ║  Source: src/shared/components/Tabs/              ║
+       ║          + src/features/layouts/components/       ║
+       ║            RouterTabs (для right actions)         ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ======== 1. Tabs only (без actions) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 1 · tabs only (line)</p>
+    <p class="block-section-note">Router tabs без правых actions. Typography: <code>bodyMediumStrong</code> (16/500/24). Active: подсвеченная accent-линия снизу.</p>
+
+    <div class="tabs line">
+      <a href="#" class="tab"><b class="bodyMediumStrong">Причины</b></a>
+      <a href="#" class="tab active"><b class="bodyMediumStrong">Направления</b></a>
+    </div>
+  </div>
+
+
+  <!-- ======== 2. Tabs + 1 primary action ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 2 · tabs + 1 primary action</p>
+    <p class="block-section-note">Route: <code>/entities/retirement-reasons/directions</code>. Через <code>routerTabsRightActions</code> — одна primary-кнопка (btn-sm, size=<code>ButtonSizes.small24</code>).</p>
+
+    <div class="tabs-row">
+      <div class="tabs line">
+        <a href="#" class="tab"><b class="bodyMediumStrong">Причины</b></a>
+        <a href="#" class="tab active"><b class="bodyMediumStrong">Направления</b></a>
+      </div>
+      <div class="tabs-row-actions">
+        <button class="btn small24 primary accent">
+          <svg width="16" height="16"><use href="../../icons.svg#plus"/></svg>
+          <span class="children">Создать направление</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 3. Tabs + multiple actions ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 3 · tabs + multiple actions</p>
+    <p class="block-section-note">Route: <code>/herd/genetics/semen-registry</code>. Несколько secondary-actions + одна primary. Все btn-sm (small24).</p>
+
+    <div class="tabs-row">
+      <div class="tabs line">
+        <a href="#" class="tab"><b class="bodyMediumStrong">Закрепление быков</b></a>
+        <a href="#" class="tab active"><b class="bodyMediumStrong">Реестр семени</b></a>
+        <a href="#" class="tab"><b class="bodyMediumStrong">Быки</b></a>
+        <a href="#" class="tab"><b class="bodyMediumStrong">Поставщики семени</b></a>
+      </div>
+      <div class="tabs-row-actions">
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../../icons.svg#clock"/></svg>
+          <span class="children">История движения семени</span>
+        </button>
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../../icons.svg#upload"/></svg>
+          <span class="children">Списать</span>
+        </button>
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../../icons.svg#download"/></svg>
+          <span class="children">Внести</span>
+        </button>
+        <button class="btn small24 primary accent">
+          <svg width="16" height="16"><use href="../../icons.svg#plus"/></svg>
+          <span class="children">Добавить семя</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 4. Pill tabs (table variant) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 4 · pill tabs (table variant)</p>
+    <p class="block-section-note">Tabs variant=<code>table</code> — используется в Каталоге активностей (заболевания/протоколы/инъекции/действия/общее). Обычно внутри StickyBorderedPanel с radius 8 8 0 0.</p>
+
+    <div class="pill-tabs">
+      <a href="#" class="pill-tab active"><b class="bodySmallStrong">Лечение</b></a>
+      <a href="#" class="pill-tab"><b class="bodySmallStrong">Уход</b></a>
+      <a href="#" class="pill-tab"><b class="bodySmallStrong">Синхронизация</b></a>
+      <a href="#" class="pill-tab"><b class="bodySmallStrong">Вакцинация</b></a>
+    </div>
+  </div>
+
+
+  <!-- FIGMA HANDOFF
+    Tabs имеет 2 варианта (Tabs.tsx .with TabsVariants.line / .table):
+
+    LINE (default RouterTabs):
+      - Typography: bodyMediumStrong (16/500/24)
+      - padding: 6px 4px, radius 8
+      - gap (между табами): 16px
+      - active: 2px линия снизу (accent-default), при hover neutral-container-hover
+      - color: fg-soft (idle) / fg-default (active)
+
+    TABLE (pill):
+      - Typography: bodySmallStrong (14/500/20) + px-2 (padding-inline 2px)
+      - padding: 3px 5px (учёт 1px border)
+      - border: 1px solid, radius 6
+      - gap: 8px
+      - bg: transparent → neutral-opaque-container-soft (hover/active)
+      - color: neutral-on-container (idle) / fg-default (active)
+
+    Right actions (routerTabsRightActions):
+      - Кнопки btn-sm (size=ButtonSizes.small24), gap 8px
+      - Используется в RouterTabs компоненте через rightContent
+      - Различные комбинации: 1 primary / multiple secondary + primary
+
+    Источник:
+      - src/shared/components/Tabs/index.module.scss (.line, .table)
+      - src/shared/components/Tabs/components/Tab/index.tsx (Typography variants)
+      - src/features/layouts/components/RouterTabs/index.tsx (buttonProps size)
+      - src/routes/.../+entities/+retirement-reasons.tsx (пример 1)
+      - src/routes/.../+entities/+retirement-reasons/+directions.tsx (пример 2 с action)
+      - src/routes/.../+herd/+genetics/+semen-registry/+index.tsx (пример 3 multi-actions)
+      - src/routes/.../+events/+all.tsx (пример 4 pill-tabs)
+  -->
+
+</body>
+</html>

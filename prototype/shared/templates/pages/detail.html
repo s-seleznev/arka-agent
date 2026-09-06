@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Page: Detail (архитектурно-корректный скелет detail-страницы)</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body (fullscreen flex, overflow hidden) —
+     здесь нужна нормальная прокрутка страницы.
+     Source: shared page template convention (patterns/page-header.html, components/definition-list.html). */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+
+  /* Typography strong-tag normalization — <b> через Typography рендерится strong,
+     но глобально UA-weight=bolder=700 ломает 500. Явно 500. */
+  b.bodyLargeStrong, b.bodyMediumStrong, b.bodySmallStrong,
+  b.descriptionLargeStrong, b.descriptionMediumStrong,
+  b.displayLargeStrong, b.displayMediumStrong, b.displaySmallStrong {
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  PAGE-HEADER — reuse из patterns/page-header.html Вариант 7
+     ║  .page-header / .page-header-left / .page-header-right / .page-header-title
+     ║    / .page-header-description — определены в shared/layout.css:426+
+     ║  Дополняем только back-btn rotate и title-with-badge (как в page-header.html).
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Back-button svg rotate (arrow-up → left) — как в page-header.html:59 */
+  .back-btn {
+    width: 36px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+  .back-btn svg { transform: rotate(-90deg); }
+
+  /* titleBadge — ReactNode ребёнок h1. h1 = Typography с className 'flex items-center gap-12'.
+     Source: PageHeader/index.tsx:193 (совпадает с page-header.html:71-78) */
+  .page-header-title-with-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .page-header-title-with-badge .badge { align-self: center; }
+
+  /* Callout — все стили из shared/components.css (.callout + .medium16
+     + .warning/.info/... + inner .icon/.contentWrapper/.textWrapper/...).
+     Полный каталог — в components/callouts.html. */
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  ACCORDION (light / large) — обёртка для CowPinnedFields
+     ║  Source: src/shared/components/Accordion/Accordion.tsx:196-237
+     ║  Source: src/shared/components/Accordion/index.module.scss
+     ║  Source: src/widgets/cowFields/components/CowPinnedFields/index.tsx
+     ║
+     ║  Theme=light + size=large → panelStyles.largePanel
+     ║    bg-surface-1, radius 12
+     ║  isChevronOnLeft=true → chevron справа от title порядок flip
+     ║  isStaticHeaderContent=true + isDisabled=isCollapsible ? false : true
+     ║
+     ║  DOM:
+     ║    div.root.panel-light-large.accordion.large.chevron-left.is-open
+     ║      div.header.pressable
+     ║        [Chevron-FunctionButton]      (isChevronOnLeft)
+     ║        h2.bodyLargeStrong.flex-1      (title)
+     ║        [rightTitleContent]
+     ║      div.children (padding 0 24, animated)
+     ║        {DefinitionList}
+     ╚════════════════════════════════════════════════════════════════╝ */
+  .accordion {
+    /* medium defaults */
+    --accordion-padding: var(--spacing-16);
+    --accordion-header-bottom-padding: var(--spacing-16);
+    --accordion-horizontal-padding: var(--spacing-16);
+    padding-bottom: calc(var(--accordion-padding) - var(--accordion-header-bottom-padding));
+  }
+  .accordion.large {
+    --accordion-padding: var(--spacing-24);
+    --accordion-header-bottom-padding: var(--spacing-16);
+    --accordion-horizontal-padding: var(--spacing-24);
+  }
+  .panel-light-large {
+    background-color: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+  }
+
+  .accordion .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: var(--accordion-padding) var(--accordion-horizontal-padding)
+             var(--accordion-header-bottom-padding);
+  }
+  .accordion .header.pressable {
+    cursor: pointer;
+    user-select: none;
+  }
+  .accordion .title {
+    margin: 0;
+    color: var(--fg-default);
+    font-variant-numeric: lining-nums tabular-nums;
+    /* bodyLargeStrong: 18/500/24 (size=large) */
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+  .accordion .title.flex-1 { flex: 1; min-width: 0; }
+
+  /* Chevron — FunctionButton secondary large24 (fg-default). */
+  .accordion .chevron {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-6);
+    padding: var(--spacing-2) 0;
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-6);
+    cursor: pointer;
+    color: var(--fg-default);
+    font-family: var(--font);
+  }
+  .accordion.chevron-left .chevron { margin-left: 0; margin-right: 12px; }
+
+  /* Icon wrapper (spec) */
+
+  /* Chevron rotation */
+  .accordion .chevron .innerRoot {
+    transition: rotate var(--duration-fast-01) ease-out;
+  }
+  .accordion.is-open .chevron .innerRoot { rotate: 180deg; }
+
+  /* AccordionContent — direct-child `>` обязателен (double-nesting collision с Button .children) */
+  .accordion > .children {
+    position: relative;
+    overflow: clip;
+    padding: 0 var(--accordion-horizontal-padding);
+    max-height: 0;
+    transition: max-height var(--duration-fast-01) ease-out;
+  }
+  .accordion > .children::after {
+    display: block;
+    width: 100%;
+    padding-bottom: calc(
+      var(--accordion-horizontal-padding) -
+      (var(--accordion-padding) - var(--accordion-header-bottom-padding))
+    );
+    content: '';
+  }
+  .accordion.is-open > .children {
+    max-height: 1200px;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  DEFINITION LIST (внутри CowPinnedFields Accordion)
+     ║  Source: src/shared/components/DefinitionList/index.tsx:118-168
+     ║  Source: src/shared/components/DefinitionList/index.module.scss
+     ║
+     ║  shouldWrap=true (CowPinnedFields передаёт isCollapsible → shouldWrap)
+     ║  → .wrapped + grid columns (2 cols на desktop >673px)
+     ╚════════════════════════════════════════════════════════════════╝ */
+  .dl-root.wrapped .dl-content {
+    display: grid;
+    align-items: start;
+    gap: var(--spacing-24);
+  }
+  .dl-content.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dl-content.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dl-column {
+    overflow: hidden;
+    border: var(--border-width-1) solid var(--border-muted);
+    border-radius: var(--radius-8);
+  }
+  .dl-item { display: flex; }
+  .dl-item + .dl-item {
+    border-top: var(--border-width-1) solid var(--border-muted);
+  }
+  .dl-label, .dl-value {
+    flex: 1;
+    padding: var(--spacing-8) var(--spacing-12);
+  }
+  .dl-label {
+    color: var(--fg-soft);
+    min-width: 180px;
+    max-width: 260px;
+  }
+  .dl-value { color: var(--fg-default); min-width: 0; }
+  .dl-label .bodySmall,
+  .dl-value .bodySmall {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+  .dl-root.wrapped .dl-label,
+  .dl-root.wrapped .dl-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  TABS (line variant, RouterTabs)
+     ║  Source: src/shared/components/Tabs/index.tsx + components/Tab/index.tsx
+     ║  Source: components.css .tabs .tab (existing line-variant styles)
+     ║
+     ║  DOM:
+     ║    div[data-is-sticky-line-tabs] > div.root.line.tabsWrapper
+     ║      div.tabsScrollContainer.tabs
+     ║        a.tab[.active] > b.bodyMediumStrong + [badge]
+     ║      [rightContent ml-a self-center]
+     ╚════════════════════════════════════════════════════════════════╝ */
+  /* Локальные override'ы — .tab из components.css уже даёт базу.
+     Normalize <b> font-weight (UA bolder=700) */
+  a.tab {
+    color: inherit;
+    text-decoration: none;
+  }
+  .tab .bodyMediumStrong { font-weight: 500; font-style: normal; }
+
+  /* Tab counter (badge.counter внутри tab, ml-2) */
+  .tab .badge.counter {
+    margin-left: 2px;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  TAB CONTENT — Panel с DefinitionList секциями
+     ║  Source: routes/.../+info.tsx — CowPinnedFieldsLayout + Accordion-секции
+     ╚════════════════════════════════════════════════════════════════╝ */
+  .tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Page-layout wrapper — .content-grid-gap из layout.css не используем напрямую,
+     но gap body=24 даёт нужный ритм секций. */
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  DETAIL PAGE — архитектурно-корректный скелет    ║
+       ║                                                    ║
+       ║  Пример «карточка коровы»:                        ║
+       ║  routes/+$companyId/+_layout/+user/+cows/         ║
+       ║    +$cowId/+info.tsx                              ║
+       ║                                                    ║
+       ║  Структура:                                       ║
+       ║    1. PageHeader — back + title + badge + desc + actions
+       ║    2. Callout    — опц. warning / info            ║
+       ║    3. CowPinnedFields (Accordion + DefinitionList) — pinned-поля
+       ║    4. RouterTabs + tab-content                    ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       1. PAGE HEADER — reuse pattern из patterns/page-header.html Вариант 7
+       (back-button + title + titleBadge + description + actions)
+       Source: src/features/layouts/components/PageHeader/index.tsx:158-248
+       ═══════════════════════════════════════════════ -->
+  <div class="page-header" style="align-items: flex-start;">
+    <button class="btn medium36 ghost neutral back-btn" aria-label="Назад">
+      <svg width="20" height="20"><use href="../../icons.svg#arrow-up"/></svg>
+    </button>
+    <div class="page-header-left" style="display: grid; gap: 4px;">
+      <h1 class="page-header-title page-header-title-with-badge">
+        #2847 «Зорька»
+        <span class="badge small16 theme-default color-success"><span class="text">Стельная</span></span>
+      </h1>
+      <span class="page-header-description">Дойное стадо · группа 2 · отёл 05.06.2025 · лактация 3</span>
+    </div>
+    <div class="page-header-right">
+      <button class="btn medium36 secondary neutral">
+        <svg width="20" height="20"><use href="../../icons.svg#edit"/></svg>
+        <span class="children">Редактировать</span>
+      </button>
+      <button class="btn medium36 secondary neutral">
+        <svg width="20" height="20"><use href="../../icons.svg#download"/></svg>
+        <span class="children">Экспорт</span>
+      </button>
+      <button class="btn medium36 ghost neutral" aria-label="Меню">
+        <svg width="20" height="20"><use href="../../icons.svg#dots"/></svg>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. CALLOUT — warning (Выход препаратов)
+       Reuse pattern из components/callouts.html
+       Source: src/services/notifications/components/Callout/index.tsx
+       ═══════════════════════════════════════════════ -->
+  <div class="callout medium16 warning">
+    <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span></span>
+    <div class="contentWrapper">
+      <div class="content">
+        <div class="textWrapper">
+          <h4>Выход препаратов</h4>
+          <span>Молоко: до 17.04.2026. Мясо: до 28.04.2026.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. COW PINNED FIELDS — Accordion + DefinitionList
+       Source: src/widgets/cowFields/components/CowPinnedFields/index.tsx
+       Wrapper: Accordion theme=light size=large isChevronOnLeft=true
+       Content: DefinitionList shouldWrap (wrapped cols-2)
+       ═══════════════════════════════════════════════ -->
+  <div class="accordion large chevron-left is-open panel-light-large">
+    <div class="header pressable">
+      <button type="button" class="chevron" aria-label="Свернуть">
+        <span class="icon"><span class="innerRoot" style="width:24px;height:24px;">
+          <svg><use href="../../icons.svg#chevron-down"/></svg>
+        </span></span>
+      </button>
+      <h2 class="title flex-1">Избранное</h2>
+    </div>
+    <div class="children">
+      <!-- DefinitionList shouldWrap=true → .wrapped, ≥5 items → cols-2 (desktop >673px)
+           Source: DefinitionList/index.tsx:118-168 -->
+      <div class="dl-root wrapped" role="list">
+        <div class="dl-content cols-2">
+          <div class="dl-column">
+            <div class="dl-item" role="listitem">
+              <div class="dl-label"><span class="bodySmall" title="Инв. номер">Инв. номер</span></div>
+              <div class="dl-value"><span class="bodySmall" title="2847">2847</span></div>
+            </div>
+            <div class="dl-item" role="listitem">
+              <div class="dl-label"><span class="bodySmall" title="Кличка">Кличка</span></div>
+              <div class="dl-value"><span class="bodySmall" title="Зорька">Зорька</span></div>
+            </div>
+            <div class="dl-item" role="listitem">
+              <div class="dl-label"><span class="bodySmall" title="Возраст">Возраст</span></div>
+              <div class="dl-value"><span class="bodySmall" title="5 л. 11 мес.">5 л. 11 мес.</span></div>
+            </div>
+            <div class="dl-item" role="listitem">
+              <div class="dl-label"><span class="bodySmall" title="Статус">Статус</span></div>
+              <div class="dl-value"><span class="bodySmall" title="Стельная">Стельная</span></div>
+            </div>
+          </div>
+          <div class="dl-column">
+            <div class="dl-item" role="listitem">
+              <div class="dl-label"><span class="bodySmall" title="Лактация">Лактация</span></div>
+              <div class="dl-value"><span class="bodySmall" title="3">3</span></div>
+            </div>
+            <div class="dl-item" role="listitem">
+              <div class="dl-label"><span class="bodySmall" title="Дней в лактации">Дней в лактации</span></div>
+              <div class="dl-value"><span class="bodySmall" title="316">316</span></div>
+            </div>
+            <div class="dl-item" role="listitem">
+              <div class="dl-label"><span class="bodySmall" title="Последний удой">Последний удой</span></div>
+              <div class="dl-value"><span class="bodySmall" title="32,4 кг">32,4 кг</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. ROUTER TABS — line variant
+       Source: src/features/layouts/components/RouterTabs/index.tsx
+       Source: src/shared/components/Tabs/index.tsx + components/Tab/index.tsx
+       DOM Tab: <a class="tab"><b class="bodyMediumStrong">{title}</b>[badge counter]</a>
+       ═══════════════════════════════════════════════ -->
+  <div data-is-sticky-line-tabs>
+    <div class="tabs line">
+      <a href="#" class="tab active"><b class="bodyMediumStrong">Информация</b></a>
+      <a href="#" class="tab">
+        <b class="bodyMediumStrong">События</b>
+        <span class="badge counter small16 theme-default color-neutral" style="margin-left:2px;">
+          <span class="text">14</span>
+        </span>
+      </a>
+      <a href="#" class="tab"><b class="bodyMediumStrong">Продуктивность</b></a>
+      <a href="#" class="tab">
+        <b class="bodyMediumStrong">Осеменения</b>
+        <span class="badge counter small16 theme-default color-neutral" style="margin-left:2px;">
+          <span class="text">5</span>
+        </span>
+      </a>
+      <a href="#" class="tab">
+        <b class="bodyMediumStrong">Документы</b>
+        <span class="badge counter small16 theme-default color-neutral" style="margin-left:2px;">
+          <span class="text">4</span>
+        </span>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       TAB CONTENT (Outlet) — вкладка «Информация»
+       Секции собираются из готовых Accordion+DefinitionList (реальный паттерн +info.tsx).
+       ═══════════════════════════════════════════════ -->
+  <div class="tab-panel">
+
+    <!-- Секция «Происхождение» — Accordion light + large + DefinitionList list -->
+    <div class="accordion large chevron-left is-open panel-light-large">
+      <div class="header pressable">
+        <button type="button" class="chevron" aria-label="Свернуть">
+          <span class="icon"><span class="innerRoot" style="width:24px;height:24px;">
+            <svg><use href="../../icons.svg#chevron-down"/></svg>
+          </span></span>
+        </button>
+        <h2 class="title flex-1">Происхождение</h2>
+      </div>
+      <div class="children">
+        <div class="dl-root wrapped" role="list">
+          <div class="dl-content cols-2">
+            <div class="dl-column">
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Отец">Отец</span></div>
+                <div class="dl-value"><span class="bodySmall" title="Бык 7162 «Тайсон»">Бык 7162 «Тайсон»</span></div>
+              </div>
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Мать">Мать</span></div>
+                <div class="dl-value"><span class="bodySmall" title="Корова 1204 «Милка»">Корова 1204 «Милка»</span></div>
+              </div>
+            </div>
+            <div class="dl-column">
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Ферма рождения">Ферма рождения</span></div>
+                <div class="dl-value"><span class="bodySmall" title="Малиновка-1">Малиновка-1</span></div>
+              </div>
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Порода">Порода</span></div>
+                <div class="dl-value"><span class="bodySmall" title="Голштинская">Голштинская</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция «Текущая лактация» -->
+    <div class="accordion large chevron-left is-open panel-light-large">
+      <div class="header pressable">
+        <button type="button" class="chevron" aria-label="Свернуть">
+          <span class="icon"><span class="innerRoot" style="width:24px;height:24px;">
+            <svg><use href="../../icons.svg#chevron-down"/></svg>
+          </span></span>
+        </button>
+        <h2 class="title flex-1">Текущая лактация</h2>
+      </div>
+      <div class="children">
+        <div class="dl-root wrapped" role="list">
+          <div class="dl-content cols-2">
+            <div class="dl-column">
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Начало лактации">Начало лактации</span></div>
+                <div class="dl-value"><span class="bodySmall" title="05.06.2025">05.06.2025</span></div>
+              </div>
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Дней в лактации">Дней в лактации</span></div>
+                <div class="dl-value"><span class="bodySmall" title="316">316</span></div>
+              </div>
+            </div>
+            <div class="dl-column">
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Средний удой">Средний удой</span></div>
+                <div class="dl-value"><span class="bodySmall" title="28,4 кг/день">28,4 кг/день</span></div>
+              </div>
+              <div class="dl-item" role="listitem">
+                <div class="dl-label"><span class="bodySmall" title="Последний контроль">Последний контроль</span></div>
+                <div class="dl-value"><span class="bodySmall" title="12.04.2026">12.04.2026</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция «Комментарии оператора» — Accordion + простой текстовый контент -->
+    <div class="accordion large chevron-left is-open panel-light-large">
+      <div class="header pressable">
+        <button type="button" class="chevron" aria-label="Свернуть">
+          <span class="icon"><span class="innerRoot" style="width:24px;height:24px;">
+            <svg><use href="../../icons.svg#chevron-down"/></svg>
+          </span></span>
+        </button>
+        <h2 class="title flex-1">Комментарии оператора</h2>
+      </div>
+      <div class="children">
+        <span class="bodySmall" style="display:block; font-size:14px; line-height:20px; color:var(--fg-default);">
+          Повышенная молочная продуктивность, но в последний месяц отмечена потеря веса ~8 кг. Рекомендовано скорректировать рацион и провести ветосмотр.
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- FIGMA HANDOFF / STRUCTURE NOTES
+    Detail-страница — 1:1 с product-src `routes/+$companyId/+_layout/+user/+cows/+$cowId/+info.tsx`.
+
+    Компоненты в DOM:
+      - PageHeader (src/features/layouts/components/PageHeader)
+        — back-button: Button ghost + IconVariants.arrowUp + RotateVariants.left, medium36
+        — title: Typography heading2 tag=h1, className 'flex items-center gap-12'
+          - titleBadge внутри h1 (Badge small16)
+        — description: Typography bodySmall text-soft
+        — headerActions: массив button-ов, rendered через getHeaderActionsElement, gap-12
+      - Callout (src/services/notifications/components/Callout)
+        — variant=warning, size=medium16
+        — icon: NOTIFICATION_ICON_VARIANTS_DICT[warning] = warning-circle-filled
+        — title: h4 bodySmallStrong, subtitle: Typography bodySmall
+      - CowPinnedFields (src/widgets/cowFields/components/CowPinnedFields)
+        — Accordion theme=light size=large isChevronOnLeft=true, title «Избранное»
+        — DefinitionList shouldWrap=true → wrapped cols-2
+      - RouterTabs (src/features/layouts/components/RouterTabs)
+        — Tabs variant=line
+        — Tab: <a.tab> с <b.bodyMediumStrong> + optional Badge counter
+      - Content sections — Accordion + DefinitionList паттерн из +info.tsx
+
+    Simplified / aspirational:
+      - Sidebar удалён — detail-страница в проде рендерится внутри LayoutShell,
+        здесь фокус на content-area
+      - Нет JS-интерактива (open/close accordion, tab routing) — статичный is-open
+      - FunctionButtons в Callout functionButtonProps опущены — basic variant
+      - CloseButton в Callout опущен (onClose=undefined → withCloseButton=false)
+  -->
+  <!-- AiAssistantButton FAB — в продукте fixed right:32 bottom:32 на всех страницах.
+       Source: widgets/aiAssistant/components/AiAssistantButton/index.tsx -->
+  <button class="ai-assistant-btn" type="button" aria-expanded="false" data-is-floating-element="true">
+    <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#arkasha"/></svg></span></span>
+    <span class="children">Чат с ИИ</span>
+  </button>
+
+
+</body>
+</html>

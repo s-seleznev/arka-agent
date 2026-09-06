@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Avatar</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 8px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; font-family: ui-monospace, monospace; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .grid-cols {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .cell {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: var(--radius-6);
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  AVATAR
+     ║  Source: src/shared/components/Avatar/index.tsx + index.module.scss
+     ║
+     ║  Простой компонент: один размер 24×24, radius 6, grid place-items-center,
+     ║  показывает первую букву name[0]. Background = color-{color}-container-default
+     ║  (прозрачный alpha 0.1). Text color = fg-soft.
+     ║
+     ║  DOM (index.tsx:69-86):
+     ║    span.root.bodyMedium[role=img][aria-label={name}]
+     ║      └─ name[0]  ИЛИ  '?'  ИЛИ  <Loader/>
+     ║
+     ║  Root — это Typography variant=bodyMedium → span (TYPOGRAPHY_VARIANT_TO_TAG_DICT[bodyMedium]='span').
+     ║  styles.root задаёт geometry (24×24 grid), Typography добавляет bodyMedium класс (16/400/24).
+     ║  role='img' и aria-label — ВСЕГДА на root, даже в isLoading состоянии.
+     ║
+     ║  ColorVariants доступны (index.tsx:21-23): исключены neutral и accent.
+     ║  Остаются: success, warning, error, info, status01, status02, status03, status04.
+     ║
+     ║  AVATAR_COLOR_ITERATOR — makeColorByValueIterator: хеширует input (string | number),
+     ║  всегда возвращает один и тот же цвет для одного и того же значения.
+     ║
+     ║  isLoading (index.tsx:60,76-82):
+     ║    content = <Loader/> (НЕ текст), bg принудительно = neutral-container-default
+     ║    Loader DOM: div.root[role=status] > span.root (Icon) > span.innerRoot > svg.spinner > path
+     ║    Spinner — inline SVG (НЕ из icons.svg), анимация CSS keyframes, color=colorAccentSoft (20px).
+     ║
+     ║  ❌ Нет AvatarStack / AvatarGroup в коде.
+     ║  ❌ Нет image-варианта — только текстовая первая буква.
+     ║  ❌ Нет других размеров — только 24×24.
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* .avatar = styles.root + typographyStyles.bodyMedium (из Typography variant=bodyMedium) */
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    border-radius: var(--radius-6);
+    color: var(--fg-soft);
+    user-select: none;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px; /* bodyMedium — typography.module.scss */
+    flex: none;
+  }
+
+  /* Colors — container-default (alpha 0.1) из каждого цвета */
+  .avatar.success  { background: var(--success-container-default); }
+  .avatar.warning  { background: var(--warning-container-default); }
+  .avatar.error    { background: var(--error-container-default); }
+  .avatar.info     { background: var(--info-container-default); }
+  .avatar.status01 { background: var(--status01-container-default); }
+  .avatar.status02 { background: var(--status02-container-default); }
+  .avatar.status03 { background: var(--status03-container-default); }
+  .avatar.status04 { background: var(--status04-container-default); }
+  /* isLoading — всегда neutral bg, даже если color передан */
+  .avatar.loading  { background: var(--neutral-container-default); }
+
+  /* ─── Loader DOM (Loader/index.tsx + Icon/index.tsx + Icon/components/Spinner) ─── */
+  /* div.root[role=status] > span.root (Icon) > span.innerRoot > svg.spinner */
+  .loader-root {
+    display: grid;
+    place-items: center;
+  }
+  .icon {
+    display: inline-flex;
+  }
+  .icon-spinner {
+    width: 100%;
+    height: 100%;
+    animation: spinner-rotate 1.4s infinite linear;
+  }
+  @keyframes spinner-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Контекст использования — sidebar nav-item, имитация */
+  .sidebar-sample {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+    border: 1px solid var(--border-muted);
+    width: fit-content;
+  }
+  .sidebar-sample-label {
+    font-size: 14px; font-weight: 400; line-height: 20px;
+    color: var(--fg-default);
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Avatar · структура и особенности</p>
+    <p class="block-section-note">Минималистичный компонент: 24×24, <code>radius 6</code>, <code>grid place-items-center</code>, показывает <code>name[0]</code> — первую букву. Background = <code>color-{color}-container-default</code> (прозрачный alpha 0.1). Color = <code>fg-soft</code>. Доступные цвета — 8 (<code>success</code>, <code>warning</code>, <code>error</code>, <code>info</code>, <code>status01-04</code>); <code>neutral</code> и <code>accent</code> исключены из итератора. <code>isLoading=true</code> всегда даёт <code>neutral</code> фон + Loader.</p>
+    <p class="block-section-source">Source: Avatar/index.tsx + index.module.scss + component-tokens.json (avatar.size = 24px)</p>
+
+    <pre class="dom-tree">Avatar DOM (index.tsx:69-86):
+  span.root[role=img][aria-label={name}]          ← display: grid, 24×24, radius 6
+                                                    style: bg = {color}-container-default
+    Typography bodyMedium (16/400/24)             ← name[0] — первая буква имени
+                                                    или '?' если name пустое
+                                                    или Loader если isLoading=true
+
+Props:
+  name?          первая буква используется как content. Default ''
+  color?         ColorVariants (default neutral, но через AVATAR_COLOR_ITERATOR
+                 выдаются только status/success/warning/error/info)
+  isLoading?     показывает Loader вместо буквы, bg переключается на neutral</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Использование в проде</p>
+    <pre class="dom-tree">CompanySelector (в sidebar)    — Avatar с буквой компании + иконка company
+User-меню (sidebar-bottom)      — Avatar с буквой оператора
+Список фермы / групп            — стабильный цвет через AVATAR_COLOR_ITERATOR
+                                  (хешируется id → всегда один и тот же цвет
+                                   для одной сущности)</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. COLORS — 8 доступных цветов
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Colors — 8 вариантов (без neutral и accent)</p>
+    <p class="block-section-note">В <code>AVATAR_COLOR_VARIANTS</code> (<code>index.tsx:21-23</code>) фильтруются <code>neutral</code> и <code>accent</code>. Остаются 4 семантических (success/warning/error/info) + 4 status (01-04). Все на фоне <code>container-default</code> (alpha 0.1) того же цвета. Текст — <code>fg-soft</code> (неокрашенный, нейтрально-тёмный).</p>
+    <p class="block-section-source">Source: Avatar/index.tsx:21-23 (AVATAR_COLOR_VARIANTS filter)</p>
+
+    <div class="row">
+      <span class="avatar success"  role="img" aria-label="Anna">A</span>
+      <span class="avatar warning"  role="img" aria-label="Boris">B</span>
+      <span class="avatar error"    role="img" aria-label="Catherine">C</span>
+      <span class="avatar info"     role="img" aria-label="Dmitry">D</span>
+      <span class="avatar status01" role="img" aria-label="Egor">E</span>
+      <span class="avatar status02" role="img" aria-label="Fedor">F</span>
+      <span class="avatar status03" role="img" aria-label="Galina">G</span>
+      <span class="avatar status04" role="img" aria-label="Harry">H</span>
+    </div>
+    <p class="variant-caption" style="margin-top: 16px;">success · warning · error · info · status01 · status02 · status03 · status04</p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. STATES — с name / без name / isLoading
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">States — name / no name / isLoading</p>
+    <p class="block-section-note">Три состояния из <code>index.tsx:60,85</code>: (1) есть <code>name</code> → первая буква; (2) <code>name</code> пустое → <code>'?'</code>; (3) <code>isLoading=true</code> → <code>Loader</code>, bg принудительно <code>neutral</code> (неважно какой color передан).</p>
+    <p class="block-section-source">Source: Avatar/index.tsx:60 (missingNamePlaceholder) + 76-82 (bg switch для isLoading)</p>
+
+    <div class="grid-cols">
+      <div class="cell">
+        <span class="variant-caption">name="Иван" — первая буква 'И'</span>
+        <span class="avatar status03" role="img" aria-label="Иван">И</span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">name="" — fallback '?'</span>
+        <span class="avatar status03" role="img" aria-label="">?</span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">isLoading=true — Loader + neutral bg</span>
+        <span class="avatar loading" role="img" aria-label="Иван">
+          <div class="loader-root" role="status">
+            <span class="icon">
+              <span class="innerRoot">
+                <svg class="icon-spinner" viewBox="0 0 24 24" fill="none" role="img">
+                  <path d="M11.9933 3.75102C12.4078 3.75102 12.7439 3.41501 12.7439 3.00051C12.7439 2.58602 12.4078 2.25 11.9933 2.25C8.089 2.25 4.4735 4.6658 2.97937 8.27294C1.48524 11.8801 2.33356 16.1449 5.09435 18.9057C7.85514 21.6664 12.1199 22.5148 15.7271 21.0206C19.3342 19.5265 21.75 15.911 21.75 12.0067C21.75 11.5922 21.414 11.2561 20.9995 11.2561C20.585 11.2561 20.249 11.5922 20.249 12.0067C20.249 15.3103 18.2048 18.3696 15.1526 19.6339C12.1004 20.8981 8.49178 20.1803 6.15573 17.8443C3.81968 15.5082 3.10187 11.8996 4.36614 8.84736C5.6304 5.79516 8.68967 3.75102 11.9933 3.75102Z" fill="currentColor"/>
+                </svg>
+              </span>
+            </span>
+          </div>
+        </span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. COLOR ITERATOR — стабильное хеширование
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">AVATAR_COLOR_ITERATOR — стабильный color по input value</p>
+    <p class="block-section-note"><code>makeColorByValueIterator(AVATAR_COLOR_VARIANTS)</code> создаёт детерминированный маппер: хеширует input (<code>string | number</code>) → один и тот же цвет всегда. Это гарантирует что avatar одного и того же оператора/компании/группы стабильно выглядит одинаково между рендерами и экранами. В demo — имитация для 8 имён, цвет вычисляется как <code>hash(name) % 8</code>.</p>
+    <p class="block-section-source">Source: Avatar/index.tsx:29-31 + shared/helpers/color (makeColorByValueIterator)</p>
+
+    <div class="row">
+      <div class="sidebar-sample">
+        <span class="avatar status01" role="img" aria-label="Алексей">А</span>
+        <span class="sidebar-sample-label">Алексей</span>
+      </div>
+      <div class="sidebar-sample">
+        <span class="avatar status02" role="img" aria-label="Борис">Б</span>
+        <span class="sidebar-sample-label">Борис</span>
+      </div>
+      <div class="sidebar-sample">
+        <span class="avatar error" role="img" aria-label="Виктор">В</span>
+        <span class="sidebar-sample-label">Виктор</span>
+      </div>
+      <div class="sidebar-sample">
+        <span class="avatar status04" role="img" aria-label="Григорий">Г</span>
+        <span class="sidebar-sample-label">Григорий</span>
+      </div>
+      <div class="sidebar-sample">
+        <span class="avatar success" role="img" aria-label="Дмитрий">Д</span>
+        <span class="sidebar-sample-label">Дмитрий</span>
+      </div>
+      <div class="sidebar-sample">
+        <span class="avatar info" role="img" aria-label="Елена">Е</span>
+        <span class="sidebar-sample-label">Елена</span>
+      </div>
+      <div class="sidebar-sample">
+        <span class="avatar warning" role="img" aria-label="Жанна">Ж</span>
+        <span class="sidebar-sample-label">Жанна</span>
+      </div>
+      <div class="sidebar-sample">
+        <span class="avatar status03" role="img" aria-label="Зоя">З</span>
+        <span class="sidebar-sample-label">Зоя</span>
+      </div>
+    </div>
+    <p class="variant-caption" style="margin-top: 16px;">При повторном рендере каждое имя даст тот же цвет — color не случайный, а хешируется из value</p>
+  </div>
+
+</body>
+</html>

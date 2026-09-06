@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Pattern: ReportCardBuilder</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 12px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; font-family: ui-monospace, monospace; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+  .stage {
+    /* Панели отрисовываются на серый bg-page — в проде карточки
+       рендерятся внутри content area с bg-page */
+    background: var(--bg-page);
+    border-radius: var(--radius-8);
+    padding: 24px;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  REPORT CARD BUILDER
+     ║  Source: src/features/reportCardBuilder/components/
+     ║    ReportCardBuilderCard/            — outer container с 3 состояниями
+     ║    ReportCardBuilderFormSection/     — collapsible секция (period, filters, groupings)
+     ║    ReportCardBuilderFormArrayItem/   — элемент массива (один filter-config, один grouping-config)
+     ║
+     ║  Use-cases: custom milking reports, custom events reports —
+     ║  любые «собери-свой-отчёт» карточки с переключателем в режим настроек.
+     ║
+     ║  ReportCardBuilderCardStates:
+     ║    view (default)  — карточка показывает отчёт, кнопка «Настройки» справа
+     ║    update           — editing mode, settings-form в header (через Accordion),
+     ║                       кнопки «Отмена» + «Сохранить», bg меняется на accent-tinted
+     ║    create           — аналог update, «Создать» вместо «Сохранить»
+     ║
+     ║  Визуал transition (index.module.scss:14-27):
+     ║    viewingRoot    — border-color: transparent, bg surface-1
+     ║    editingRoot    — border-color: accent-muted, bg accent-opaque-container-soft
+     ║    transition border-color на duration-fast-01 (плавное появление рамки)
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Outer card — panelStyles.largePanel + border 2px transparent → accent-muted */
+  .rcb-card {
+    --panel-border-width: 2px;
+    --panel-padding-with-border: calc(var(--spacing-24) - var(--panel-border-width));
+    --panel-padding-without-border: var(--spacing-24);
+    --panel-bg-color: var(--bg-surface-1);
+    border: var(--panel-border-width) solid transparent;
+    border-radius: var(--radius-12);
+    background: var(--panel-bg-color);
+    transition: border-color var(--duration-fast-01) ease-in-out, background-color var(--duration-fast-01) ease-in-out;
+  }
+  .rcb-card.editing {
+    border-color: var(--accent-muted);
+    --panel-bg-color: var(--accent-opaque-container-soft);
+    background: var(--panel-bg-color);
+  }
+
+  .rcb-header {
+    padding: var(--panel-padding-with-border) var(--panel-padding-with-border) 0;
+  }
+  .rcb-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-16);
+    align-items: center;
+  }
+  .rcb-title {
+    margin: 0 var(--spacing-24) 0 0;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--fg-default);
+  }
+  .rcb-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--spacing-8);
+    margin-left: auto;
+  }
+
+  /* Content slot — where the report (table/chart) goes */
+  .rcb-content {
+    padding: var(--panel-padding-without-border) var(--panel-padding-with-border) var(--panel-padding-with-border);
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    margin-top: var(--spacing-24);
+  }
+  .rcb-card.editing .rcb-content {
+    /* Padding-top превращается в margin-top когда editing-form раскрыта */
+    margin-top: var(--spacing-24);
+  }
+
+  /* Settings form area — внутри header, раскрывается через Accordion.
+     Real layout: Form с className autoGridFixedContent (contentGrid.module.scss:96-113)
+       → grid auto-fit, min 280px, gap 16. На wide — секции в строку,
+         на narrow — стек вертикально. */
+  .rcb-editing-area {
+    margin: 0 calc(var(--spacing-24) * -1) var(--spacing-24);
+    padding: var(--spacing-24);
+    background: transparent;
+    display: grid;
+    gap: var(--spacing-16);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    align-items: start;
+  }
+
+
+  /* ───── Button secondary small24 (Настройки / Отмена / CSV export).
+     Source: Button/index.module.scss (root + .children) + index.tsx:219-230.
+     ВАЖНО: текст внутри обёрнут в .children (Typography.children) с padding 0 4 —
+     это соответствует real Button с .children { padding: 0 var(--spacing-4) }.
+     Без обёртки «отступ справа» выглядит неправильным (text прижимается к краю).
+     Icon margin-right = button-icon-padding (spacing-2) для small24. */
+  .btn-small {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;                        /* component-tokens.json button.size.small24 */
+    padding: 0 var(--spacing-8);         /* --button-horizontal-padding small24 */
+    border: 0;
+    border-radius: var(--radius-6);
+    background: var(--neutral-container-default);       /* secondary.neutral bg */
+    color: var(--neutral-on-container);                 /* secondary.neutral fg */
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 12px; font-weight: 500; line-height: 16px;  /* descriptionLargeStrong */
+    white-space: nowrap;
+    transition: background-color var(--duration-fast-01) ease-out, color var(--duration-fast-01) ease-out;
+  }
+  .btn-small:hover { background: var(--neutral-container-hover); color: var(--neutral-hover); }
+  .btn-small.primary {                                  /* primary.accent */
+    background: var(--accent-default);
+    color: var(--accent-on-color);
+  }
+  .btn-small.primary:hover { background: var(--accent-hover); }
+
+  /* withOnlyIcon overrides: hpad 4, radius 8 для small24.
+     Source: Button/index.module.scss:191-194 */
+  .btn-small.icon-only {
+    padding: 0 var(--spacing-4);
+    border-radius: var(--radius-8);
+    width: 24px;
+    justify-content: center;
+  }
+
+  /* Icon — small24 = 16×16 (component-tokens.json button.iconSize.small24) */
+  .btn-small .icon { display: inline-flex; align-items: center; flex: none; }
+  .btn-small .icon svg { width: 16px; height: 16px; display: block; }
+  .btn-small:not(.icon-only) .icon:first-child { margin-right: var(--spacing-2); }
+
+  /* Text wrapper — соответствует .children в Button (padding 0 4) */
+  .btn-small .children {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--spacing-4);
+  }
+
+  /* ───── FunctionButton tertiary large24 (кнопка «Добавить» в FormSection).
+     Source: FunctionButton/index.module.scss + index.tsx:232,247-260.
+     ВАЖНО: НЕ Button, а FunctionButton — transparent bg, БЕЗ border, padding 0.
+     Size = max-content. gap 6 (large24), Typography py-2 wrapper, font bodySmallStrong
+     (14/500/20), icon 24×24 (SizeVariants.size24), color fg-soft (tertiary.light),
+     hover → accent-hover. */
+  .rcb-fn-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-6);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-6);
+    background: transparent;
+    color: var(--fg-soft);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 14px; font-weight: 500; line-height: 20px;
+    white-space: nowrap;
+    height: max-content;
+    transition: color var(--duration-fast-01) ease-out;
+  }
+  .rcb-fn-btn:hover { color: var(--accent-hover); }
+  .rcb-fn-btn .icon { display: inline-flex; align-items: center; flex: none; }
+  .rcb-fn-btn .icon svg { width: 24px; height: 24px; display: block; }
+  .rcb-fn-btn .children { padding: var(--spacing-2) 0; }
+
+
+  /* ───── Report placeholder (table или chart) ───── */
+  .report-placeholder {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 180px;
+    padding: 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: var(--radius-8);
+    color: var(--fg-soft);
+    font-size: 13px;
+    line-height: 18px;
+    font-family: ui-monospace, monospace;
+  }
+  .report-placeholder-title {
+    font-weight: 500;
+    color: var(--fg-default);
+  }
+
+
+  /* ═══════════════════════════════════════════════════════
+     FORM SECTION (ReportCardBuilderFormSection)
+     ═══════════════════════════════════════════════════════ */
+
+  /* Root — panelStyles.panel (bg surface-1, radius 8) */
+  .rcb-section {
+    --accordion-padding: var(--spacing-16);
+    display: grid;
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+  }
+  .rcb-section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-8);
+    padding: var(--accordion-padding);
+    cursor: pointer;
+  }
+  .rcb-section-title-wrap {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+    flex: 1;
+    min-width: 0;
+  }
+  .rcb-section-chevron {
+    display: inline-flex;
+    align-items: center;
+    color: var(--fg-soft);
+    flex: none;
+    transition: transform var(--duration-fast-01) ease-out;
+  }
+  .rcb-section-chevron svg { width: 20px; height: 20px; }
+  .rcb-section.collapsed .rcb-section-chevron { transform: rotate(-90deg); }
+  .rcb-section-title {
+    font-size: 14px; font-weight: 500; line-height: 20px;
+    color: var(--fg-default);
+  }
+  /* .rcb-section-counter — только align-self, всё остальное (bg/color/padding/radius)
+     наследуется от .badge.small16.counter.theme-default.color-neutral — 1:1 с
+     ReportCardBuilderFormSection/index.tsx:136 (Badge size=small16 variant=counter,
+     без color/theme overrides → defaults neutral + default). Source: Badge/index.tsx:79-86 */
+  .rcb-section-counter { align-self: center; }
+  .rcb-section-add {
+    margin-left: auto;
+    flex: none;
+  }
+  .rcb-section-body {
+    padding: 0 var(--accordion-padding) var(--accordion-padding);
+    display: grid;
+    gap: var(--spacing-12);
+  }
+  .rcb-section.collapsed .rcb-section-body { display: none; }
+
+  /* No-children message — bordered, dashed если empty */
+  .rcb-no-children {
+    display: grid;
+    place-items: center;
+    height: 112px;
+    padding: var(--spacing-16);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-6);
+    text-align: center;
+    font-size: 14px; font-weight: 500; line-height: 20px;
+    color: var(--fg-soft);
+  }
+
+
+  /* ═══════════════════════════════════════════════════════
+     FORM ARRAY ITEM (ReportCardBuilderFormArrayItem)
+     ═══════════════════════════════════════════════════════ */
+
+  /* Item — простая карточка с title + description + delete + content */
+  .rcb-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-12);
+    padding: var(--spacing-12);
+    background: var(--neutral-opaque-container-soft);
+    border-radius: var(--radius-6);
+  }
+  .rcb-item-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-12);
+  }
+  .rcb-item-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .rcb-item-title {
+    font-size: 14px; font-weight: 500; line-height: 20px;
+    color: var(--fg-default);
+  }
+  .rcb-item-desc {
+    font-size: 12px; font-weight: 400; line-height: 16px;
+    color: var(--fg-muted);
+  }
+  .rcb-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-12);
+  }
+  .rcb-item-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    padding: 0; border: 0; border-radius: var(--radius-4);
+    background: transparent;
+    color: var(--fg-soft);
+    cursor: pointer;
+    flex: none;
+  }
+  .rcb-item-close:hover { background: var(--neutral-container-hover); }
+  .rcb-item-close svg { width: 20px; height: 20px; }
+
+
+  /* ───── Input / Select / DateInput / DateRangeInput — DOM 1:1 с кодом.
+     Полные варианты состояний смотри в components/form-fields.html.
+     ──────────────────────────────────────────────────────────────────── */
+
+  /* Label — Typography tag='label' role='label' variant=bodySmall. Source: Label/index.tsx:52-64 */
+  .rcb-label {
+    display: block;
+    font-size: 14px; font-weight: 400; line-height: 20px;
+    color: var(--fg-default);
+    margin-bottom: var(--spacing-4);
+  }
+  /* Field root — grid gap-4. Source: Input/index.module.scss .root */
+  .rcb-field {
+    display: grid;
+    gap: var(--spacing-4);
+    min-width: 0;
+  }
+
+  /* DateInput / DateRangeInput — 1:1 с DateInput/DateRangeInput.
+     Source: src/services/dateTime/components/DateInput/index.module.scss
+     Source: src/services/dateTime/components/DateRangeInput/index.tsx:422-521 (DOM)
+       <inputContainer flex items-center>
+         <Typography tag='div' className="flex flex-1 items-center">
+           <DateTimeInputSegment/> × N (dd, /, mm, /, yyyy)
+         </Typography>
+         <div className="flex items-center gap-4 ml-8">
+           [clear Icon] [calendar Icon]  ← iconы СПРАВА (не слева!)
+         </div>
+       </inputContainer> */
+  .date-input {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 var(--spacing-8);
+    border: 2px solid transparent;
+    border-radius: var(--radius-8);
+    background: var(--bg-surface-1);        /* theme=light (default) */
+    color: var(--fg-default);
+    font-family: var(--font);
+    font-size: 14px; line-height: 20px;     /* medium36 → bodySmall */
+    font-variant-numeric: lining-nums tabular-nums;
+    min-width: 160px;
+    cursor: text;
+    user-select: none;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+  .date-input.dark { background: var(--bg-surface-3); }
+  .date-input:hover { border-color: var(--neutral-opaque-container-hover); }
+  .date-range-input { min-width: 240px; }
+
+  /* Wrapper для сегментов = Typography tag='div' className="flex flex-1 items-center" */
+  .date-input .date-field { display: flex; flex: 1 1 auto; align-items: center; min-width: 0; }
+  /* editable сегмент (число/placeholder) — padding 0 1px из DateTimeInputSegment .editable */
+  .date-input .date-segment { padding: 0 var(--spacing-1); }
+  /* literal сегмент (разделитель) — без padding, fg-muted когда placeholder */
+  .date-input .date-sep { color: var(--fg-muted); padding: 0; }
+
+  /* Actions-блок = <div className="flex items-center gap-4 ml-8"> */
+  .date-input .date-actions { display: flex; align-items: center; gap: var(--spacing-4); margin-left: var(--spacing-8); flex: none; }
+  /* Calendar icon — SizeVariants.size20 (DateInput/index.tsx:334) */
+  .date-input .date-icon { width: 20px; height: 20px; color: var(--fg-muted); display: block; }
+  /* Fields row — grid grid-cols-2 gap-12 (real pattern в ValueConfigArrayItemCard /
+     RowOrColumnConfigArrayItemCard: CustomReportPivotSettingsForm/*ArrayItemCard.tsx:173).
+     Поля по умолчанию занимают 1 колонку; .col-span-full — full-width для single-field row. */
+  .rcb-fields-row {
+    display: grid;
+    gap: var(--spacing-12);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rcb-fields-row .col-span-full { grid-column: span 2; }
+  /* На узких контейнерах (auto-fit 280px колонка editing-area) схлопывается в 1 кол. */
+  @media (max-width: 600px) {
+    .rcb-fields-row { grid-template-columns: minmax(0, 1fr); }
+    .rcb-fields-row .col-span-full { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">ReportCardBuilder · 3 состояния + settings form</p>
+    <p class="block-section-note">Паттерн для «собери-свой-отчёт» карточек. Composition: <code>ReportCardBuilderCard</code> (outer) + <code>ReportCardBuilderFormSection</code> (collapsible-секции внутри settings-form) + <code>ReportCardBuilderFormArrayItem</code> (элемент массива — filter-config, grouping-config). Использует Panel + Accordion + Button + Form. 3 состояния — <code>view / update / create</code> — отличаются набором кнопок в header и наличием settings-form. Visual transition: <code>view</code> — обычная панель bg-surface-1, <code>editing</code> (update/create) — accent-tinted bg <code>accent-opaque-container-soft</code> + border <code>accent-muted</code>, duration fast-01.</p>
+    <p class="block-section-source">Source: src/features/reportCardBuilder/components/ — ReportCardBuilderCard/index.tsx + index.module.scss + ReportCardBuilderFormSection/ + ReportCardBuilderFormArrayItem/</p>
+
+    <pre class="dom-tree">ReportCardBuilderCard (outer, panelStyles.largePanel + border 2px)
+  .root — base (border transparent, bg surface-1)
+  .viewingRoot   — border transparent
+  .editingRoot   — border accent-muted, bg accent-opaque-container-soft
+
+  div.header                                    ← padding 24-border-width
+    div.flex.gap-16.items-center
+      Typography bodyLargeStrong (title)        ← меняется per state:
+                                                  view    → title
+                                                  update  → updatingTitle
+                                                  create  → creatingTitle
+      div.ml-a.flex.gap-8                       ← actions per state:
+        view:    additionalButtons + [delete] + «Настройки»
+        update:  «Отмена» + «Сохранить»
+        create:  [«Отмена»] + «Создать»
+    Accordion (editing-form) через renderEditingContent()
+      div.container-inline-size
+        {renderEditingContent()}                ← settings-form:
+                                                  FormSection[] → FormArrayItem[]
+  div.children                                  ← padding 24-border-width
+    bg surface-1, radius 12
+    {content} — отчёт (таблица или график)      ← children(isEditing) может быть
+                                                  функцией — тогда isEditing
+                                                  доступен для conditional render
+
+ReportCardBuilderCardStates enum:
+  view    (default)
+  update
+  create</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. VIEW STATE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">View state — отчёт + кнопки Export/Delete/Настройки</p>
+    <p class="block-section-note">Дефолтное состояние. Header: title слева (<code>bodyLargeStrong</code>), actions справа — <code>additionalButtons</code> (обычно ExportToCsvButton) + optional delete + <strong>«Настройки»</strong> (Button secondary small24 + iconVariant settings). Content — сам отчёт (<code>CustomMilkingReportData</code>, <code>CustomEventsReportData</code> и т.п.). Клик по «Настройки» → <code>onCardStateChange(update)</code>.</p>
+    <p class="block-section-source">Source: ReportCardBuilderCard/index.tsx:168-196 (view state buttons)</p>
+
+    <div class="stage">
+      <div class="rcb-card">
+        <div class="rcb-header">
+          <div class="rcb-header-row">
+            <span class="rcb-title">Удой по группам · 1–31 марта 2026</span>
+            <div class="rcb-actions">
+              <button class="btn-small">
+                <span class="icon"><svg><use href="../../icons.svg#download"/></svg></span>
+                <span class="children">Скачать CSV</span>
+              </button>
+              <button class="btn-small">
+                <span class="icon"><svg><use href="../../icons.svg#settings"/></svg></span>
+                <span class="children">Настройки</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="rcb-content">
+          <div class="report-placeholder">
+            <span class="report-placeholder-title">📊 CustomMilkingReportData (chart + table)</span>
+            <div>Chart: line-chart, 4 линии (Группа 1-4), период 1-31 марта</div>
+            <div>Table: 4 rows × 12 columns (groupings × dates)</div>
+            <div>—</div>
+            <div>Reference: src/widgets/customMilkingReport/components/CustomMilkingReportData/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="block-section-note" style="margin-top: 16px;"><strong>Note:</strong> <code>onDelete</code> prop существует в API компонента и рендерит delete-button <em>между</em> <code>additionalButtons</code> и «Настройки» (ReportCardBuilderCard/index.tsx:172-182), но в продакшен-коде ни один из трёх usage'ов (<code>CustomMilkingReportCard</code>, <code>CustomReportPivotCard</code>, <code>ReproductionHdrAndPrReportCard</code>) его не передаёт. Поэтому в product'е этот паттерн не встречается — delete обычно идёт через отдельный ContextMenu или ConfirmModal, а не как icon-button в header. Если использовать — <code>variant=secondary, theme=neutral</code> (default), БЕЗ destructive стиля.</p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. UPDATE STATE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Update state — editing mode с settings form</p>
+    <p class="block-section-note">При нажатии «Настройки» карточка переходит в <code>update</code>: title меняется на <code>updatingTitle</code> («Настройки графика и таблицы»), справа — кнопки «Отмена» + «Сохранить». Border становится <code>accent-muted</code>, bg — <code>accent-opaque-container-soft</code>. Settings-form раскрывается через Accordion. Внутри — <code>ReportCardBuilderFormSection</code>'ы: Период / Группировки / Фильтры / Ось Y. Content (отчёт) виден под ними — можно сравнивать по ходу редактирования.</p>
+    <p class="block-section-source">Source: ReportCardBuilderCard/index.tsx:197-221 (editing buttons) + 224-230 (accordion с renderEditingContent)</p>
+
+    <div class="stage">
+      <div class="rcb-card editing">
+        <div class="rcb-header">
+          <div class="rcb-header-row">
+            <span class="rcb-title">Настройки графика и таблицы</span>
+            <div class="rcb-actions">
+              <button class="btn-small"><span class="children">Отмена</span></button>
+              <button class="btn-small primary"><span class="children">Сохранить</span></button>
+            </div>
+          </div>
+          <div class="rcb-editing-area">
+            <!-- FormSection: Период -->
+            <div class="rcb-section">
+              <div class="rcb-section-header">
+                <div class="rcb-section-title-wrap">
+                  <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+                  <span class="rcb-section-title">Период</span>
+                </div>
+              </div>
+              <div class="rcb-section-body">
+                <!-- Период = DateRangeInput (one field with start/end dates + ndash separator + calendar icon on RIGHT).
+                     Source: services/dateTime/components/DateRangeInput/index.tsx:422-521 -->
+                <div class="rcb-field col-span-full">
+                  <label role="label" class="rcb-label">Период</label>
+                  <div class="date-input date-range-input medium36 dark" role="group" aria-expanded="false">
+                    <div class="date-field">
+                      <span class="date-segment">01</span>
+                      <span class="date-sep">.</span>
+                      <span class="date-segment">03</span>
+                      <span class="date-sep">.</span>
+                      <span class="date-segment">2026</span>
+                      <span class="date-sep" style="margin: 0 6px;">&ndash;</span>
+                      <span class="date-segment">31</span>
+                      <span class="date-sep">.</span>
+                      <span class="date-segment">03</span>
+                      <span class="date-sep">.</span>
+                      <span class="date-segment">2026</span>
+                    </div>
+                    <div class="date-actions">
+                      <svg class="date-icon"><use href="../../icons.svg#calendar"/></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FormSection: Группировки (с counter) -->
+            <div class="rcb-section">
+              <div class="rcb-section-header">
+                <div class="rcb-section-title-wrap">
+                  <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+                  <span class="rcb-section-title">Группировки</span>
+                  <span class="badge small16 counter theme-default color-neutral rcb-section-counter"><span class="text">1</span></span>
+                </div>
+                <button class="rcb-fn-btn rcb-section-add">
+                  <span class="icon"><svg><use href="../../icons.svg#plus"/></svg></span>
+                  <span class="children">Добавить</span>
+                </button>
+              </div>
+              <div class="rcb-section-body">
+                <div class="rcb-item">
+                  <div class="rcb-item-header">
+                    <div class="rcb-item-title-wrap">
+                      <span class="rcb-item-title">Группа содержания</span>
+                      <span class="rcb-item-desc">поле из DFS · master blueprint</span>
+                    </div>
+                    <button class="rcb-item-close" aria-label="Убрать">
+                      <svg><use href="../../icons.svg#x-close"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FormSection: Фильтры (с counter) -->
+            <div class="rcb-section">
+              <div class="rcb-section-header">
+                <div class="rcb-section-title-wrap">
+                  <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+                  <span class="rcb-section-title">Фильтры</span>
+                  <span class="badge small16 counter theme-default color-neutral rcb-section-counter"><span class="text">2</span></span>
+                </div>
+                <button class="rcb-fn-btn rcb-section-add">
+                  <span class="icon"><svg><use href="../../icons.svg#plus"/></svg></span>
+                  <span class="children">Добавить</span>
+                </button>
+              </div>
+              <div class="rcb-section-body">
+                <div class="rcb-item">
+                  <div class="rcb-item-header">
+                    <div class="rcb-item-title-wrap">
+                      <span class="rcb-item-title">Статус воспроизводства</span>
+                      <span class="rcb-item-desc">только «Стельная» и «В охоте»</span>
+                    </div>
+                    <button class="rcb-item-close" aria-label="Убрать">
+                      <svg><use href="../../icons.svg#x-close"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="rcb-item">
+                  <div class="rcb-item-header">
+                    <div class="rcb-item-title-wrap">
+                      <span class="rcb-item-title">Дней в лактации</span>
+                      <span class="rcb-item-desc">&gt; 100 дней</span>
+                    </div>
+                    <button class="rcb-item-close" aria-label="Убрать">
+                      <svg><use href="../../icons.svg#x-close"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FormSection: Ось Y (collapsed) -->
+            <div class="rcb-section collapsed">
+              <div class="rcb-section-header">
+                <div class="rcb-section-title-wrap">
+                  <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+                  <span class="rcb-section-title">Ось Y</span>
+                  <span class="badge small16 counter theme-default color-neutral rcb-section-counter"><span class="text">3</span></span>
+                </div>
+              </div>
+              <div class="rcb-section-body">
+                <!-- collapsed — скрыто через display: none -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="rcb-content">
+          <div class="report-placeholder">
+            <span class="report-placeholder-title">📊 Report данные видны во время editing</span>
+            <div>Пользователь редактирует выше — тут отчёт обновляется live (calculateReport на change).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. CREATE STATE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Create state — новый отчёт, «Создать» вместо «Сохранить»</p>
+    <p class="block-section-note">Аналогично update, но название <code>creatingTitle</code>, основная кнопка — «Создать» (не «Сохранить»). <code>shouldRenderCancelButtonForCreate</code> (default <code>true</code>) — показывает «Отмена» (для create тоже). Если false — только «Создать». Отчёт внизу пустой / placeholder до первого calculate.</p>
+    <p class="block-section-source">Source: ReportCardBuilderCard/index.tsx:198-209 (cancel button logic) + 211-221 (submit button label)</p>
+
+    <div class="stage">
+      <div class="rcb-card editing">
+        <div class="rcb-header">
+          <div class="rcb-header-row">
+            <span class="rcb-title">Новый отчёт по надоям</span>
+            <div class="rcb-actions">
+              <button class="btn-small"><span class="children">Отмена</span></button>
+              <button class="btn-small primary"><span class="children">Создать</span></button>
+            </div>
+          </div>
+          <div class="rcb-editing-area">
+            <div class="rcb-section">
+              <div class="rcb-section-header">
+                <div class="rcb-section-title-wrap">
+                  <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+                  <span class="rcb-section-title">Название</span>
+                </div>
+              </div>
+              <div class="rcb-section-body">
+                <!-- Input text — InputThemes.dark (bg neutral-container-muted = серый)
+                     на accent-tinted editing card (как DateRangeInput.dark в Update state выше).
+                     Source: shared/components/Input (см. components/form-fields.html) -->
+                <div class="rcb-field">
+                  <input class="input medium36 dark" placeholder="Введите название отчёта">
+                </div>
+              </div>
+            </div>
+            <div class="rcb-section">
+              <div class="rcb-section-header">
+                <div class="rcb-section-title-wrap">
+                  <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+                  <span class="rcb-section-title">Фильтры</span>
+                </div>
+                <button class="rcb-fn-btn rcb-section-add">
+                  <span class="icon"><svg><use href="../../icons.svg#plus"/></svg></span>
+                  <span class="children">Добавить</span>
+                </button>
+              </div>
+              <div class="rcb-section-body">
+                <div class="rcb-no-children">
+                  Добавьте хотя бы один фильтр или группировку<br>
+                  для построения отчёта
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="rcb-content">
+          <div class="report-placeholder" style="min-height: 120px; align-items: center; justify-content: center;">
+            <span class="report-placeholder-title">Отчёт будет построен после сохранения</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. FORM SECTION VARIANTS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">ReportCardBuilderFormSection · варианты</p>
+    <p class="block-section-note">Переиспользуемый компонент секции внутри settings-form. С title + optional <strong>counter-badge</strong> (<code>withChildrenCount</code>) + optional <strong>«Добавить»</strong> кнопка (ContextMenuButton / FunctionButton). Рендерится как Panel с <code>.panel</code> стилями (bg surface-1, radius 8). Раскрытие/сворачивание через <code>useAccordion</code>, chevron 20×20 rotate.</p>
+    <p class="block-section-source">Source: ReportCardBuilderFormSection/index.tsx + index.module.scss</p>
+
+    <div class="stage" style="display: grid; gap: 16px;">
+      <div>
+        <p class="variant-caption">Open · с counter + add button + items</p>
+        <div class="rcb-section">
+          <div class="rcb-section-header">
+            <div class="rcb-section-title-wrap">
+              <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+              <span class="rcb-section-title">Фильтры</span>
+              <span class="badge small16 counter theme-default color-neutral rcb-section-counter"><span class="text">3</span></span>
+            </div>
+            <button class="rcb-fn-btn rcb-section-add">
+              <span class="icon"><svg><use href="../../icons.svg#plus"/></svg></span>
+              <span class="children">Добавить</span>
+            </button>
+          </div>
+          <div class="rcb-section-body">
+            <div class="rcb-item">
+              <div class="rcb-item-header">
+                <div class="rcb-item-title-wrap">
+                  <span class="rcb-item-title">Только молочные</span>
+                </div>
+                <button class="rcb-item-close" aria-label="Убрать"><svg><use href="../../icons.svg#x-close"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">Collapsed · chevron rotated -90°</p>
+        <div class="rcb-section collapsed">
+          <div class="rcb-section-header">
+            <div class="rcb-section-title-wrap">
+              <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+              <span class="rcb-section-title">Дополнительные параметры</span>
+              <span class="badge small16 counter theme-default color-neutral rcb-section-counter"><span class="text">5</span></span>
+            </div>
+          </div>
+          <div class="rcb-section-body">
+            <!-- скрыто -->
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">Empty · noChildrenMessage (bordered block 112h)</p>
+        <div class="rcb-section">
+          <div class="rcb-section-header">
+            <div class="rcb-section-title-wrap">
+              <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+              <span class="rcb-section-title">Фильтры</span>
+            </div>
+            <button class="rcb-fn-btn rcb-section-add">
+              <span class="icon"><svg><use href="../../icons.svg#plus"/></svg></span>
+              <span class="children">Добавить</span>
+            </button>
+          </div>
+          <div class="rcb-section-body">
+            <div class="rcb-no-children">
+              Добавьте фильтр чтобы ограничить выборку
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">Without counter / add-button · plain header</p>
+        <div class="rcb-section">
+          <div class="rcb-section-header">
+            <div class="rcb-section-title-wrap">
+              <span class="rcb-section-chevron"><svg><use href="../../icons.svg#chevron-down"/></svg></span>
+              <span class="rcb-section-title">Период</span>
+            </div>
+          </div>
+          <div class="rcb-section-body">
+            <!-- Период = DateRangeInput (one field, calendar icon на RIGHT).
+                 Source: services/dateTime/components/DateRangeInput/index.tsx -->
+            <div class="rcb-field col-span-full">
+              <label role="label" class="rcb-label">Период</label>
+              <div class="date-input date-range-input medium36 dark" role="group" aria-expanded="false">
+                <div class="date-field">
+                  <span class="date-segment">01</span>
+                  <span class="date-sep">.</span>
+                  <span class="date-segment">03</span>
+                  <span class="date-sep">.</span>
+                  <span class="date-segment">2026</span>
+                  <span class="date-sep" style="margin: 0 6px;">&ndash;</span>
+                  <span class="date-segment">31</span>
+                  <span class="date-sep">.</span>
+                  <span class="date-segment">03</span>
+                  <span class="date-sep">.</span>
+                  <span class="date-segment">2026</span>
+                </div>
+                <div class="date-actions">
+                  <svg class="date-icon"><use href="../../icons.svg#calendar"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

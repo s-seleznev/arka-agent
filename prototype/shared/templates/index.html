@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Templates Library</title>
+<script>
+  // Нормализация URL: если preview открыл `/templates` без `/` или `.html`,
+  // serve отдаёт index.html, но pathname остаётся /templates. Относительные
+  // ссылки (patterns/foo.html) резолвятся относительно корня → 404.
+  // Редиректим на /templates/ чтобы ссылки работали.
+  (function () {
+    var p = window.location.pathname;
+    if (p.endsWith('/templates')) {
+      window.location.replace(p + '/' + window.location.search + window.location.hash);
+    }
+  })();
+</script>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="../layout.css">
+<style>
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 48px 48px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    box-sizing: border-box;
+  }
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 960px;
+  }
+  .hero h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 40px;
+    color: var(--fg-default);
+  }
+  .hero .lede {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--fg-soft);
+  }
+  .hero .lede code {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    padding: 1px 5px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+
+  .section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    box-sizing: border-box;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 0 16px;
+    gap: 16px;
+  }
+  .section-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 28px;
+    color: var(--fg-default);
+  }
+  .section-title code {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    padding: 2px 6px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 4px;
+    color: var(--fg-default);
+    font-weight: 500;
+  }
+  .section-subtitle {
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--fg-muted);
+  }
+
+  .grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8);
+    background: var(--bg-surface-1);
+    color: var(--fg-default);
+    text-decoration: none;
+    transition:
+      border-color var(--duration-fast-01) ease-out,
+      background-color var(--duration-fast-01) ease-out,
+      transform var(--duration-fast-01) ease-out;
+  }
+  .card:hover {
+    border-color: var(--accent-default);
+    background: var(--accent-opaque-container-soft);
+    transform: translateY(-1px);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--fg-default);
+  }
+  .card-title code {
+    font-family: ui-monospace, monospace;
+    font-weight: 500;
+  }
+  .card-desc {
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+
+  /* Tiles row — для icons-catalog и docs */
+  .tiles-row {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+  .tile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-12);
+    background: var(--bg-surface-1);
+    color: var(--fg-default);
+    text-decoration: none;
+    transition:
+      border-color var(--duration-fast-01) ease-out,
+      background-color var(--duration-fast-01) ease-out;
+  }
+  .tile:hover {
+    border-color: var(--accent-default);
+    background: var(--accent-opaque-container-soft);
+  }
+  .tile-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-10);
+    background: var(--accent-opaque-container-default);
+    color: var(--accent-default);
+    flex-shrink: 0;
+  }
+  .tile-icon svg { width: 24px; height: 24px; }
+  .tile-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .tile-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--fg-default);
+  }
+  .tile-desc {
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>ARKA · Lunacharsky Design System · Templates</h1>
+    <p class="lede">Готовые HTML-шаблоны для pixel-perfect AI-прототипирования продукта <strong>Маслов.ИИ</strong>. Источник истины — кодовая база <code>Design/Front/product-src/</code>. Пути к ассетам изнутри каждого файла: <code>../../tokens.css</code>, <code>../../components.css</code>, <code>../../layout.css</code>, <code>../../icons.svg</code>.</p>
+  </div>
+
+  <!-- ═══════════ SPECIALS (icons + docs) ═══════════ -->
+  <div class="tiles-row">
+    <a class="tile" href="icons-catalog.html">
+      <span class="tile-icon">
+        <svg><use href="../icons.svg#layout-grid"/></svg>
+      </span>
+      <div class="tile-body">
+        <div class="tile-title">Иконки · каталог</div>
+        <div class="tile-desc">107 SVG symbols из <code>shared/icons.svg</code>. Поиск + copy-on-click.</div>
+      </div>
+    </a>
+    <a class="tile" href="../README.md">
+      <span class="tile-icon">
+        <svg><use href="../icons.svg#clipboard-list"/></svg>
+      </span>
+      <div class="tile-body">
+        <div class="tile-title">README · документация</div>
+        <div class="tile-desc">Описание библиотеки, структура, правила работы с шаблонами.</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- ═══════════ COMPONENTS ═══════════ -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title"><code>components/</code></h2>
+      <span class="section-subtitle">каталоги вариантов примитивов — все sizes / themes / states одного компонента</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="components/accordion.html">
+        <div class="card-title"><code>accordion.html</code></div>
+        <div class="card-desc">themes × sizes matrix, collapsed/open, rightTitleContent, isChevronOnLeft, stack</div>
+      </a>
+      <a class="card" href="components/buttons.html">
+        <div class="card-title"><code>buttons.html</code></div>
+        <div class="card-desc">Button (9 variant×theme × 3 sizes + states) + FunctionButton (light/dark) + CloseButton</div>
+      </a>
+      <a class="card" href="components/badges-chips.html">
+        <div class="card-title"><code>badges-chips.html</code></div>
+        <div class="card-desc">Badge (6 colors × 3 themes × 3 sizes + counter/tag/close) + Chip (selectable, removable)</div>
+      </a>
+      <a class="card" href="components/callouts.html">
+        <div class="card-title"><code>callouts.html</code></div>
+        <div class="card-desc">NotificationVariants × CalloutSizes + close + functionButtons + полная DOM-структура</div>
+      </a>
+      <a class="card" href="components/empty-state.html">
+        <div class="card-title"><code>empty-state.html</code></div>
+        <div class="card-desc">empty table, no-search-results, error-state</div>
+      </a>
+      <a class="card" href="components/checkbox.html">
+        <div class="card-title"><code>checkbox.html</code></div>
+        <div class="card-desc">Canonical checkbox — size × state matrix, withLabel, colored, icons variant + cheat sheet</div>
+      </a>
+      <a class="card" href="components/form-fields.html">
+        <div class="card-title"><code>form-fields.html</code></div>
+        <div class="card-desc">Input / Select / DateInput / Checkbox / Radio / Toggle + Label / Feedback</div>
+      </a>
+      <a class="card" href="components/modals.html">
+        <div class="card-title"><code>modals.html</code></div>
+        <div class="card-desc">3 ModalSizes + Form / Confirm-Delete / Info</div>
+      </a>
+      <a class="card" href="components/toasts.html">
+        <div class="card-title"><code>toasts.html</code></div>
+        <div class="card-desc">5 variants + withCloseButton + functionButtonProps + combined. Центрированы и обнимают контент</div>
+      </a>
+      <a class="card" href="components/tooltip.html">
+        <div class="card-title"><code>tooltip.html</code></div>
+        <div class="card-desc">12 placements + isLarge padding + title/content + custom trigger</div>
+      </a>
+      <a class="card" href="components/avatar.html">
+        <div class="card-title"><code>avatar.html</code></div>
+        <div class="card-desc">8 colors (status01-04 + success/warning/error/info) + states + AVATAR_COLOR_ITERATOR</div>
+      </a>
+      <a class="card" href="components/definition-list.html">
+        <div class="card-title"><code>definition-list.html</code></div>
+        <div class="card-desc">list / wrapped 2-3 cols + wrap vs ellipsis + MDASH fallback</div>
+      </a>
+      <a class="card" href="components/skeleton.html">
+        <div class="card-title"><code>skeleton.html</code></div>
+        <div class="card-desc">Block (rectangles + isRound) + Text (typography-aware) + LineChart + BarChart</div>
+      </a>
+      <a class="card" href="components/markdown.html">
+        <div class="card-title"><code>markdown.html</code></div>
+        <div class="card-desc">headings + bold/code/links + lists + blockquote + pre + tables (remarkGfm)</div>
+      </a>
+      <a class="card" href="components/text-link.html">
+        <div class="card-title"><code>text-link.html</code></div>
+        <div class="card-desc">TextLink: 3 режима (disabled/href/Link) + 6 typographyVariants. Underline, без hover/accent</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══════════ PATTERNS ═══════════ -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title"><code>patterns/</code></h2>
+      <span class="section-subtitle">готовые композиции — несколько компонентов собраны вместе</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="patterns/panel-card.html">
+        <div class="card-title"><code>panel-card.html</code></div>
+        <div class="card-desc">7 panel-композиций + card header/footer/stats + stack + skeleton</div>
+      </a>
+      <a class="card" href="patterns/report-card-builder.html">
+        <div class="card-title"><code>report-card-builder.html</code></div>
+        <div class="card-desc">Карточка-отчёт с 3 состояниями (view/update/create) + settings form + FormSection</div>
+      </a>
+      <a class="card" href="patterns/filter-bar.html">
+        <div class="card-title"><code>filter-bar.html</code></div>
+        <div class="card-desc">Фильтры для table / tiles</div>
+      </a>
+      <a class="card" href="patterns/page-header.html">
+        <div class="card-title"><code>page-header.html</code></div>
+        <div class="card-desc">7 вариантов шапки страницы</div>
+      </a>
+      <a class="card" href="patterns/sidebar.html">
+        <div class="card-title"><code>sidebar.html</code></div>
+        <div class="card-desc">Collapsed (72px) + expanded (248px)</div>
+      </a>
+      <a class="card" href="patterns/tabs-row.html">
+        <div class="card-title"><code>tabs-row.html</code></div>
+        <div class="card-desc">Line tabs + pill tabs</div>
+      </a>
+      <a class="card" href="patterns/stats-cards.html">
+        <div class="card-title"><code>stats-cards.html</code></div>
+        <div class="card-desc">ReproductionMetricCard: KPI с title / Факт + delta / Цель</div>
+      </a>
+      <a class="card" href="patterns/toolbar.html">
+        <div class="card-title"><code>toolbar.html</code></div>
+        <div class="card-desc">TableHeader: default / selected + bulk actions / view-switcher / settings popovers</div>
+      </a>
+      <a class="card" href="patterns/charts.html">
+        <div class="card-title"><code>charts.html</code></div>
+        <div class="card-desc">LineChart / BarChart / stacked / ScatterChart (Chart.js → SVG-имитация)</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAGES ═══════════ -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title"><code>pages/</code></h2>
+      <span class="section-subtitle">скелеты страниц — стартовая точка для новой задачи</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="pages/table.html">
+        <div class="card-title"><code>table.html</code></div>
+        <div class="card-desc">Таблица с filter-bar, 5 вариантов (A-D + действия)</div>
+      </a>
+      <a class="card" href="pages/table-nested.html">
+        <div class="card-title"><code>table-nested.html</code></div>
+        <div class="card-desc">Expandable rows с вложенной таблицей</div>
+      </a>
+      <a class="card" href="pages/table-grouped.html">
+        <div class="card-title"><code>table-grouped.html</code></div>
+        <div class="card-desc">Category rows через colspan</div>
+      </a>
+      <a class="card" href="pages/tiles.html">
+        <div class="card-title"><code>tiles.html</code></div>
+        <div class="card-desc">Сетка tiles с переключателем S / M / L</div>
+      </a>
+      <a class="card" href="pages/detail.html">
+        <div class="card-title"><code>detail.html</code></div>
+        <div class="card-desc">Детальная страница сущности: back + title + callout + pinned fields + tabs panel</div>
+      </a>
+      <a class="card" href="pages/dashboard.html">
+        <div class="card-title"><code>dashboard.html</code></div>
+        <div class="card-desc">Analytics-dashboard (adapted from reproduction/overview): filters + metric cards + charts</div>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

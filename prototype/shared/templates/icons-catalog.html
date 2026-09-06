@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Icons Catalog</title>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="../layout.css">
+<style>
+  /* Override global layout.css body */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+  }
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 32px;
+    color: var(--fg-default);
+  }
+  .description {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .description code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 4px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+
+  /* Sticky toolbar — search + count */
+  .toolbar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    padding: 12px 0;
+    background: var(--bg-page);
+    z-index: 10;
+  }
+  .search-input {
+    flex: 1;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-8);
+    background: var(--bg-surface-1);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--fg-default);
+    outline: none;
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+  .search-input::placeholder { color: var(--fg-muted); }
+  .search-input:focus {
+    border-color: var(--accent-default);
+    box-shadow: 0 0 0 2px var(--focus-default);
+  }
+  .count {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--fg-soft);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Grid: auto-fill minmax(120px, 1fr) per HANDOFF */
+  .grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  .icon-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 8px;
+    background: var(--bg-surface-1);
+    border: 1px solid transparent;
+    border-radius: var(--radius-8);
+    cursor: pointer;
+    transition:
+      background-color 150ms ease-out,
+      border-color 150ms ease-out;
+  }
+  .icon-card:hover {
+    background: var(--neutral-opaque-container-soft);
+    border-color: var(--border-muted);
+  }
+  .icon-card.copied {
+    background: var(--success-opaque-container-soft);
+    border-color: var(--success-default);
+  }
+  .icon-wrapper {
+    width: 24px;
+    height: 24px;
+    color: var(--fg-default);
+    flex: none;
+  }
+  .icon-wrapper svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .icon-name {
+    font-size: 11px;
+    line-height: 14px;
+    color: var(--fg-soft);
+    text-align: center;
+    word-break: break-word;
+    font-family: ui-monospace, monospace;
+    user-select: all;
+  }
+  .icon-card.copied .icon-name {
+    color: var(--success-default);
+  }
+
+  /* Empty state */
+  .empty {
+    grid-column: 1 / -1;
+    padding: 64px 16px;
+    text-align: center;
+    color: var(--fg-muted);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  /* Floating copy-indicator */
+  .copy-toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    padding: 12px 16px;
+    background: var(--neutral-700);
+    color: var(--neutral-on-color);
+    border-radius: var(--radius-8);
+    font-size: 14px;
+    line-height: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms, transform 200ms;
+    z-index: 100;
+  }
+  .copy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .copy-toast code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    background: rgba(255,255,255,0.15);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+  <h1>ARKA · Icons Catalog</h1>
+  <p class="description">Каталог всех иконок из <code>shared/icons.svg</code>. Клик по карточке — копирует <code>&lt;svg width="20" height="20"&gt;&lt;use href="../../icons.svg#ИМЯ"/&gt;&lt;/svg&gt;</code> в буфер обмена. Поиск — по substring в имени. Имя можно выделить двойным кликом и скопировать текстом.</p>
+
+  <div class="toolbar">
+    <input class="search-input" type="search" placeholder="Поиск по имени… (cow, chevron, plus, …)" autofocus>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="copy-toast" id="copyToast">Скопировано <code id="copiedName"></code></div>
+
+  <script>
+    // Путь для SPRITE (для <use> в этом файле) — относительно templates/icons-catalog.html
+    const SPRITE_PATH = '../icons.svg';
+    // Путь для КОПИРУЕМОГО snippet'а — предполагает использование из templates/components/*.html
+    const COPY_PATH = '../shared/icons.svg';
+
+    const grid = document.getElementById('grid');
+    const searchInput = document.querySelector('.search-input');
+    const count = document.getElementById('count');
+    const copyToast = document.getElementById('copyToast');
+    const copiedName = document.getElementById('copiedName');
+
+    let allIcons = [];
+
+    async function loadIcons() {
+      const res = await fetch(SPRITE_PATH);
+      const text = await res.text();
+      const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+      const symbols = doc.querySelectorAll('symbol[id]');
+      allIcons = [...symbols].map(s => s.id).sort();
+    }
+
+    function makeSnippet(name) {
+      return `<svg width="20" height="20"><use href="${COPY_PATH}#${name}"/></svg>`;
+    }
+
+    async function copyToClipboard(name) {
+      try {
+        await navigator.clipboard.writeText(makeSnippet(name));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function showCopyToast(name) {
+      copiedName.textContent = name;
+      copyToast.classList.add('show');
+      clearTimeout(showCopyToast._t);
+      showCopyToast._t = setTimeout(() => copyToast.classList.remove('show'), 1200);
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function render(filter = '') {
+      const q = filter.toLowerCase().trim();
+      const filtered = q ? allIcons.filter(n => n.toLowerCase().includes(q)) : allIcons;
+      count.textContent = q
+        ? `${filtered.length} / ${allIcons.length}`
+        : `${allIcons.length} иконок`;
+
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="empty">Ничего не найдено</div>';
+        return;
+      }
+      grid.innerHTML = filtered.map(name => `
+        <div class="icon-card" data-name="${escapeHtml(name)}" title="Клик — скопировать HTML">
+          <div class="icon-wrapper"><svg><use href="${SPRITE_PATH}#${escapeHtml(name)}"/></svg></div>
+          <div class="icon-name">${escapeHtml(name)}</div>
+        </div>
+      `).join('');
+    }
+
+    grid.addEventListener('click', async (e) => {
+      const card = e.target.closest('.icon-card');
+      if (!card) return;
+      const name = card.dataset.name;
+      const ok = await copyToClipboard(name);
+      if (ok) {
+        card.classList.add('copied');
+        setTimeout(() => card.classList.remove('copied'), 800);
+        showCopyToast(name);
+      }
+    });
+
+    searchInput.addEventListener('input', e => render(e.target.value));
+
+    loadIcons().then(() => render(''));
+  </script>
+</body>
+</html>

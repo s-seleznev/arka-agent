@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Accordion</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+  .variant-caption {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .matrix {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) {
+    .matrix { grid-template-columns: 1fr; }
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  ACCORDION
+     ║  Source: src/shared/components/Accordion/Accordion.tsx
+     ║  Source: src/shared/components/Accordion/index.module.scss
+     ║  Source: src/shared/components/Accordion/AccordionContent.tsx
+     ║  Source: src/styles/modules/panel.module.scss (container visual)
+     ║
+     ║  DOM (Accordion.tsx:196-237):
+     ║    div.root (panel-{theme,size} + size-padding class)
+     ║      div.header (flex, pressable, padding: v h h-bottom)
+     ║        [Chevron-left, если isChevronOnLeft]
+     ║        Typography.h2 (bodyMediumStrong | bodyLargeStrong)
+     ║        [Chevron-right, если !isChevronOnLeft]
+     ║        [rightTitleContent, опционально]
+     ║      AccordionContent
+     ║        div.children (max-height animated, padding: 0 h)
+     ║          div (ref, content-wrapper)
+     ║            {children}
+     ║          ::after (padding-bottom для bottom-spacing)
+     ║
+     ║  Themes × Sizes (комбинация → panel-class):
+     ║    dark + medium   → panelStyles.darkPanel      (bg surface-3, radius 8)
+     ║    dark + large    → panelStyles.largeDarkPanel (bg surface-3, radius 12)
+     ║    light + medium  → panelStyles.panel          (bg surface-1, radius 8)
+     ║    light + large   → panelStyles.largePanel     (bg surface-1, radius 12)
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Panel themes — из panel.module.scss */
+  .panel-light-medium {
+    background-color: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+  }
+  .panel-light-large {
+    background-color: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+  }
+  .panel-dark-medium {
+    background-color: var(--bg-surface-3);
+    border-radius: var(--radius-8);
+  }
+  .panel-dark-large {
+    background-color: var(--bg-surface-3);
+    border-radius: var(--radius-12);
+  }
+
+  /* Root — padding-bottom из .root формулы:
+     calc(accordion-padding - accordion-header-bottom-padding).
+     medium: 16-16=0, large: 24-16=8. */
+  .accordion {
+    /* medium defaults */
+    --accordion-padding: var(--spacing-16);
+    --accordion-header-bottom-padding: var(--spacing-16);
+    --accordion-horizontal-padding: var(--spacing-16);
+    padding-bottom: calc(var(--accordion-padding) - var(--accordion-header-bottom-padding));
+  }
+  .accordion.large {
+    /* large: @768+ horizontal = accordion-padding (24), меньше — content-grid-horizontal-padding.
+       Для демо берём desktop (@768+) значения. */
+    --accordion-padding: var(--spacing-24);
+    --accordion-header-bottom-padding: var(--spacing-16);
+    --accordion-horizontal-padding: var(--spacing-24);
+  }
+
+  /* Header — flex, padding из токенов, pressable=cursor pointer */
+  .accordion .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: var(--accordion-padding) var(--accordion-horizontal-padding)
+             var(--accordion-header-bottom-padding);
+  }
+  .accordion .header.pressable {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* Title — Typography.h2 bodyMediumStrong (medium) / bodyLargeStrong (large)
+     Source: Accordion.tsx:103-109 TITLE_TYPOGRAPHY_VARIANT_BY_SIZE.
+     margin 0 (reset'ится глобально). flex-1 если нет rightTitleContent. */
+  .accordion .title {
+    margin: 0;
+    color: var(--fg-default);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .accordion.medium .title {
+    /* bodyMediumStrong: 16/500/24 */
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+  .accordion.large .title {
+    /* bodyLargeStrong: 18/500/24 */
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+  .accordion .title.flex-1 { flex: 1; min-width: 0; }
+
+  /* Chevron button — FunctionButton variant=secondary (fg-default).
+     size=large24 (default), iconVariant=chevronDown, rotate по isOpen.
+     marginLeft=spacing6 (medium) или size12 (large).
+     Source: Accordion.tsx:149-169 + FunctionButton defaults. */
+  .accordion .chevron {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-6);
+    padding: var(--spacing-2) 0;  /* py-2 для large24 */
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-6);
+    cursor: pointer;
+    color: var(--fg-default);  /* secondary theme */
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    white-space: nowrap;
+  }
+  .accordion.medium .chevron { margin-left: var(--spacing-6); }
+  .accordion.large .chevron { margin-left: 12px; }
+  .accordion.chevron-left .chevron { margin-left: 0; }
+  .accordion.medium.chevron-left .chevron { margin-right: var(--spacing-6); }
+  .accordion.large.chevron-left .chevron { margin-right: 12px; }
+
+  /* Chevron push-right когда rightTitleContent присутствует — `mr-a` (margin-right: auto).
+     В коде (Accordion.tsx:153): clsx(!!rightTitleContent && !isChevronOnLeft && 'mr-a').
+     Title в этом случае БЕЗ flex-1 (Accordion.tsx:185), поэтому чтобы chevron встал вплотную
+     к title, а rightTitleContent был у правого края — `margin-right: auto` на chevron. */
+  .accordion .chevron.push-right { margin-right: auto; margin-left: var(--spacing-6); }
+  .accordion.large .chevron.push-right { margin-left: 12px; }
+
+  /* Icon — Icon default size24 + 3-уровневая обёртка (span.root + span.innerRoot + svg).
+     Правила универсальные для всех иконок в файле (chevron + иконки в fn-btn).
+     Source: Icon/index.tsx + Icon/types.ts */
+  /* Rotate-transition — только для chevron в Accordion.
+     RotateVariants: up=0deg (закрыт), down=180deg (открыт).
+     Source: Icon/types.ts + Accordion.tsx:159-161 */
+  .accordion .chevron .innerRoot {
+    transition: rotate var(--duration-fast-01) ease-out;
+  }
+  .accordion.is-open .chevron .innerRoot { rotate: 180deg; }
+
+  /* AccordionContent.children — max-height animated, padding 0 h.
+     ::after добавляет bottom-spacing через padding-bottom.
+     ⚠️ Direct-child `>` ОБЯЗАТЕЛЕН (см. §11.4 double-nesting):
+     `.children` — inner-class Button/FunctionButton, если они лежат в
+     rightTitleContent — descendant-селектор ломает их.
+     Source: index.module.scss:37-65 */
+  .accordion > .children {
+    position: relative;
+    overflow: clip;
+    padding: 0 var(--accordion-horizontal-padding);
+    overflow-clip-margin: var(--border-width-2);
+    max-height: 0;
+    transition:
+      max-height var(--duration-fast-01) ease-out,
+      padding-bottom var(--duration-fast-01) ease-out,
+      padding-top var(--duration-fast-01) ease-out;
+  }
+  .accordion > .children::after {
+    display: block;
+    width: 100%;
+    padding-bottom: calc(
+      var(--accordion-horizontal-padding) -
+      (var(--accordion-padding) - var(--accordion-header-bottom-padding))
+    );
+    content: '';
+  }
+  /* Открытое состояние — max-height auto через CSS hack (для статичного демо
+     используем большое значение; в продукте задаётся через JS с точным scrollHeight). */
+  .accordion.is-open > .children {
+    max-height: 600px;
+  }
+
+  /* Right title content — flex-wrap, items-center, gap 16
+     Source: cows/+$cowId/+info.tsx:248-250 реальный пример */
+  .accordion-right-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-16);
+  }
+
+  /* rightTitleContent-slot ml-a когда chevron-right (pushed aside by title.flex-1).
+     Source: Accordion.tsx:153 — chevron имеет ml-a если rightTitleContent && !isChevronOnLeft.
+     FunctionButton (tertiary large24 light) — стили из shared/components.css. */
+
+  /* Content-sample — условный контент внутри accordion */
+  .accordion-sample-content {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--fg-default);
+  }
+  .accordion-sample-content p { margin: 0 0 12px; }
+  .accordion-sample-content p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. THEMES × SIZES MATRIX
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Accordion · themes × sizes</p>
+    <p class="block-section-note">Четыре комбинации <code>AccordionThemes</code> × <code>AccordionSizes</code> из <code>Accordion.tsx:200-217</code>. Root-class выбирается через <code>match</code>: <code>darkPanel</code> / <code>largeDarkPanel</code> / <code>panel</code> / <code>largePanel</code>. Default = <code>dark</code> + <code>medium</code>. Padding header: medium <code>16</code>, large <code>24</code> top + horizontal, bottom всегда <code>16</code>.</p>
+    <p class="block-section-source">Source: Accordion.tsx:196-221 (match theme+size → panelStyles) + index.module.scss:3-23 (size paddings) + panel.module.scss (bg/radius)</p>
+
+    <div class="matrix">
+      <!-- dark + medium — default, open -->
+      <div>
+        <p class="variant-caption">dark · medium (default) · open</p>
+        <div class="accordion medium is-open panel-dark-medium">
+          <div class="header pressable">
+            <h2 class="title flex-1">Документы</h2>
+            <button class="chevron" aria-label="Свернуть">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+            </button>
+          </div>
+          <div class="children">
+            <div class="accordion-sample-content">
+              <p>Паспорт животного, идентификационные документы, история владельца.</p>
+              <p>Загружено 4 файла. Последнее обновление — 12.03.2026.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- dark + large — open -->
+      <div>
+        <p class="variant-caption">dark · large · open</p>
+        <div class="accordion large is-open panel-dark-large">
+          <div class="header pressable">
+            <h2 class="title flex-1">График лактаций</h2>
+            <button class="chevron" aria-label="Свернуть">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+            </button>
+          </div>
+          <div class="children">
+            <div class="accordion-sample-content">
+              <p>Крупный вариант для дашбордов и основного контента страницы.</p>
+              <p>Padding 24 по top/horizontal, bottom-padding заголовка 16.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- light + medium -->
+      <div>
+        <p class="variant-caption">light · medium · open</p>
+        <div class="accordion medium is-open panel-light-medium">
+          <div class="header pressable">
+            <h2 class="title flex-1">Обязательная информация</h2>
+            <button class="chevron" aria-label="Свернуть">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+            </button>
+          </div>
+          <div class="children">
+            <div class="accordion-sample-content">
+              <p>Инвентарный номер, кличка, дата рождения, направление.</p>
+              <p>Light theme используется внутри модалок и на bg-page страниц.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- light + large -->
+      <div>
+        <p class="variant-caption">light · large · open (пример из cows/info.tsx)</p>
+        <div class="accordion large is-open panel-light-large">
+          <div class="header pressable">
+            <h2 class="title flex-1">Дополнительные сведения</h2>
+            <button class="chevron" aria-label="Свернуть">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+            </button>
+          </div>
+          <div class="children">
+            <div class="accordion-sample-content">
+              <p>Комментарии оператора, фотографии, история перемещений.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. STATES — collapsed / expanded
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Состояния · closed / open</p>
+    <p class="block-section-note">В коде: <code>isOpen</code> / <code>defaultIsOpen</code> контролирует. Chevron-иконка — <code>IconVariants.chevronDown</code> с rotate: открыт → <code>RotateVariants.down</code> (180deg), закрыт → <code>RotateVariants.up</code> (0deg). Content анимируется через <code>max-height</code> transition (<code>ACCORDION_COLLAPSE_DURATION_MS = 300</code>). Дефолт — unmount children при закрытии (<code>shouldUnmountClosedChildren=true</code>).</p>
+    <p class="block-section-source">Source: Accordion.tsx:159-161 (rotate) + useAccordion.tsx:49-100 (state) + index.module.scss:45-48 (transition)</p>
+
+    <div class="matrix">
+      <div>
+        <p class="variant-caption">closed (default state)</p>
+        <div class="accordion medium panel-dark-medium">
+          <div class="header pressable">
+            <h2 class="title flex-1">Свёрнутая секция</h2>
+            <button class="chevron" aria-label="Развернуть">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+            </button>
+          </div>
+          <div class="children">
+            <div class="accordion-sample-content">
+              <p>Контент не виден — max-height: 0, children не отрендерены.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">open · chevron rotated 180°</p>
+        <div class="accordion medium is-open panel-dark-medium">
+          <div class="header pressable">
+            <h2 class="title flex-1">Развёрнутая секция</h2>
+            <button class="chevron" aria-label="Свернуть">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+            </button>
+          </div>
+          <div class="children">
+            <div class="accordion-sample-content">
+              <p>Content виден — max-height развёрнут, children отрендерены.</p>
+              <p>Transition длительность: <code>var(--duration-fast-01)</code>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. WITH rightTitleContent
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">rightTitleContent — доп. контент справа от title</p>
+    <p class="block-section-note">Когда <code>rightTitleContent</code> передан — chevron получает класс <code>mr-a</code> (margin-right: auto), который распихивает chevron и rightTitleContent по краям. Title в этом случае <strong>без</strong> <code>flex-1</code> (Accordion.tsx:185). Контент справа обычно это FunctionButton'ы или Badge. В реальном коде (<code>cows/+$cowId/+info.tsx:248-250</code>): flex-wrap, items-center, justify-content flex-end, gap 16. rightTitleContent может быть функцией <code>(isOpen) => ReactNode</code> — показываться только при открытом accordion.</p>
+    <p class="block-section-source">Source: Accordion.tsx:153,185,192 (mr-a + title без flex-1 + normalizeToValue) + cows/+$cowId/+info.tsx:234-274 (реальный пример)</p>
+
+    <div style="display: grid; gap: 16px;">
+      <div class="accordion large is-open panel-light-large">
+        <div class="header pressable">
+          <h2 class="title">График лактаций</h2>
+          <button class="chevron push-right" aria-label="Свернуть">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+          </button>
+          <div class="accordion-right-title">
+            <button class="fn-btn large24 light tertiary">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+              <span class="children">Показать легенду</span>
+            </button>
+            <button class="fn-btn large24 light tertiary">
+              <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#settings"/></svg></span></span>
+              <span class="children">Настройки</span>
+            </button>
+          </div>
+        </div>
+        <div class="children">
+          <div class="accordion-sample-content">
+            <p>График из реального cow-info экрана. rightTitleContent показывается только при isOpen=true.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. isChevronOnLeft
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">isChevronOnLeft — chevron слева от title</p>
+    <p class="block-section-note">По умолчанию <code>isChevronOnLeft = false</code> — chevron справа. Если <code>true</code> — chevron рендерится перед title. Margin-right вместо margin-left. Используется в реальном коде для «График лактаций» на странице коровы.</p>
+    <p class="block-section-source">Source: Accordion.tsx:117,181 (isChevronOnLeft conditional render)</p>
+
+    <div style="display: grid; gap: 16px;">
+      <div class="accordion large is-open chevron-left panel-light-large">
+        <div class="header pressable">
+          <button class="chevron" aria-label="Свернуть">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+          </button>
+          <h2 class="title flex-1">Основные параметры</h2>
+        </div>
+        <div class="children">
+          <div class="accordion-sample-content">
+            <p>Chevron слева, title занимает оставшееся пространство (flex-1).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. STACK — несколько accordion подряд
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Стопка — типичный паттерн на странице коровы</p>
+    <p class="block-section-note">Несколько Accordion'ов подряд — распространённый use-case: каждая секция независимо управляет своим <code>isOpen</code>. Gap между элементами задаётся через wrapper (<code>flex flex-col gap-8</code> / <code>gap-content-grid</code>). В этом примере стопка с разными состояниями (одна открыта, остальные свёрнуты).</p>
+    <p class="block-section-source">Source: cows/+$cowId/+info.tsx — реальная страница с несколькими Accordion'ами</p>
+
+    <div style="display: grid; gap: 8px;">
+      <div class="accordion medium panel-dark-medium">
+        <div class="header pressable">
+          <h2 class="title flex-1">Основная информация</h2>
+          <button class="chevron" aria-label="Развернуть">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+          </button>
+        </div>
+        <div class="children"></div>
+      </div>
+
+      <div class="accordion medium is-open panel-dark-medium">
+        <div class="header pressable">
+          <h2 class="title flex-1">События</h2>
+          <button class="chevron" aria-label="Свернуть">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+          </button>
+        </div>
+        <div class="children">
+          <div class="accordion-sample-content">
+            <p>Осеменение — 12.03.2026.</p>
+            <p>Отёл — 05.06.2025.</p>
+            <p>Ветосмотр — 20.09.2025.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion medium panel-dark-medium">
+        <div class="header pressable">
+          <h2 class="title flex-1">Продуктивность</h2>
+          <button class="chevron" aria-label="Развернуть">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+          </button>
+        </div>
+        <div class="children"></div>
+      </div>
+
+      <div class="accordion medium panel-dark-medium">
+        <div class="header pressable">
+          <h2 class="title flex-1">Документы</h2>
+          <button class="chevron" aria-label="Развернуть">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span>
+          </button>
+        </div>
+        <div class="children"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

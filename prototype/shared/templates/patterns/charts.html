@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Pattern: Charts (Line / Bar / Scatter)</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 12px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+
+  /* Demo-сцена: белая панель с бордером — аналогично проду (analytics-панель). */
+  .stage {
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .chart-source-note {
+    margin: 0;
+    padding: 8px 12px;
+    background: var(--info-container-soft, var(--neutral-opaque-container-soft));
+    border-left: 2px solid var(--info-default, var(--accent-default));
+    border-radius: 0 4px 4px 0;
+    font-size: 12px; line-height: 16px;
+    color: var(--fg-soft);
+  }
+  .chart-source-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  CHARTS — Chart.js + react-chartjs-2
+     ║
+     ║  Source: src/features/charts/components/
+     ║    ReactChart/index.tsx            — base wrapper (renders <ChartVendor>)
+     ║    ReactChart/index.module.scss    — .chart { & > canvas { max-width: 100% } }
+     ║    LineChart/index.tsx             — type='line'
+     ║    BarChart/index.tsx              — type='bar' (+ isStacked, isPercents)
+     ║    ScatterChart/index.tsx          — type='scatter'
+     ║    PieChart/index.tsx              — type='pie'
+     ║    ChartLegend/                    — custom legend над canvas
+     ║
+     ║  DOM (ReactChart/index.tsx:392-446):
+     ║    <ChartLegend items={legendConfigs} ... />
+     ║    <div.chart[position-relative full-width]{height}>
+     ║      <canvas />                             ← Chart.js рендерится сюда
+     ║      <Tooltip />                            ← custom overlay (opt.)
+     ║      {zoom control}                         ← fade-in on hover
+     ║
+     ║  Height задаётся prop'ом и стилем inline — wrapper НЕ фиксирует высоту.
+     ║  В demo ниже — <img> со скриншотами реальных чартов из product-src prod.
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Source: src/features/charts/components/ReactChart/index.module.scss:3-6 */
+  .chart-root {
+    position: relative;
+    width: 100%;
+  }
+  .chart-root > canvas,
+  .chart-root > img.chart-screenshot {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius-4);
+  }
+
+  /* Scatter SVG proxy — нет скриншота в проде, осталась честная имитация.
+     viewBox 800×280 + preserveAspectRatio none + width/height 100% → заполняет .chart-root. */
+  .chart-root > svg.chart-proxy {
+    width: 100%;
+    height: 100%;
+    display: block;
+    font-family: var(--font);
+    font-size: 12px;
+  }
+  .chart-proxy .axis { stroke: var(--border-muted); stroke-width: 1; }
+  .chart-proxy .grid { stroke: var(--border-muted); stroke-dasharray: 2 4; stroke-width: 1; }
+  .chart-proxy .tick-label { fill: var(--fg-muted); font-size: 11px; }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Charts · ReactChart + Line/Bar/Scatter/Pie</p>
+    <p class="block-section-note">В product-src графики рисуются через <code>chart.js</code> + <code>react-chartjs-2</code>. Каждый тип (LineChart/BarChart/ScatterChart/PieChart) оборачивает базовый <code>ReactChart</code>, который рендерит <code>&lt;canvas&gt;</code>. Wrapper — тонкий: <code>div.chart { position: relative; width: 100%; }</code>. Высота задаётся пропом <code>height</code>. Custom <code>&lt;ChartLegend /&gt;</code> рендерится Chart.js-ом (legend handler встроен в plugins).</p>
+    <p class="block-section-source">Source: src/features/charts/components/ReactChart/index.tsx + index.module.scss (40 строк — только canvas max-width + zoom-control)</p>
+
+    <pre class="dom-tree">&lt;div.chart-root.position-relative.full-width&gt;    style={height}
+  &lt;canvas /&gt;                                     ← Chart.js рисует сюда
+  &lt;Tooltip /&gt;                                    ← custom overlay (opt.)
+  &lt;div.zoomControlWrapper /&gt;                     ← fade-in on hover
+
+Типы (все оборачивают ReactChart):
+  LineChart    type='line',    datasets: LineChartDatasetConfig[]
+  BarChart     type='bar',     + isStacked, isStackedX/Y, isPercents
+  ScatterChart type='scatter'
+  PieChart     type='pie'
+
+Chart.js defaults (ReactChart/index.tsx:47-49):
+  Chart.defaults.font.size       = 12
+  Chart.defaults.font.lineHeight = '16px'
+  Chart.defaults.font.family     = 'Graphik, sans-serif'</pre>
+
+    <p class="chart-source-note">
+      Все скриншоты ниже — <strong>из реального product-src prod</strong> (<code>localhost:3000</code>), захвачены через <code>canvas.toDataURL()</code> на соответствующих analytics-страницах. Это 1:1 с prod-визуалом. Единственный не-скриншот — ScatterChart (не удалось найти активного использования в prod-данных, оставлен SVG proxy).
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. BAR CHART — multi-dataset + line overlay (reproduction HDR/PR/CR)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">BarChart · multi-dataset + line overlay (HDR / PR / CR по неделям)</p>
+    <p class="block-section-note">Mixed chart: bar-datasets (HDR — выявление, PR — стельность) + line dataset поверх (CR — оплодотворяемость, зелёная линия). Category scale по x (даты). Legend над canvas, интерактивный (клик — toggle visibility). Target-линия возможна через dataset с <code>borderDash: [3,3]</code>.</p>
+    <p class="block-section-source">Source: src/widgets/analyticsReproduction/components/ReproductionHdrAndPrChart/index.tsx — использует <code>&lt;BarChart&gt;</code> с mixed datasets (bar + line)</p>
+
+    <div class="stage">
+      <p class="variant-caption">Скриншот · product-src prod · /analytics/reproduction/overview</p>
+      <div class="chart-root">
+        <img class="chart-screenshot" src="./charts-assets/reproduction-hdr-pr-cr.png" alt="Chart: HDR, PR, CR по неделям — 3 линии + целевой уровень HDR пунктиром">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. BAR CHART — single dataset (reproduction CR)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">BarChart · single dataset (CR по группам)</p>
+    <p class="block-section-note">Один dataset, type='bar', категориальная шкала x (группы/даты). Столбцы с <code>borderRadius: BARS_BORDER_RADIUS_PX</code> (оранжевые). Tooltip mode: 'index'.</p>
+    <p class="block-section-source">Source: src/widgets/analyticsReproduction/components/ReproductionCrChart/index.tsx — использует <code>&lt;BarChart&gt;</code></p>
+
+    <div class="stage">
+      <p class="variant-caption">Скриншот · product-src prod · reproductionMainCrChart</p>
+      <div class="chart-root">
+        <img class="chart-screenshot" src="./charts-assets/reproduction-cr.png" alt="Chart: оплодотворяемость CR — bar chart с линией-трендом">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. BAR CHART — bars + line overlay (livestock-forecast)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">BarChart · bars + line overlay (прогноз отёлов по месяцам)</p>
+    <p class="block-section-note">BarChart с дополнительным line dataset поверх (<code>type: 'line'</code> в одном из datasets). Это позволяет комбинировать категориальные bar'ы с накопленной метрикой-линией. Использ. в livestock-forecast для отёлов + ожидаемых голов.</p>
+    <p class="block-section-source">Source: src/routes/.../analytics/livestock-forecast/+index.tsx + BarChart + mixed-type datasets</p>
+
+    <div class="stage">
+      <p class="variant-caption">Скриншот · product-src prod · /analytics/livestock-forecast — «Отёлы и головы»</p>
+      <div class="chart-root">
+        <img class="chart-screenshot" src="./charts-assets/barchart-calving-heads.png" alt="Chart: отёлы нетелей / коров + ожидаемые тёлки/бычки + линия отёлов">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. BAR CHART — stacked (isStacked) + line overlay
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">BarChart stacked · isStacked=true + line overlay</p>
+    <p class="block-section-note">Несколько bar dataset'ов сложены по y (<code>isStacked</code> → <code>isStackedX</code>+<code>isStackedY</code>). Плюс поверх — line dataset (валовое значение). На scale options — <code>{ x: { stacked: true }, y: { stacked: true } }</code>. Legend: переключаемые items per dataset.</p>
+    <p class="block-section-source">Source: BarChart/index.tsx:118-132 (stacked) + livestock-forecast «Коровы и молоко»</p>
+
+    <div class="stage">
+      <p class="variant-caption">Скриншот · product-src prod · /analytics/livestock-forecast — «Коровы и молоко»</p>
+      <div class="chart-root">
+        <img class="chart-screenshot" src="./charts-assets/barchart-stacked-cows-milk.png" alt="Chart: stacked bars (первотёлки + коровы лактация ≥2) + линия валового значения молока">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. SCATTER CHART (proxy — нет активного использования в prod-данных)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">ScatterChart · упрощённо (SVG proxy — нет активного использования в prod)</p>
+    <p class="block-section-note">ScatterChart определён в коде (<code>src/features/charts/components/ScatterChart</code>), поддерживает type='scatter'. Каждая точка — <code>{ x, y }</code>; dataset получает <code>borderColor: colorStatus05OnColor</code>, <code>backgroundColor: dataset.color</code>. В prod-данных на доступных analytics-страницах не найдено активного ScatterChart — типовой use-case (корреляция удой vs. сервис-период) вероятно доступен только через кастомный отчёт. Оставлен SVG proxy.</p>
+    <p class="block-section-source">Source: src/features/charts/components/ScatterChart/index.tsx:78-117</p>
+
+    <div class="stage">
+      <p class="variant-caption">SVG proxy · ScatterChart · height 280</p>
+      <p class="chart-source-note">Нет реального скриншота — оставлена SVG-имитация. Structurally 1:1 с <code>.chart-root</code> wrapper; контент — декоративное SVG.</p>
+
+      <div class="chart-root" style="height: 280px;">
+        <svg class="chart-proxy" viewBox="0 0 800 280" preserveAspectRatio="none" aria-hidden="true">
+          <line class="grid" x1="50" y1="40"  x2="780" y2="40"/>
+          <line class="grid" x1="50" y1="100" x2="780" y2="100"/>
+          <line class="grid" x1="50" y1="160" x2="780" y2="160"/>
+          <line class="axis" x1="50" y1="240" x2="780" y2="240"/>
+          <line class="axis" x1="50" y1="20"  x2="50"  y2="240"/>
+
+          <text class="tick-label" x="40" y="44"  text-anchor="end">40</text>
+          <text class="tick-label" x="40" y="104" text-anchor="end">32</text>
+          <text class="tick-label" x="40" y="164" text-anchor="end">24</text>
+          <text class="tick-label" x="40" y="244" text-anchor="end">16</text>
+
+          <text class="tick-label" x="130" y="260" text-anchor="middle">60</text>
+          <text class="tick-label" x="280" y="260" text-anchor="middle">100</text>
+          <text class="tick-label" x="430" y="260" text-anchor="middle">140</text>
+          <text class="tick-label" x="580" y="260" text-anchor="middle">180</text>
+          <text class="tick-label" x="730" y="260" text-anchor="middle">220</text>
+
+          <g fill="#4b7bec" stroke="#ffffff" stroke-width="1">
+            <circle cx="110" cy="80"  r="4"/>
+            <circle cx="160" cy="95"  r="4"/>
+            <circle cx="200" cy="70"  r="4"/>
+            <circle cx="245" cy="110" r="4"/>
+            <circle cx="275" cy="125" r="4"/>
+            <circle cx="310" cy="100" r="4"/>
+            <circle cx="340" cy="145" r="4"/>
+            <circle cx="380" cy="130" r="4"/>
+            <circle cx="410" cy="165" r="4"/>
+            <circle cx="440" cy="150" r="4"/>
+            <circle cx="475" cy="180" r="4"/>
+            <circle cx="510" cy="170" r="4"/>
+            <circle cx="545" cy="195" r="4"/>
+            <circle cx="580" cy="185" r="4"/>
+            <circle cx="615" cy="205" r="4"/>
+            <circle cx="650" cy="190" r="4"/>
+            <circle cx="685" cy="215" r="4"/>
+            <circle cx="720" cy="200" r="4"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

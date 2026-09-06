@@ -1,0 +1,22 @@
+.DS_Store
+.local/
+__pycache__/
+
+# Private inputs and local deployment assets must never enter Git.
+/data/
+/docs/incoming/
+/prototype/PROMPT.md
+/analysis/**
+/agent-app/.agents/
+/agent-app/skills-lock.json
+**/.env
+**/.env.*
+!**/.env.example
+**/.vercel/
+*.pem
+*.key
+
+/rules/**/*.csv
+/rules/**/*.jsonl
+/rules/**/*.json
+!/rules/demo-bindings.json

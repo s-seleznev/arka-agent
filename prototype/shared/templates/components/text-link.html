@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: TextLink</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 12px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; font-family: ui-monospace, monospace; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+  .grid-cols {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .cell {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: var(--radius-6);
+  }
+  .demo-para {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-default);
+  }
+  .demo-para.medium { font-size: 16px; line-height: 24px; }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  TEXT LINK
+     ║  Source: src/shared/components/TextLink/index.tsx + index.module.scss
+     ║
+     ║  ОЧЕНЬ простой компонент:
+     ║    <a> или <Link> (tanstack) или <Typography> (если isDisabled)
+     ║    className: styles.root + typographyStyles[variant]
+     ║
+     ║  styles.root — ТОЛЬКО text-decoration: underline (+ снять underline при print)
+     ║  Цвет наследуется от глобального правила a { color: fg-default } из styles/global.scss:46.
+     ║  БЕЗ hover/focus/active/visited state-стилей в .root. Только underline + inherit color.
+     ║
+     ║  Логика рендера (index.tsx:33-74):
+     ║    1. isDisabled=true  → <Typography variant={variant}> без underline
+     ║    2. 'href' in props  → <a href={...}> (external / mailto / tel)
+     ║    3. иначе            → <Link to={...}> (tanstack Router, internal)
+     ║
+     ║  Default typographyVariant: bodySmall (14/400/20).
+     ║  typographyVariant=inheritText используется внутри Typography-контейнеров,
+     ║  когда link должен подхватить родительский font-size (см. Markdown → a).
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Root — ТОЛЬКО underline (color и font приходят отдельно) */
+  .text-link {
+    color: var(--fg-default);              /* из global.scss: a { color: fg-default } */
+    text-decoration: underline;             /* из TextLink/index.module.scss:4 */
+  }
+  @media print { .text-link { text-decoration: none; } }
+
+  /* Font-size/weight/line-height per typographyVariant.
+     Source: styles/__generated__/typography.module.scss */
+  .text-link.tv-body-small           { font-size: 14px; font-weight: 400; line-height: 20px; }  /* default */
+  .text-link.tv-body-small-strong    { font-size: 14px; font-weight: 500; line-height: 20px; }
+  .text-link.tv-body-medium          { font-size: 16px; font-weight: 400; line-height: 24px; }
+  .text-link.tv-body-medium-strong   { font-size: 16px; font-weight: 500; line-height: 24px; }
+  .text-link.tv-body-large           { font-size: 18px; font-weight: 400; line-height: 24px; }
+  .text-link.tv-description-large    { font-size: 12px; font-weight: 400; line-height: 16px; }
+  .text-link.tv-description-large-strong { font-size: 12px; font-weight: 500; line-height: 16px; }
+  /* inheritText — НЕ задаёт font, наследует от контекста */
+
+  /* Disabled — рендерится как Typography, БЕЗ underline */
+  .text-link.disabled {
+    text-decoration: none;
+    /* color остаётся fg-default — disabled в коде не меняет цвет,
+       просто убирает link-рендер. Если нужен «приглушённый» — обёртка снаружи
+       или использовать Typography с text-muted классом. */
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">TextLink · структура и 3 режима рендера</p>
+    <p class="block-section-note">Минималистичный компонент. SCSS модуль содержит ТОЛЬКО <code>text-decoration: underline</code>. Цвет — <code>fg-default</code>, наследуется от глобального правила <code>a { color }</code> в <code>styles/global.scss:46</code>. <strong>Hover / focus / active / visited не задаются</strong> — только underline + inherit color. Логика рендера: 3 варианта в зависимости от props.</p>
+    <p class="block-section-source">Source: TextLink/index.tsx + index.module.scss (только 2 правила: .root + print override) + styles/global.scss:46 (global a rule)</p>
+
+    <pre class="dom-tree">Props → render:
+  isDisabled=true           → &lt;Typography variant&gt;           БЕЗ underline (не link)
+  'href' in other           → &lt;a href target rel&gt;             internal HTML anchor (external / mailto / tel)
+  иначе                     → &lt;Link to from&gt;                  tanstack Router Link
+
+className (для link-режимов):
+  styles.root                   — text-decoration: underline
+  typographyStyles[variant]     — font-size/weight/line-height
+
+Default typographyVariant: bodySmall (14/400/20).
+typographyVariant=inheritText — для использования внутри Typography-контекста
+(наследует родительский font, нужно для inline-link'ов в Markdown, table cells).</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Особенности</p>
+    <pre class="dom-tree">• НЕТ hover-эффекта (color не меняется, underline и так стоит)
+• НЕТ visited-стиля
+• НЕТ accent / «синий» цвет — всегда fg-default (тёмный текст) + underline
+• При print underline снимается (@media print)
+• disabled рендерит обычный Typography-текст без underline (не серый, не muted)</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. TYPOGRAPHY VARIANTS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">typographyVariant — размер link'а</p>
+    <p class="block-section-note">Default — <code>bodySmall</code> (14/400/20). Вариант передаётся через prop <code>typographyVariant</code> и применяется через className <code>typographyStyles[variant]</code>. Для inline-использования внутри другого Typography — <code>inheritText</code> (без font-правил, наследование от родителя).</p>
+    <p class="block-section-source">Source: TextLink/index.tsx:37 (default bodySmall) + :64-66 (className composition)</p>
+
+    <div class="grid-cols">
+      <div class="cell">
+        <span class="variant-caption">bodySmall (default, 14/400/20)</span>
+        <a class="text-link tv-body-small" href="#">Руководство пользователя</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodyMedium (16/400/24)</span>
+        <a class="text-link tv-body-medium" href="#">Скачать отчёт за март</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodyMediumStrong (16/500/24)</span>
+        <a class="text-link tv-body-medium-strong" href="#">Открыть панель настроек</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">descriptionLarge (12/400/16)</span>
+        <a class="text-link tv-description-large" href="#">Что такое CR?</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">descriptionLargeStrong (12/500/16)</span>
+        <a class="text-link tv-description-large-strong" href="#">Подробности</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodySmallStrong (14/500/20)</span>
+        <a class="text-link tv-body-small-strong" href="#">Важная ссылка</a>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. INLINE vs STANDALONE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Использование · inline vs standalone</p>
+    <p class="block-section-note">Внутри параграфа — цвет наследуется от родительского текста, ссылка визуально сливается и отличается только подчёркиванием. Отдельной строкой (standalone) — всё то же самое, просто block-level. В Markdown и таблицах часто <code>typographyVariant=inheritText</code> — размер берётся от родителя.</p>
+    <p class="block-section-source">Source: usage — SystemInfoModal/index.modal.tsx (inline + standalone), Markdown/constants.tsx:43 (inheritText inline)</p>
+
+    <div class="grid-cols">
+      <div class="cell">
+        <span class="variant-caption">inline — внутри параграфа</span>
+        <p class="demo-para">
+          Почта поддержки: <a class="text-link" href="mailto:support@arka.farm">support@arka.farm</a>
+        </p>
+        <p class="demo-para">
+          Часы работы Пн–Пт 09:00–18:00. Справка — <a class="text-link" href="#">открыть руководство</a>.
+        </p>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">standalone — отдельной строкой</span>
+        <a class="text-link tv-body-small" href="#">Руководство пользователя</a>
+        <a class="text-link tv-body-small" href="#">Описание функциональных характеристик ПО</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">inheritText внутри bodyMedium</span>
+        <p class="demo-para medium">
+          В таблице корова <a class="text-link" href="#">№2847 «Зорька»</a> показала резкое снижение надоя за последнюю неделю.
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. EXTERNAL / MAILTO / TEL
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">External links · target=_blank, mailto, tel</p>
+    <p class="block-section-note">Если в props передан <code>href</code> — рендерится нативный <code>&lt;a&gt;</code>, куда можно прокинуть <code>target="_blank"</code> и <code>rel="noopener noreferrer"</code>. Для <code>mailto:</code> и <code>tel:</code> — то же самое через <code>href</code>. Визуально — те же стили (underline + fg-default), разница только в семантике.</p>
+    <p class="block-section-source">Source: TextLink/index.tsx:57 — <code>'href' in other ? 'a' : Link</code> — дискриминатор external vs internal</p>
+
+    <div class="grid-cols">
+      <div class="cell">
+        <span class="variant-caption">internal (tanstack Link, to=...)</span>
+        <a class="text-link" href="#">Перейти к отчёту CR</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">external (target=_blank + rel)</span>
+        <a class="text-link" href="https://arka.farm" target="_blank" rel="noopener noreferrer">arka.farm</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">mailto</span>
+        <a class="text-link" href="mailto:support@arka.farm">support@arka.farm</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">tel</span>
+        <a class="text-link" href="tel:+74951234567">+7 (495) 123-45-67</a>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. DISABLED STATE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">isDisabled — рендер как Typography без underline</p>
+    <p class="block-section-note"><code>isDisabled=true</code> меняет разметку: вместо <code>&lt;a&gt;</code> / <code>&lt;Link&gt;</code> рендерится <code>&lt;Typography variant&gt;</code> — обычный span БЕЗ underline. Цвет НЕ меняется на muted/disabled — остаётся <code>fg-default</code>. Если нужен «визуально выключенный» вид — обернуть снаружи в <code>className="text-muted"</code> или передать через TypographyVariants с muted-цветом.</p>
+    <p class="block-section-source">Source: TextLink/index.tsx:42-55 — isDisabled рендерит &lt;Typography&gt; напрямую</p>
+
+    <div class="grid-cols">
+      <div class="cell">
+        <span class="variant-caption">active link</span>
+        <a class="text-link" href="#">Открыть раздел</a>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">isDisabled=true — без underline</span>
+        <span class="text-link disabled tv-body-small">Открыть раздел</span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">isDisabled + muted color (custom)</span>
+        <span class="text-link disabled tv-body-small" style="color: var(--fg-muted);">Открыть раздел</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

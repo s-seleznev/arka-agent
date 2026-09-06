@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Markdown</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 12px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; font-family: ui-monospace, monospace; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  MARKDOWN
+     ║  Source: src/shared/components/Markdown/
+     ║    index.tsx       — ReactMarkdown wrapper с плагинами
+     ║    constants.tsx   — MARKDOWN_COMPONENTS (html → Typography маппер)
+     ║    index.module.scss — spacing правила + блочные стили
+     ║
+     ║  Root: <Typography tag="div" variant={bodyMedium} className={styles.root}>
+     ║  Каждый markdown-элемент маппится в Typography + кастомный className/wrapper.
+     ║
+     ║  Spacing rules (index.module.scss:6-22):
+     ║    > * + *  — margin-top 16 между direct children
+     ║    ul, ol   — margin-block-start 16, padding-inline-start 20
+     ║    li + li  — margin-top 16
+     ║    hr       — margin 16 0
+     ║    table + * — margin-top 32 (extra отделение после таблицы)
+     ║
+     ║  Плагины: remarkGfm (tables, checkboxes, strikethrough),
+     ║           remarkBreaks (\n → <br>), rehypeRaw + rehypeSanitize.
+     ║
+     ║  Типичное использование: AI-ответы (Аркаша), описания компонентов,
+     ║  help-тексты, rendered markdown-поля (комментарии оператора и т.п.).
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Root — bodyMedium (16/400/24) + spacing правила */
+  .md {
+    --table-outer-horizontal-padding: 0px;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: var(--fg-default);
+  }
+  /* Margin reset на ВСЕХ direct children (убивает browser defaults для h1-5, p, ul, ol).
+     Specificity 0,0,1,0 — ниже чем .md h3 (0,0,1,1), поэтому индивидуальные heading-правила
+     с font-size работают корректно. ВАЖНО: margin: 0 НЕ должен стоять в .md h3 {} —
+     иначе он перебьёт .md > * + * { margin-top } из-за большей специфичности. */
+  .md > * { margin: 0; }
+  .md > * + * { margin-top: var(--spacing-16); }
+
+  .md ul,
+  .md ol {
+    margin-block-start: var(--spacing-16);
+    padding-inline-start: var(--spacing-20);
+  }
+  .md li + li { margin-top: var(--spacing-16); }
+  .md hr { margin: var(--spacing-16) 0; border: none; border-top: 1px solid var(--border-muted); }
+
+  /* Headings — ТОЛЬКО typography (font-size/weight/line-height/color).
+     Margin контролируется через .md > * { margin: 0 } + .md > * + * { margin-top: 16 } выше. */
+  .md h1 { font-size: 28px; font-weight: 700; line-height: 32px; color: var(--fg-default); }
+  .md h2 { font-size: 22px; font-weight: 700; line-height: 24px; color: var(--fg-default); }
+  .md h3 { font-size: 18px; font-weight: 700; line-height: 20px; color: var(--fg-default); }
+  .md h4 { font-size: 16px; font-weight: 700; line-height: 20px; color: var(--fg-default); }
+  .md h5 { font-size: 14px; font-weight: 700; line-height: 20px; color: var(--fg-default); }
+
+  /* b / strong — bodyMediumStrong (16/500/24) */
+  .md b,
+  .md strong {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+
+  /* Inline code — bodySmall 14/400/20 */
+  .md code {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    padding: 1px 4px;
+    background: var(--neutral-opaque-container-muted);
+    border-radius: var(--radius-4);
+  }
+
+  /* Link — TextLink с typographyVariant inheritText.
+     ВАЖНО по коду TextLink/index.module.scss: color всегда fg-default
+     (наследуется от global a { color }), text-decoration underline —
+     никаких hover/accent-эффектов. Overflow-wrap + white-space из
+     Markdown/index.module.scss:133-136 (.link класс). */
+  .md a {
+    color: var(--fg-default);
+    text-decoration: underline;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  /* Lists — disc для ul, decimal для ol */
+  .md ul { list-style: disc; }
+  .md ol { list-style: decimal; }
+  .md li { margin: 0; }
+
+  /* Blockquote — wrapped в bg-контейнер с border-left.
+     Source: index.module.scss:25-34 (.blockquoteWrapper + blockquote inside) */
+  .md-blockquote-wrapper {
+    padding: var(--spacing-16) var(--spacing-24);
+    border-radius: var(--radius-8);
+    background: var(--neutral-opaque-container-muted);
+  }
+  .md-blockquote-wrapper blockquote {
+    margin: 0;
+    padding-left: var(--spacing-12);
+    border-left: 2px solid var(--border-muted);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-default);
+  }
+
+  /* Pre (code block) — scrollable bg container.
+     Source: index.module.scss:36-42 (.pre) */
+  .md pre {
+    overflow: auto;
+    max-width: 100%;
+    padding: var(--spacing-12);
+    border-radius: var(--radius-12);
+    background: var(--neutral-opaque-container-muted);
+    margin: 0;
+  }
+  .md pre code {
+    /* code inside pre — без inline background */
+    padding: 0;
+    background: transparent;
+    font-size: 14px;
+    line-height: 20px;
+    white-space: pre;
+  }
+
+  /* Table — bordered, radius 8, collapsed but separated.
+     Source: index.module.scss:52-131 */
+  .md-table-wrapper {
+    display: flex;
+    overflow: auto hidden;
+    width: 100%;
+    align-items: stretch;
+    overscroll-behavior-x: contain;
+  }
+  .md-table-wrapper table {
+    width: 100%;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8);
+    border-collapse: separate;
+  }
+  /* Inside table, b/strong become bodySmallStrong 14/500/20 */
+  .md-table-wrapper table b,
+  .md-table-wrapper table strong {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+  .md-table-wrapper thead {
+    overflow: hidden;
+    border-top-left-radius: var(--radius-8);
+    border-top-right-radius: var(--radius-8);
+  }
+  .md-table-wrapper thead tr:first-child th:first-child { border-top-left-radius: var(--radius-8); }
+  .md-table-wrapper thead tr:first-child th:last-child { border-top-right-radius: var(--radius-8); }
+  .md-table-wrapper th,
+  .md-table-wrapper tr:not(:last-child) td {
+    border-bottom: 1px solid var(--border-muted);
+  }
+  .md-table-wrapper th,
+  .md-table-wrapper td {
+    padding: var(--spacing-8) var(--spacing-12);
+    text-align: left;
+    margin: 0;
+  }
+  .md-table-wrapper th {
+    background: var(--neutral-opaque-container-muted);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-default);
+  }
+  .md-table-wrapper td {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-default);
+    white-space: pre-wrap;
+  }
+  /* table + что-то после — extra margin-top 32 (вместо 16) */
+  .md .md-table-wrapper + * { margin-top: var(--spacing-32); }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Markdown · структура и маппинг HTML → Typography</p>
+    <p class="block-section-note">Под капотом — <code>ReactMarkdown</code> с плагинами <code>remarkGfm</code> (tables, strikethrough, checkbox), <code>remarkBreaks</code> (\n → &lt;br&gt;), <code>rehypeRaw</code> + <code>rehypeSanitize</code> (safe raw HTML). Root — <code>&lt;Typography tag="div" variant={bodyMedium}&gt;</code>. Каждый HTML-элемент маппится в свой <code>Typography</code> с нужным variant и/или кастомный wrapper. Типичное use-case: AI-ответы (Аркаша), описания, help-тексты, rendered markdown-поля.</p>
+    <p class="block-section-source">Source: Markdown/index.tsx + constants.tsx (MARKDOWN_COMPONENTS mapping) + index.module.scss (spacing + wrappers)</p>
+
+    <pre class="dom-tree">Элемент  → Typography variant              → доп. стили
+h1       → heading1 (28/700/32)
+h2       → heading2 (22/700/24)
+h3       → heading3 (18/700/20)
+h4       → heading4 (16/700/20)
+h5       → heading5 (14/700/20)
+p        → root bodyMedium (16/400/24)
+b/strong → bodyMediumStrong (16/500/24)      внутри table → bodySmallStrong (14/500/20)
+a        → TextLink с inheritText            accent color + underline on hover
+ul/li    → bodyMedium                         list-style: disc
+ol       → bodyMedium                         list-style: decimal
+code     → bodySmall (14/400/20)              padding 1/4, bg neutral-opaque-container-muted
+pre      → (block)                            padding 12, radius 12, bg neutral-opaque-container-muted
+blockquote → bodySmall                        wrapped в контейнер с bg + padding-left + border-left 2px
+table    → (wrapper + table)                  border-muted, radius 8, border-collapse separate
+th       → descriptionLargeStrong (12/500/16) bg neutral-opaque-container-muted
+td       → bodySmall (14/400/20)              white-space: pre-wrap
+
+Spacing правила:
+  > * + *  margin-top 16      (между direct children)
+  ul, ol   margin-block-start 16, padding-inline-start 20
+  li + li  margin-top 16
+  hr       margin 16 0
+  table + * margin-top 32     (extra разделение после таблицы)</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. HEADINGS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Headings · h1-h5</p>
+    <p class="block-section-note">Все headings — Typography с соответствующим <code>heading</code>-variant. Между соседними элементами — margin-top 16px из общего правила <code>.root > * + *</code>.</p>
+    <p class="block-section-source">Source: constants.tsx:24-38 (h1-h5 mapping)</p>
+
+    <div class="md">
+      <h1>h1 — 28 / 700 / 32</h1>
+      <h2>h2 — 22 / 700 / 24</h2>
+      <h3>h3 — 18 / 700 / 20</h3>
+      <h4>h4 — 16 / 700 / 20</h4>
+      <h5>h5 — 14 / 700 / 20</h5>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. INLINE FORMATTING — bold / code / links
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Inline · bold / code / links</p>
+    <p class="block-section-note"><code>b</code> и <code>strong</code> оба → <code>bodyMediumStrong</code> (16/500/24). Inline <code>code</code> — <code>bodySmall</code> шрифт + padding 1/4 + bg <code>neutral-opaque-container-muted</code> + radius 4. Ссылки идут через <code>TextLink</code> компонент (см. <a href="text-link.html">text-link.html</a>), для внутренних ссылок используется <code>to</code> prop tanstack-router, для внешних — <code>href</code> + <code>target=_blank</code>.</p>
+    <p class="block-section-source">Source: constants.tsx:14-56 (b/strong/a)</p>
+
+    <div class="md">
+      <p>Обычный текст параграфа содержит <b>жирный b</b>, <strong>жирный strong</strong>, <code>inline code</code> с моноширинным шрифтом и подсветкой, а также ссылки: <a href="#internal">внутренняя ссылка</a> и <a href="https://example.com" target="_blank" rel="noopener noreferrer">внешняя ссылка</a>.</p>
+      <p>Например, если корова имеет CR = <code>45%</code>, а целевое значение <strong>≥ 42%</strong> — показатель в норме.</p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. LISTS — ul / ol / nested
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Lists · ul (disc) / ol (decimal) / nested</p>
+    <p class="block-section-note">Списки с стандартным list-style (<code>disc</code> для ul, <code>decimal</code> для ol). Padding-inline-start 20px, gap между items — 16px. Вложенные списки тоже получают margin-block-start 16.</p>
+    <p class="block-section-source">Source: constants.tsx:57-79 (ul/ol/li) + index.module.scss:10-18 (spacing)</p>
+
+    <div class="md">
+      <h3>Параметры проверки коровы</h3>
+      <ul>
+        <li>Инвентарный номер и кличка</li>
+        <li>Группа, статус воспроизводства
+          <ul>
+            <li>Телка / первотёлка / дойная</li>
+            <li>Стельная / яловая / в охоте</li>
+          </ul>
+        </li>
+        <li>Последний осмотр ветеринаром</li>
+      </ul>
+
+      <h3>Порядок действий</h3>
+      <ol>
+        <li>Открыть карточку коровы по инвентарному номеру</li>
+        <li>Проверить дату последнего отёла</li>
+        <li>Сверить результат с записью в DFS
+          <ol>
+            <li>Если расхождение — открыть ticket в UseDesk</li>
+            <li>Приложить скрин карточки</li>
+          </ol>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. BLOCKQUOTE + PRE (code block)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Blockquote · Pre (code block)</p>
+    <p class="block-section-note"><strong>Blockquote</strong> обёрнут в <code>.blockquoteWrapper</code>: padding 16/24, radius 8, bg <code>neutral-opaque-container-muted</code>. Внутри — <code>blockquote</code> с <code>padding-left 12</code> + <code>border-left 2px border-muted</code>, typography <code>bodySmall</code>. <strong>Pre</strong> — отдельный блок для многострочного кода: <code>overflow: auto</code>, padding 12, radius 12, bg <code>neutral-opaque-container-muted</code>.</p>
+    <p class="block-section-source">Source: constants.tsx:105-117 (pre/code/blockquote) + index.module.scss:25-42 (.blockquoteWrapper + .pre)</p>
+
+    <div class="md">
+      <div class="md-blockquote-wrapper">
+        <blockquote>Если CR по стаду ниже 40% — первый шаг диагностики: проверить технику осеменения у каждого специалиста. В 70% случаев проблема именно там.</blockquote>
+      </div>
+
+      <p>Запрос для получения сводки по лактации:</p>
+
+      <pre><code>query CowLactationSummary($cowId: ID!, $period: DateRange!) {
+  cow(id: $cowId) {
+    lactations(period: $period) {
+      number
+      startDate
+      dailyMilkAvg
+      daysInMilk
+    }
+  }
+}</code></pre>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. TABLE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Table · через remarkGfm</p>
+    <p class="block-section-note">Markdown-таблицы (через GitHub-Flavored Markdown plugin). Обёрнута в <code>.tableWrapper</code> (overflow auto для узких viewport'ов). Table: border 1px + radius 8 + <code>border-collapse: separate</code> (чтобы radius работал). Thead — с отдельным <code>border-top-left/right-radius</code> на первой/последней th первой строки. Th — <code>descriptionLargeStrong</code> (12/500/16) на <code>neutral-opaque-container-muted</code> фоне. Td — <code>bodySmall</code> (14/400/20) с <code>white-space: pre-wrap</code>.</p>
+    <p class="block-section-source">Source: constants.tsx:80-104 (table/thead/tr/th/td) + index.module.scss:52-131</p>
+
+    <div class="md">
+      <p>Сводка по стаду за март 2026:</p>
+
+      <div class="md-table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Группа</th>
+              <th>Поголовье</th>
+              <th>Средний удой</th>
+              <th>CR</th>
+              <th>Комментарий</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Группа 1 · первотёлки</td>
+              <td>248</td>
+              <td>26,4 кг/день</td>
+              <td><strong>38%</strong></td>
+              <td>ниже целевого</td>
+            </tr>
+            <tr>
+              <td>Группа 2 · молочные</td>
+              <td>412</td>
+              <td>31,8 кг/день</td>
+              <td>42%</td>
+              <td>норма</td>
+            </tr>
+            <tr>
+              <td>Группа 3 · сухостой</td>
+              <td>87</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Группа 4 · раздой</td>
+              <td>134</td>
+              <td>38,2 кг/день</td>
+              <td>45%</td>
+              <td>норма</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Итоговые значения CR по стаду держатся на уровне <strong>42%</strong>, что соответствует целевому порогу.</p>
+    </div>
+  </div>
+
+</body>
+</html>

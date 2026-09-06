@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Buttons</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px; font-weight: 500; line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px; text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 16px;
+    font-size: 14px; line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace; font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px; line-height: 18px;
+    color: var(--fg-soft);
+  }
+  .variant-caption {
+    margin: 0 0 8px;
+    font-size: 11px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px; text-transform: uppercase;
+  }
+  .dom-tree {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px; line-height: 18px;
+    color: var(--fg-default);
+    white-space: pre; overflow-x: auto;
+  }
+  .row {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  }
+  .grid-variants {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) { .grid-variants { grid-template-columns: 1fr; } }
+  .cell {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: var(--radius-6);
+  }
+  .cell-label {
+    font-size: 11px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase;
+  }
+  .dark-stage {
+    background: var(--neutral-800);
+    border-radius: var(--radius-8);
+    padding: 16px;
+  }
+  .dark-stage .cell { background: rgba(255,255,255,0.05); }
+  .dark-stage .cell-label { color: var(--neutral-200); }
+
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Buttons · структура трёх компонентов</p>
+    <p class="block-section-note">В product-src три разных button-компонента: <code>Button</code> (основной CTA — с фоном), <code>FunctionButton</code> (текст/иконка без фона, меняет только цвет на hover), <code>CloseButton</code> (icon-only с bg-hover). Разные sizes enum'ы и разные hover-модели. Не путать между собой: отличаются файлами в <code>src/shared/components/</code>, пропсами, и визуальным поведением.</p>
+    <p class="block-section-source">Source: Button/, FunctionButton/, CloseButton/ — index.module.scss + index.tsx каждого</p>
+
+    <pre class="dom-tree">Button               variant: primary | secondary | ghost
+                     theme:   accent | neutral | destructive
+                     size:    large48 | medium36 | small24
+                     DOM: &lt;button.root.variant.theme.size&gt; [icon][text][icon][loader]
+                     hover → меняется bg + fg одновременно
+
+FunctionButton       variant: primary | secondary | tertiary | failure
+                     size:    large24 | medium20 | small16
+                     theme:   light (default) | dark (isDark=true)
+                     DOM: &lt;button.root.variant.light|dark&gt; [icon][typography]
+                     hover → меняется ТОЛЬКО color, bg всегда transparent
+
+CloseButton          size:    large24 | medium20 | small16 | small12
+                     theme:   onLight (default) | onDark
+                     DOM: &lt;button.root.size.theme&gt; &lt;Icon xClose&gt;
+                     hover → меняется ТОЛЬКО bg, color остаётся</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Button sizes · heights × icon × typography</p>
+    <pre class="dom-tree">large48   → 48h, icon 24, bodyMediumStrong      (16/500/24), hpad 16, radius 8
+medium36  → 36h, icon 20, bodySmallStrong       (14/500/20), hpad 12, radius 8   (default)
+small24   → 24h, icon 16, descriptionLargeStrong (12/500/16), hpad 8,  radius 6
+
+withOnlyIcon (иконка без текста) — меняет hpad и radius:
+large48   → hpad 12, radius 12
+medium36  → hpad 8,  radius 10
+small24   → hpad 4,  radius 8</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. BUTTON: VARIANTS × THEMES
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Button · 3 variants × 3 themes (medium36 default)</p>
+    <p class="block-section-note">9 комбинаций: variant (primary/secondary/ghost) × theme (accent/neutral/destructive). Primary — solid bg, Secondary — container bg (полупрозрачный), Ghost — transparent default, bg появляется на hover. Default theme: primary→accent, else→neutral. Destructive не является default ни для чего — задаётся явно.</p>
+    <p class="block-section-source">Source: Button/index.module.scss:24-124 + Button/index.tsx:131-134 (theme default)</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">primary · accent (main CTA)</span>
+        <button type="button" class="btn primary accent medium36"><div class="children">Сохранить</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">primary · neutral</span>
+        <button type="button" class="btn primary neutral medium36"><div class="children">Продолжить</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">primary · destructive</span>
+        <button type="button" class="btn primary destructive medium36"><div class="children">Удалить</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">secondary · accent</span>
+        <button type="button" class="btn secondary accent medium36"><div class="children">Подробнее</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">secondary · neutral (default)</span>
+        <button type="button" class="btn secondary neutral medium36"><div class="children">Отмена</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">secondary · destructive</span>
+        <button type="button" class="btn secondary destructive medium36"><div class="children">Архивировать</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">ghost · accent</span>
+        <button type="button" class="btn ghost accent medium36"><div class="children">Открыть</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">ghost · neutral</span>
+        <button type="button" class="btn ghost neutral medium36"><div class="children">Пропустить</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">ghost · destructive</span>
+        <button type="button" class="btn ghost destructive medium36"><div class="children">Снять метку</div></button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. BUTTON: SIZES
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Button · sizes × с иконкой / без</p>
+    <p class="block-section-note">Три размера на примере <code>primary.accent</code>. Внутри каждого — варианты с иконкой слева, справа, только текст. Typography, icon size и padding меняются per-size (см. раздел 1).</p>
+    <p class="block-section-source">Source: Button/index.module.scss:3-22 (sizes) + Button/index.tsx:37-41 (typography dict) + component-tokens.json button.iconSize</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">large48</span>
+        <div class="row">
+          <button type="button" class="btn primary accent large48"><div class="children">Сохранить</div></button>
+          <button type="button" class="btn primary accent large48"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span><div class="children">Добавить</div></button>
+          <button type="button" class="btn primary accent large48"><div class="children">Далее</div><span class="icon rotate-ccw-90"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">medium36 (default)</span>
+        <div class="row">
+          <button type="button" class="btn primary accent medium36"><div class="children">Сохранить</div></button>
+          <button type="button" class="btn primary accent medium36"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span><div class="children">Добавить</div></button>
+          <button type="button" class="btn primary accent medium36"><div class="children">Далее</div><span class="icon rotate-ccw-90"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">small24</span>
+        <div class="row">
+          <button type="button" class="btn primary accent small24"><div class="children">Сохранить</div></button>
+          <button type="button" class="btn primary accent small24"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span><div class="children">Добавить</div></button>
+          <button type="button" class="btn primary accent small24"><div class="children">Далее</div><span class="icon rotate-ccw-90"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-down"/></svg></span></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. BUTTON: STATES
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Button · states</p>
+    <p class="block-section-note">Hover можно проверить мышкой на любой кнопке в шаблоне. Здесь явно показаны <code>pressed</code>, <code>disabled</code>, <code>loading</code>. В коде состояния управляются через <code>isPressed</code> prop (forced press), <code>isDisabled</code>, <code>isLoading</code> → классы <code>.pressed</code> / <code>.disabled</code> / <code>.loading</code>. При loading: icon и text получают <code>opacity: 0</code>, поверх накладывается Loader (абс-позиц, inset 0).</p>
+    <p class="block-section-source">Source: Button/index.module.scss:145-177 (state-modifiers) + Button/index.tsx:188-201 (clsx)</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">default</span>
+        <button type="button" class="btn primary accent medium36"><div class="children">Сохранить</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">pressed (isPressed=true)</span>
+        <button type="button" class="btn primary accent medium36 pressed"><div class="children">Сохранить</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">disabled</span>
+        <button type="button" class="btn primary accent medium36 disabled" disabled><div class="children">Сохранить</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">loading (isLoading=true)</span>
+        <button type="button" class="btn primary accent medium36 loading">
+          <div class="children">Сохранить</div>
+          <span class="loader"><span class="loader-spinner"></span></span>
+        </button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">secondary · disabled</span>
+        <button type="button" class="btn secondary neutral medium36 disabled" disabled><div class="children">Отмена</div></button>
+      </div>
+      <div class="cell">
+        <span class="cell-label">ghost · disabled</span>
+        <button type="button" class="btn ghost neutral medium36 disabled" disabled><div class="children">Открыть</div></button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. BUTTON: ICON-ONLY (withOnlyIcon)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Button · icon-only (withOnlyIcon)</p>
+    <p class="block-section-note">Если <code>iconVariant</code> задан, а <code>children</code> нет (или скрыты через <code>shouldHideLabelOnMobile</code>) — рендерится без текста, с изменёнными padding и radius. Radius более «квадратный» (10 для medium36 вместо 8), чтобы кнопка выглядела как кнопка-иконка, а не растянутая.</p>
+    <p class="block-section-source">Source: Button/index.module.scss:180-195 (.withOnlyIcon overrides) + Button/index.tsx:161-162 (withOnlyIcon = !!icon && !isWithLabel)</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">large48 · 48×48</span>
+        <div class="row">
+          <button type="button" class="btn primary accent large48 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span></button>
+          <button type="button" class="btn secondary neutral large48 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#filter"/></svg></span></span></button>
+          <button type="button" class="btn ghost neutral large48 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#dots"/></svg></span></span></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">medium36 · 36×36</span>
+        <div class="row">
+          <button type="button" class="btn primary accent medium36 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span></button>
+          <button type="button" class="btn secondary neutral medium36 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#filter"/></svg></span></span></button>
+          <button type="button" class="btn ghost neutral medium36 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#dots"/></svg></span></span></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">small24 · 24×24</span>
+        <div class="row">
+          <button type="button" class="btn primary accent small24 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span></button>
+          <button type="button" class="btn secondary neutral small24 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#filter"/></svg></span></span></button>
+          <button type="button" class="btn ghost neutral small24 icon-only"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#dots"/></svg></span></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. FUNCTION BUTTON: variants × sizes (light)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">FunctionButton · variants × sizes (light theme)</p>
+    <p class="block-section-note">4 variants × 3 sizes. Default: <code>tertiary</code> (color fg-soft) + <code>large24</code>. bg ВСЕГДА transparent — отличается от Button. Hover меняет color (<code>--button-active-color</code>): все non-failure → <code>accent-hover</code>, failure → <code>error-hover</code>. Failure используется для destructive-действий, которые по стилю должны выглядеть как ссылка.</p>
+    <p class="block-section-source">Source: FunctionButton/index.module.scss:3-57 (variants × theme) + FunctionButton/index.tsx:133-137 (defaults)</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">primary · 3 sizes</span>
+        <div class="row">
+          <button type="button" tabindex="0" class="fn-btn light primary large24 gap-6"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span><b class="children py-2">Добавить</b></button>
+          <button type="button" tabindex="0" class="fn-btn light primary medium20 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span><b class="children">Добавить</b></button>
+          <button type="button" tabindex="0" class="fn-btn light primary small16 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span><b class="children">Добавить</b></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">secondary · 3 sizes</span>
+        <div class="row">
+          <button type="button" tabindex="0" class="fn-btn light secondary large24 gap-6"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#filter"/></svg></span></span><b class="children py-2">Фильтры</b></button>
+          <button type="button" tabindex="0" class="fn-btn light secondary medium20 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#filter"/></svg></span></span><b class="children">Фильтры</b></button>
+          <button type="button" tabindex="0" class="fn-btn light secondary small16 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#filter"/></svg></span></span><b class="children">Фильтры</b></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">tertiary (default) · 3 sizes</span>
+        <div class="row">
+          <button type="button" tabindex="0" class="fn-btn light tertiary large24 gap-6"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#clock"/></svg></span></span><b class="children py-2">История</b></button>
+          <button type="button" tabindex="0" class="fn-btn light tertiary medium20 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#clock"/></svg></span></span><b class="children">История</b></button>
+          <button type="button" tabindex="0" class="fn-btn light tertiary small16 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#clock"/></svg></span></span><b class="children">История</b></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">failure · 3 sizes</span>
+        <div class="row">
+          <button type="button" tabindex="0" class="fn-btn light failure large24 gap-6"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#delete"/></svg></span></span><b class="children py-2">Удалить</b></button>
+          <button type="button" tabindex="0" class="fn-btn light failure medium20 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#delete"/></svg></span></span><b class="children">Удалить</b></button>
+          <button type="button" tabindex="0" class="fn-btn light failure small16 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#delete"/></svg></span></span><b class="children">Удалить</b></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">icon-only (tertiary · 3 sizes)</span>
+        <div class="row">
+          <button type="button" tabindex="0" class="fn-btn light tertiary large24 gap-6"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#mic"/></svg></span></span></button>
+          <button type="button" tabindex="0" class="fn-btn light tertiary medium20 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#mic"/></svg></span></span></button>
+          <button type="button" tabindex="0" class="fn-btn light tertiary small16 gap-4"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#mic"/></svg></span></span></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">disabled</span>
+        <div class="row">
+          <button type="button" tabindex="-1" class="fn-btn light tertiary large24 gap-6 disabled" disabled><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#send"/></svg></span></span><b class="children py-2">Отправить</b></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       7. FUNCTION BUTTON: dark theme
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">FunctionButton · dark theme (<code>isDark=true</code>)</p>
+    <p class="block-section-note">Применяется на тёмных поверхностях — тостах, модалках с dark header, PageHeader-слайдере. Colors берутся из dark-scale: primary → <code>accent-200</code>, secondary → <code>neutral-50</code>, tertiary → <code>neutral-200</code>. Hover-цвет — <code>accent-100</code> (не <code>accent-hover</code>). В <code>Toast</code> FunctionButton рендерится с <code>isDark=true, variant=secondary</code> (Source: Toast/index.tsx:50-56).</p>
+    <p class="block-section-source">Source: FunctionButton/index.module.scss:9-13 (.dark) + 20-32 (variant.dark)</p>
+
+    <div class="dark-stage">
+      <div class="grid-variants">
+        <div class="cell">
+          <span class="cell-label">primary</span>
+          <div class="row">
+            <button type="button" tabindex="0" class="fn-btn dark primary large24 gap-6"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#plus"/></svg></span></span><b class="children py-2">Добавить</b></button>
+          </div>
+        </div>
+        <div class="cell">
+          <span class="cell-label">secondary (в Toast)</span>
+          <div class="row">
+            <button type="button" tabindex="0" class="fn-btn dark secondary large24 gap-6"><b class="children py-2">Отменить</b></button>
+          </div>
+        </div>
+        <div class="cell">
+          <span class="cell-label">tertiary</span>
+          <div class="row">
+            <button type="button" tabindex="0" class="fn-btn dark tertiary large24 gap-6"><b class="children py-2">Пропустить</b></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       8. CLOSE BUTTON
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">CloseButton · sizes × themes</p>
+    <p class="block-section-note">Icon-only кнопка с иконкой <code>x-close</code>. 4 размера, 2 темы. Hover меняет только bg (в отличие от FunctionButton, который меняет color). <code>onLight</code> → hover bg <code>neutral-container-hover</code>; <code>onDark</code> → <code>neutral-700</code>. Радиус меняется по размеру (6 для large24, 4 для остальных).</p>
+    <p class="block-section-source">Source: CloseButton/index.module.scss + CloseButton/index.tsx:56-98</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">onLight · 4 sizes</span>
+        <div class="row">
+          <button type="button" class="close-btn on-light large24" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          <button type="button" class="close-btn on-light medium20" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          <button type="button" class="close-btn on-light small16" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          <button type="button" class="close-btn on-light small12" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">disabled (onLight)</span>
+        <div class="row">
+          <button type="button" class="close-btn on-light large24 disabled" disabled aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dark-stage" style="margin-top: 12px;">
+      <div class="grid-variants">
+        <div class="cell">
+          <span class="cell-label">onDark · 4 sizes</span>
+          <div class="row">
+            <button type="button" class="close-btn on-dark large24" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            <button type="button" class="close-btn on-dark medium20" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            <button type="button" class="close-btn on-dark small16" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            <button type="button" class="close-btn on-dark small12" aria-label="Закрыть"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

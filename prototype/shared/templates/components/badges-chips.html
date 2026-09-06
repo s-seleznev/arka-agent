@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Badges & Chips</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 8px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .row.gap-12 { gap: 12px; }
+  .grid-colors {
+    display: grid; gap: 8px 16px;
+    grid-template-columns: 120px repeat(3, minmax(0, 1fr));
+    align-items: center;
+  }
+  .grid-colors .col-header {
+    font-size: 11px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase;
+  }
+  .grid-colors .row-label {
+    font-size: 12px; font-weight: 500; line-height: 16px;
+    color: var(--fg-soft);
+    font-family: ui-monospace, monospace;
+  }
+  .grid-variants {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) { .grid-variants { grid-template-columns: 1fr; } }
+  .cell {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: var(--radius-6);
+  }
+  .cell-label { font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Badges & Chips · структура двух компонентов</p>
+    <p class="block-section-note"><strong>Badge</strong> — статический лейбл (статус, метка, счётчик). Не интерактивен. <strong>Chip</strong> — интерактивный контейнер: выбираемый (checkbox), удаляемый (close), или просто контейнер с состояниями. Границы, скругления, padding'ы разные — не путать. Badge — радиус 4-6 (квадратнее), Chip — <code>radius-full</code> (pill).</p>
+    <p class="block-section-source">Source: Badge/index.tsx + index.module.scss + types.ts; Chip/index.tsx + index.module.scss</p>
+
+    <pre class="dom-tree">Badge                 color:   neutral | accent | success | warning | error | info (+ status01-04)
+                      theme:   light | default | saturated
+                      size:    large24 | medium20 | small16
+                      variant: default | counter | tag
+                      DOM: &lt;span.root.size[.counter]&gt; [Icon×N] Typography.text [counter-badge|close]
+
+Chip                  size:    medium24 | large36
+                      state:   default | active | inactive | disabled
+                      mode:    interactive (cursor pointer, hover) | passive (контейнер для других)
+                      DOM: &lt;tag.root.size[.active|.inactive]&gt; [Checkbox|left] [text] [close|right]</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Badge: theme → bg / fg</p>
+    <pre class="dom-tree">light      bg <code>{color}-container-soft</code>      (alpha 0.05)   fg <code>{color}-soft</code>      — самый тихий
+default    bg <code>{color}-container-default</code>   (alpha 0.1)    fg <code>{color}-hover</code>     — дефолт
+saturated  bg <code>{color}-soft</code>                (full solid)   fg <code>{color}-on-color</code>  — самый громкий (white text)</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. BADGE: colors × themes matrix
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Badge · 6 colors × 3 themes matrix (large24)</p>
+    <p class="block-section-note">18 комбинаций на примере <code>large24</code>. Каждая строка — цвет (<code>ColorVariants</code>), столбец — тема (<code>BadgeThemes</code>). Default для Badge — <code>BadgeThemes.default</code> (средний столбец). <code>getCowStateBadgeProps</code> и аналогичные хелперы в коде возвращают именно <code>default</code>-тему — не путать с <code>light</code>.</p>
+    <p class="block-section-source">Source: Badge/index.tsx:104-153 (theme → bg/fg mapping) + types.ts (BadgeThemes, ColorVariants)</p>
+
+    <div class="grid-colors">
+      <span></span>
+      <span class="col-header">light</span>
+      <span class="col-header">default</span>
+      <span class="col-header">saturated</span>
+
+      <span class="row-label">neutral</span>
+      <span><span class="badge large24 ellipsis theme-light color-neutral" title="Активное"><b class="text ellipsis">Активное</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-default color-neutral" title="Активное"><b class="text ellipsis">Активное</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-saturated color-neutral" title="Активное"><b class="text ellipsis">Активное</b><div class="right-slot"></div></span></span>
+
+      <span class="row-label">accent</span>
+      <span><span class="badge large24 ellipsis theme-light color-accent" title="Новое"><b class="text ellipsis">Новое</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-default color-accent" title="Новое"><b class="text ellipsis">Новое</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-saturated color-accent" title="Новое"><b class="text ellipsis">Новое</b><div class="right-slot"></div></span></span>
+
+      <span class="row-label">success</span>
+      <span><span class="badge large24 ellipsis theme-light color-success" title="Стельная"><b class="text ellipsis">Стельная</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-default color-success" title="Стельная"><b class="text ellipsis">Стельная</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-saturated color-success" title="Стельная"><b class="text ellipsis">Стельная</b><div class="right-slot"></div></span></span>
+
+      <span class="row-label">warning</span>
+      <span><span class="badge large24 ellipsis theme-light color-warning" title="Сомнительная"><b class="text ellipsis">Сомнительная</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-default color-warning" title="Сомнительная"><b class="text ellipsis">Сомнительная</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-saturated color-warning" title="Сомнительная"><b class="text ellipsis">Сомнительная</b><div class="right-slot"></div></span></span>
+
+      <span class="row-label">error</span>
+      <span><span class="badge large24 ellipsis theme-light color-error" title="Выбыла"><b class="text ellipsis">Выбыла</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-default color-error" title="Выбыла"><b class="text ellipsis">Выбыла</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-saturated color-error" title="Выбыла"><b class="text ellipsis">Выбыла</b><div class="right-slot"></div></span></span>
+
+      <span class="row-label">info</span>
+      <span><span class="badge large24 ellipsis theme-light color-info" title="Анализ"><b class="text ellipsis">Анализ</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-default color-info" title="Анализ"><b class="text ellipsis">Анализ</b><div class="right-slot"></div></span></span>
+      <span><span class="badge large24 ellipsis theme-saturated color-info" title="Анализ"><b class="text ellipsis">Анализ</b><div class="right-slot"></div></span></span>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. BADGE: sizes & variants
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Badge · sizes & variants</p>
+    <p class="block-section-note">Три размера × три variants. Default — <code>large24</code> + <code>default</code>. <code>counter</code> — radius-full (круглый), для чисел. <code>tag</code> — та же форма что default, но typography <code>descriptionLarge</code> (без Strong, font-weight 400). Иконка размером 16 для large24, 12 для остальных (<code>ICON_SIZES_BY_BADGE_SIZE</code>).</p>
+    <p class="block-section-source">Source: Badge/index.module.scss:3-19 (sizes) + 35-37 (.counter) + index.tsx:172-181 (variant typography) + constants.ts (icon size dict)</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">sizes · default variant</span>
+        <div class="row gap-12">
+          <span class="badge large24 ellipsis theme-default color-accent" title="large24"><b class="text ellipsis">large24</b><div class="right-slot"></div></span>
+          <span class="badge medium20 ellipsis theme-default color-accent" title="medium20"><b class="text ellipsis">medium20</b><div class="right-slot"></div></span>
+          <span class="badge small16 ellipsis theme-default color-accent" title="small16"><b class="text ellipsis">small16</b><div class="right-slot"></div></span>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">variant: counter (pill, без ellipsis)</span>
+        <div class="row gap-12">
+          <span class="badge large24 counter theme-saturated color-error"><b class="text">3</b><div class="right-slot"></div></span>
+          <span class="badge medium20 counter theme-saturated color-error"><b class="text">12</b><div class="right-slot"></div></span>
+          <span class="badge small16 counter theme-saturated color-error"><b class="text">99+</b><div class="right-slot"></div></span>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">variant: tag (descriptionLarge → span)</span>
+        <div class="row gap-12">
+          <span class="badge large24 ellipsis tag theme-light color-neutral" title="#молочная"><span class="text ellipsis">#молочная</span><div class="right-slot"></div></span>
+          <span class="badge medium20 ellipsis tag theme-light color-neutral" title="#первотёлки"><span class="text ellipsis">#первотёлки</span><div class="right-slot"></div></span>
+          <span class="badge small16 ellipsis tag theme-light color-neutral" title="#группа-3"><span class="text ellipsis">#группа-3</span><div class="right-slot"></div></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. BADGE: icons + counter + onClose
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Badge · с иконкой / counter / onClose</p>
+    <p class="block-section-note"><code>iconVariant</code> может быть массивом — отрендерится несколько иконок. <code>counter</code> добавит вложенный mini-badge (size <code>small16</code>, <code>saturated</code>, того же цвета). <code>onClose</code> добавит <code>CloseButton</code> — размер по dict (<code>small16</code> для large24, <code>small12</code> для остальных).</p>
+    <p class="block-section-source">Source: Badge/index.tsx:160-167 (icons) + 186-207 (counter/close) + constants.ts:19-35</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">с иконкой слева</span>
+        <div class="row">
+          <span class="badge large24 ellipsis theme-default color-success" title="Подтверждено">
+            <span class="icon"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span>
+            <b class="text ellipsis">Подтверждено</b>
+            <div class="right-slot"></div>
+          </span>
+          <span class="badge large24 ellipsis theme-default color-warning" title="Требует проверки">
+            <span class="icon"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span>
+            <b class="text ellipsis">Требует проверки</b>
+            <div class="right-slot"></div>
+          </span>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">с counter (вложенным badge)</span>
+        <div class="row">
+          <span class="badge large24 ellipsis theme-default color-accent" title="Активные задачи">
+            <b class="text ellipsis">Активные задачи</b>
+            <div class="right-slot">
+              <span class="badge small16 counter theme-saturated color-accent"><b class="text">7</b><div class="right-slot"></div></span>
+            </div>
+          </span>
+          <span class="badge large24 ellipsis theme-default color-error" title="Ошибки импорта">
+            <b class="text ellipsis">Ошибки импорта</b>
+            <div class="right-slot">
+              <span class="badge small16 counter theme-saturated color-error"><b class="text">24</b><div class="right-slot"></div></span>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">с onClose (removable tag)</span>
+        <div class="row">
+          <span class="badge large24 ellipsis theme-light color-neutral" title="группа 2">
+            <b class="text ellipsis">группа 2</b>
+            <div class="right-slot">
+              <button class="close-btn small16 on-light" aria-label="Убрать"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            </div>
+          </span>
+          <span class="badge large24 ellipsis theme-light color-accent" title="новые">
+            <b class="text ellipsis">новые</b>
+            <div class="right-slot">
+              <button class="close-btn small16 on-light" aria-label="Убрать"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. CHIP: sizes × states
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Chip · sizes × states</p>
+    <p class="block-section-note">Два размера (<code>medium24</code>, <code>large36</code>) × четыре состояния. Default: border <code>border-soft</code>, bg <code>bg-surface-1</code>. Active: border <code>accent-muted</code>, bg <code>accent-opaque-container-default</code>. Inactive/disabled: border <code>border-muted</code>, bg <code>neutral-container-muted</code>, color <code>fg-disabled</code>. Padding считается с учётом border: <code>calc(block-padding - 1px)</code>, чтобы размер не «прыгал» при изменении border.</p>
+    <p class="block-section-source">Source: Chip/index.module.scss:3-87 + index.tsx:280-316 (DOM)</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">medium24 · default / active / inactive</span>
+        <div class="row">
+          <div class="chip medium24"><div class="flex-1 ellipsis px-2">По умолчанию</div></div>
+          <div class="chip medium24 active" aria-checked="true"><div class="flex-1 ellipsis px-2">Выбрано</div></div>
+          <div class="chip medium24 inactive" aria-disabled="true"><div class="flex-1 ellipsis px-2">Недоступно</div></div>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">large36 · default / active / inactive</span>
+        <div class="row">
+          <div class="chip large36"><div class="flex-1 ellipsis px-4 py-2">По умолчанию</div></div>
+          <div class="chip large36 active" aria-checked="true"><div class="flex-1 ellipsis px-4 py-2">Выбрано</div></div>
+          <div class="chip large36 inactive" aria-disabled="true"><div class="flex-1 ellipsis px-4 py-2">Недоступно</div></div>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">interactive (hover → bg-surface-3)</span>
+        <div class="row">
+          <div class="chip medium24 interactiveContainer" tabindex="0" aria-checked="false"><div class="flex-1 ellipsis px-2">Наведи на меня</div></div>
+          <div class="chip medium24 interactiveContainer active" tabindex="0" aria-checked="true"><div class="flex-1 ellipsis px-2">Активный + hover</div></div>
+          <div class="chip medium24 interactiveContainer inactive" tabindex="0" aria-checked="false" aria-disabled="true"><div class="flex-1 ellipsis px-2">Disabled</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. CHIP: interactive patterns (checkbox + remove)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Chip · selectable (с checkbox) + removable (onRemove)</p>
+    <p class="block-section-note">В коде — через <code>checkboxProps</code> (добавляет Checkbox слева, или справа если <code>withRightCheckbox=true</code>) и <code>onRemove</code> (добавляет CloseButton справа, или слева если <code>isLeftRemoveButton=true</code>). <code>isSelected=true</code> даёт класс <code>.active</code> — синхронизируется с состоянием checkbox через <code>aria-checked</code>. Это стандартный паттерн filter-bar с chip'ами.</p>
+    <p class="block-section-source">Source: Chip/index.tsx:218-233 (checkboxElements) + 249-259 (removeButtonElement) + 305-315 (DOM слотов)</p>
+
+    <div class="grid-variants">
+      <div class="cell">
+        <span class="cell-label">checkbox слева (selectable)</span>
+        <div class="row">
+          <div class="chip medium24 interactiveContainer" tabindex="0">
+            <label class="checkbox normal size-16" aria-checked="false">
+              <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+            </label>
+            <div class="flex-1 ellipsis px-2">Молочные</div>
+          </div>
+          <div class="chip medium24 interactiveContainer active" tabindex="0" aria-checked="true">
+            <label class="checkbox normal size-16" aria-checked="true">
+              <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+            </label>
+            <div class="flex-1 ellipsis px-2">Сухостой</div>
+          </div>
+          <div class="chip medium24 interactiveContainer active" tabindex="0" aria-checked="true">
+            <label class="checkbox normal size-16" aria-checked="true">
+              <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+            </label>
+            <div class="flex-1 ellipsis px-2">Первотёлки</div>
+          </div>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">removable (onRemove справа)</span>
+        <div class="row">
+          <div class="chip medium24">
+            <div class="flex-1 ellipsis px-2">группа 2</div>
+            <button class="close-btn small16 on-light" aria-label="Убрать"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          </div>
+          <div class="chip medium24 active">
+            <div class="flex-1 ellipsis px-2">отёл &gt; 30 дней</div>
+            <button class="close-btn small16 on-light" aria-label="Убрать"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          </div>
+          <div class="chip medium24">
+            <div class="flex-1 ellipsis px-2">ферма Малиновка</div>
+            <button class="close-btn small16 on-light" aria-label="Убрать"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          </div>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="cell-label">checkbox + remove вместе</span>
+        <div class="row">
+          <div class="chip medium24 interactiveContainer active" tabindex="0" aria-checked="true">
+            <label class="checkbox normal size-16" aria-checked="true">
+              <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+            </label>
+            <div class="flex-1 ellipsis px-2">По фамилии</div>
+            <button class="close-btn small16 on-light" aria-label="Убрать"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

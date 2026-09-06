@@ -1,0 +1,1 @@
+ALTER TABLE "ReportView" ADD CONSTRAINT "ReportView_groupBy_single_check" CHECK (jsonb_typeof("ReportView"."groupBy") = 'array' AND jsonb_array_length("ReportView"."groupBy") <= 1);

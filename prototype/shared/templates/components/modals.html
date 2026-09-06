@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Modals</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body (fullscreen flex, overflow hidden) */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+  .variant-caption {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  MODAL
+     ║  Source: src/services/modals/components/Modal/index.module.scss
+     ║  Source: src/services/modals/components/Modal/index.tsx
+     ║  Sizes enum: ModalSizes.small516 / medium840 / large1192
+     ║  Padding: --spacing-32 (header + content sides + footer sides)
+     ║  Radius: --radius-16
+     ║  Background: --bg-surface-1
+     ║  Grid: header (auto) · content (1fr) · buttons (auto)
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Backdrop demo wrapper — статическая визуализация overlay-сцены.
+     В продукте backdrop анимируется react-spring'ом, цвет
+     --modal-backdrop-color = neutral-container-active. */
+  .modal-stage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 48px 32px;
+    background: var(--neutral-container-active);
+    border-radius: var(--radius-12);
+    overflow: hidden;
+  }
+
+  .modal-box {
+    display: grid;
+    width: var(--modal-width, 100%);
+    max-width: 100%;
+    border-radius: var(--radius-16);
+    background: var(--bg-surface-1);
+    grid-template-rows: auto 1fr auto;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .modal-small516  { --modal-width: min(516px, 100%); }
+  .modal-medium840 { --modal-width: min(840px, 100%); }
+  .modal-large1192 { --modal-width: min(1192px, 100%); }
+
+  /* Header — flex between title-block и close-button.
+     align-items: flex-start — чтобы при многострочном title close
+     оставался привязан к верху. padding 32. */
+  .modal-header {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--spacing-32);
+    gap: var(--spacing-16);
+  }
+  .modal-header-text {
+    display: grid;
+    gap: var(--spacing-4);
+    min-width: 0;
+    flex: 1;
+  }
+  /* heading2 desktop / bodyMediumStrong mobile
+     Source: Modal/index.tsx:266-267 + components.css .heading-2 = 22/700/24 */
+  .modal-title {
+    margin: 0;
+    font-size: 22px;
+    line-height: 24px;
+    font-weight: 700;
+    color: var(--fg-default);
+  }
+  /* Subtitle — descriptionLarge 12/400/16
+     Source: Modal/index.tsx:270 */
+  .modal-subtitle {
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    color: var(--fg-soft);
+  }
+
+  /* Close button — CloseButton default size large24 (24px icon),
+     icon = IconVariants.xClose.
+     Source: src/shared/components/CloseButton/index.tsx:61,91 */
+  .modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg-soft);
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: var(--radius-6);
+  }
+  .modal-close:hover { color: var(--fg-default); background: var(--neutral-opaque-container-hover); }
+  /* CloseButton Icon DOM: span.root > span.innerRoot > svg */
+  .modal-close-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .modal-close-icon-inner {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px;
+  }
+  .modal-close-icon-inner > svg { display: block; width: 100%; height: 100%; }
+
+  /* Content — padding 0 32 (32-12+1).
+     Source: Modal/index.module.scss:88-91 (--content-bottom-padding formula) */
+  .modal-content {
+    padding: 0 var(--spacing-32) calc(var(--spacing-32) - var(--spacing-12) + 1px);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--fg-default);
+    overflow: hidden;
+  }
+
+  /* Footer buttons — sticky flex-end, gap 16, padding (12-1) 32 32.
+     Source: Modal/index.module.scss:97-116 */
+  .modal-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-16);
+    padding: calc(var(--spacing-12) - 1px) var(--spacing-32) var(--spacing-32);
+    border-top: 1px solid transparent;
+    border-radius: 0 0 var(--radius-16) var(--radius-16);
+    background: var(--bg-surface-1);
+  }
+
+  /* Callout (внутри content модалки) — все стили из shared/components.css.
+     Полный каталог вариантов — в components/callouts.html. */
+
+  /* Size-compact mini-модалки для демонстрации размеров */
+  .size-demo {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 24px;
+    background: var(--neutral-container-active);
+    border-radius: var(--radius-12);
+    transform-origin: top center;
+  }
+  .size-demo .modal-box { pointer-events: none; }
+  .size-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .size-label .size-px {
+    font-family: ui-monospace, monospace;
+    text-transform: none;
+    color: var(--fg-soft);
+  }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  COMPONENT: Modals                                ║
+       ║  Form / Confirm-Delete / Info + ModalSizes        ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       1. MODAL — SIZES
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Modal · размеры</p>
+    <p class="block-section-note">Три размера из <code>ModalSizes</code>. Ширина задаётся через <code>--modal-width: min(Xpx, 100%)</code> — на мобилках всегда 100%. Высота <code>max-content</code>, min-height 252px при наличии content. Радиус <code>--radius-16</code>, bg <code>--bg-surface-1</code>. Backdrop — <code>--neutral-container-active</code>.</p>
+    <p class="block-section-source">Source: src/services/modals/components/Modal/index.module.scss (.small516/.medium840/.large1192)</p>
+
+    <div style="display: grid; gap: 16px;">
+      <div>
+        <div class="size-label"><span>small516</span><span class="size-px">max-width: 516px</span></div>
+        <div class="size-demo">
+          <div class="modal-box modal-small516">
+            <div class="modal-header">
+              <div class="modal-header-text">
+                <h2 class="modal-title heading2">Удаление группы</h2>
+              </div>
+              <button type="button" class="modal-close" aria-label="Закрыть"><span class="modal-close-icon"><span class="modal-close-icon-inner"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            </div>
+            <div class="modal-content">
+              <p style="margin: 0;">Вы хотите удалить группу Лактация 1?</p>
+            </div>
+            <div class="modal-buttons">
+              <button class="btn medium36 secondary neutral">Отмена</button>
+              <button class="btn medium36 primary destructive">Подтвердить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-label"><span>medium840</span><span class="size-px">max-width: 840px</span></div>
+        <div class="size-demo">
+          <div class="modal-box modal-medium840">
+            <div class="modal-header">
+              <div class="modal-header-text">
+                <h2 class="modal-title heading2">Создание группы</h2>
+              </div>
+              <button type="button" class="modal-close" aria-label="Закрыть"><span class="modal-close-icon"><span class="modal-close-icon-inner"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            </div>
+            <div class="modal-content">
+              <p style="margin: 0; color: var(--fg-soft);">Content area — форма с полями занимает всю ширину 840px.</p>
+            </div>
+            <div class="modal-buttons">
+              <button class="btn medium36 secondary neutral">Отмена</button>
+              <button class="btn medium36 primary accent">Создать</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-label"><span>large1192</span><span class="size-px">max-width: 1192px</span></div>
+        <div class="size-demo">
+          <div class="modal-box modal-large1192">
+            <div class="modal-header">
+              <div class="modal-header-text">
+                <h2 class="modal-title heading2">Импорт данных</h2>
+                <h3 class="modal-subtitle descriptionLarge text-soft">Предварительный просмотр загружаемых строк</h3>
+              </div>
+              <button type="button" class="modal-close" aria-label="Закрыть"><span class="modal-close-icon"><span class="modal-close-icon-inner"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+            </div>
+            <div class="modal-content">
+              <p style="margin: 0; color: var(--fg-soft);">Для широких таблиц, дашбордов-превью, мультистеп-форм с боковой панелью.</p>
+            </div>
+            <div class="modal-buttons">
+              <button class="btn medium36 secondary neutral">Отмена</button>
+              <button class="btn medium36 primary accent">Импортировать</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. FORM MODAL
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Modal · form (создание / редактирование)</p>
+    <p class="block-section-note">Modal-обёртка вокруг <code>&lt;Form&gt;</code>. Footer buttons — secondary <code>«Отмена»</code> + primary <code>«Создать»</code> / <code>«Сохранить»</code>. <code>isRequireExplicitClosing</code> — защита от потери данных при dirty form. Submit кнопка связана с формой через <code>form={FORM_ID}</code>.</p>
+    <p class="block-section-source">Source: Modal/index.tsx:198,207 (buttonSize, ButtonVariants.secondary) + EditPenGroupModal/index.modal.tsx:150-224 (real example)</p>
+
+    <div class="modal-stage">
+      <div class="modal-box modal-medium840">
+        <div class="modal-header">
+          <div class="modal-header-text">
+            <h2 class="modal-title heading2">Создание группы</h2>
+          </div>
+          <button type="button" class="modal-close" aria-label="Закрыть"><span class="modal-close-icon"><span class="modal-close-icon-inner"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+        </div>
+
+        <div class="modal-content">
+          <h4 style="margin: 0 0 16px; font-size: 16px; line-height: 24px; font-weight: 700; color: var(--fg-default);">Обязательная информация</h4>
+
+          <div style="display: grid; gap: 16px;">
+            <div style="display: grid; gap: 4px;">
+              <label class="label"><span class="ellipsis">Название</span><span class="asterisk">&nbsp;*</span></label>
+              <input class="input medium36 dark" placeholder="Введите название">
+            </div>
+
+            <div style="display: grid; gap: 4px;">
+              <label class="label"><span class="ellipsis">Направление</span><span class="asterisk">&nbsp;*</span></label>
+              <button class="select medium36 dark" style="width: 100%;">
+                <span style="color: var(--fg-muted);">Выберите направление</span>
+                <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+              </button>
+            </div>
+
+            <div style="display: grid; gap: 4px;">
+              <label class="label"><span class="ellipsis">Комментарий</span><span style="color: var(--fg-muted); margin-left: 4px;">(Необязательно)</span></label>
+              <textarea class="input medium36 dark multiline" placeholder="Описание группы" style="min-height: 72px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="btn medium36 secondary neutral">Отмена</button>
+          <button class="btn medium36 primary accent">Создать</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. CONFIRM (DELETE) MODAL — с calloutMessage
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Modal · confirm-delete с calloutMessage</p>
+    <p class="block-section-note">Через <code>useConfirmDelete&lt;Entity&gt;()</code>. Footer — secondary <code>«Отмена»</code> + primary-destructive <code>«Подтвердить»</code> (<code>theme: ButtonThemes.destructive</code>). Опционально <code>calloutMessage</code> с <code>calloutMessageProps.variant</code> = <code>NotificationVariants.info</code> (info/warning/error/success/neutral). Внутри Callout — icon 24px (Icon default) из <code>NOTIFICATION_ICON_VARIANTS_DICT</code>. Полный каталог Callout → <code>components/callouts.html</code>.</p>
+    <p class="block-section-source">Source: src/services/modals/hooks/useConfirmDelete.tsx + ConfirmModal/index.tsx:83 + Callout/index.tsx:47-54 + notifications.module.scss</p>
+
+    <div class="modal-stage">
+      <div class="modal-box modal-small516">
+        <div class="modal-header">
+          <div class="modal-header-text">
+            <h2 class="modal-title heading2">Удаление направления</h2>
+          </div>
+          <button type="button" class="modal-close" aria-label="Закрыть"><span class="modal-close-icon"><span class="modal-close-icon-inner"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+        </div>
+
+        <div class="modal-content">
+          <div class="callout medium16 info">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+            <div class="contentWrapper">
+              <div class="content">
+                <div class="textWrapper">
+                  <p>Вместо удаления вы можете деактивировать направление — это сохранит историю.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p style="margin: 16px 0 0; font-size: 14px; line-height: 20px;">
+            Вы хотите удалить направление <strong>Лактация</strong>?
+          </p>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="btn medium36 secondary neutral">Отмена</button>
+          <button class="btn medium36 primary destructive">Подтвердить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. INFO MODAL
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Modal · info / success</p>
+    <p class="block-section-note">Самый простой вариант — title + message + одна primary кнопка («Закрыть» / «Готово»). Используется когда нужно сообщить результат операции (импорт завершён, отчёт сформирован, данные сохранены) без дополнительных действий.</p>
+    <p class="block-section-source">Source: Modal/index.tsx — стандартная Modal без submitButtonProps (только close-кнопка в footer)</p>
+
+    <div class="modal-stage">
+      <div class="modal-box modal-small516">
+        <div class="modal-header">
+          <div class="modal-header-text">
+            <h2 class="modal-title heading2">Импорт завершён</h2>
+          </div>
+          <button type="button" class="modal-close" aria-label="Закрыть"><span class="modal-close-icon"><span class="modal-close-icon-inner"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+        </div>
+
+        <div class="modal-content">
+          <div class="callout medium16 success" style="margin-bottom: 16px;">
+            <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span></span>
+            <div class="contentWrapper">
+              <div class="content">
+                <div class="textWrapper">
+                  <h4>Загружено 1&nbsp;247 записей</h4>
+                  <p>Отчёт об импорте отправлен на user@ferma.ru.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p style="margin: 0; color: var(--fg-soft);">Данные доступны в разделе «Животные». Обнаружено 3 дубликата — они были объединены.</p>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="btn medium36 primary accent">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       Полный каталог Callout (варианты × размеры × close × function buttons)
+       → components/callouts.html
+       ═══════════════════════════════════════════════ -->
+
+</body>
+</html>

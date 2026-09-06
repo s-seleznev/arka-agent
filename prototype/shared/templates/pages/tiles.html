@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Page Tiles Template</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* ============================================
+     TARGETED OVERRIDES
+     ============================================ */
+  .checkbox .border { border-color: var(--border-soft); }
+
+
+  /* ============================================
+     FILTERS ROW
+     Source: src/features/filters/components/Filters/index.module.scss
+       .root — flex, padding 4px (для overflow), background transparent,
+       gap 6px (--filters-gap), БЕЗ бордера, БЕЗ radius, БЕЗ surface-bg.
+       На странице tiles фильтры НЕ обёрнуты в StickyBorderedPanel.
+     ============================================ */
+  .tiles-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 0;
+    margin-bottom: 24px;
+  }
+  .tiles-filter-bar-left {
+    display: flex;
+    align-items: center;
+    /* filtersWrapper gap: --filters-gap + --spacing-4 = 10px */
+    gap: 10px;
+    flex: 1 1;
+    min-width: 80px;
+  }
+  .tiles-filter-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+
+  /* ============================================
+     FILTER SEARCH (Input small24 + light theme)
+     Source: Input/index.module.scss
+       .small24 — height 24px, padding-inline 6px, radius 6
+       .light — --input-background-color-default: var(--color-static-white)
+       .styled — border 2px solid transparent
+     На tiles-страницах (/analytics/custom-reports) searchInputProps не передаётся —
+     используется дефолтная тема light (= белый фон).
+     ============================================ */
+  .filter-search {
+    display: flex;
+    align-items: center;
+    width: 240px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--bg-surface-1);
+    border: 2px solid transparent;
+    border-radius: var(--radius-6);
+    flex-shrink: 0;
+    color: var(--fg-muted);
+    cursor: text;
+  }
+  .filter-search:hover {
+    border-color: var(--neutral-opaque-container-hover, rgba(73,86,112,0.12));
+  }
+  .filter-search > svg {
+    margin-right: 8px;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .filter-search-placeholder {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-muted);
+  }
+
+
+  /* ============================================
+     SEGMENTED RADIO GROUP (Tile size switcher S/M/L)
+
+     DOM structure from RadioSegmentedTab/index.tsx:
+       <label .segmented-tab [.active]>
+         <div .segmented-tab-button>
+           <span .segmented-tab-text>S</span>
+         </div>
+       </label>
+       wrapped in: <div .segmented>[tabs]</div>
+
+     Tokens:
+       RadioGroup .segmented:
+         padding: 2px, border-radius: 8, bg: neutral-container-soft, gap: 2px
+       RadioSegmentedTab .medium24:
+         --button-vertical-padding: 2px
+         --button-horizontal-padding: 6px
+         --segmented-tab-gap: 6px (для icon+text)
+       .segmentedTabButton:
+         padding: (2 - 1border) (6 - 1border) = 1px 5px
+         border: 1px solid transparent → border-muted (checked)
+         radius: 6
+         background: transparent → bg-surface-1 (checked)
+       Text <Typography .px-4 descriptionLargeStrong>:
+         padding-inline: 4px, font: 12/500/16
+         color: fg-soft (not-checked) / fg-default (checked)
+     ============================================ */
+  .segmented {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    border-radius: var(--radius-8);
+    background: var(--neutral-container-soft);
+    gap: 2px;
+  }
+  .segmented-tab {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    color: var(--fg-soft);
+  }
+  .segmented-tab-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 5px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-6);
+    background: transparent;
+    gap: 6px;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .segmented-tab:hover .segmented-tab-button {
+    background: var(--neutral-on-color, #fff);
+    border-color: var(--border-muted);
+  }
+  .segmented-tab.active {
+    color: var(--fg-default);
+  }
+  .segmented-tab.active .segmented-tab-button {
+    background: var(--bg-surface-1);
+    border-color: var(--border-muted);
+  }
+  /* Text: descriptionLargeStrong + px-4 */
+  .segmented-tab-text {
+    padding-inline: 4px;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: inherit;
+  }
+
+
+  /* ============================================
+     TILE GRID
+     Source: src/styles/modules/contentGrid.module.scss .autoGridTiles
+       display: grid, auto-fill, minmax(min-width, 1fr), gap: 24px
+     Tokens:
+       --tile-min-width-small: 244px
+       --tile-min-width-medium: 296px
+       --tile-min-width-large: 428px
+     ============================================ */
+  .tile-grid {
+    display: grid;
+    gap: 24px;
+  }
+  .tile-grid-small  { grid-template-columns: repeat(auto-fill, minmax(244px, 1fr)); }
+  .tile-grid-medium { grid-template-columns: repeat(auto-fill, minmax(296px, 1fr)); }
+  .tile-grid-large  { grid-template-columns: repeat(auto-fill, minmax(428px, 1fr)); }
+
+
+  /* ============================================
+     TILE — Source: src/features/layouts/components/Tile/index.module.scss
+       .root { border-radius: var(--border-radius-8); background: surface-1; }
+     БЕЗ бордера в idle. Outline (2px border-muted) появляется ТОЛЬКО на hover/focus.
+     Radius одинаковый (8px) для всех размеров (small/medium/large) — размер варьируется
+     только height и padding.
+     ============================================ */
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+    outline: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .tile:hover,
+  .tile:active,
+  .tile:focus-visible {
+    background: var(--bg-surface-2);
+    outline: 2px solid var(--border-muted);
+  }
+
+  .tile-small  { height: 100px; padding: 12px; }
+  .tile-medium { height: 196px; padding: 16px; }
+  .tile-large  { height: 260px; padding: 16px; }
+
+  /* Top row: [main column] + [context menu button] */
+  .tile-top {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .tile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  /* Small tile has less gap between title and body */
+  .tile-small .tile-main { gap: 0; }
+
+  /* Title line: icon + text */
+  .tile-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--fg-default);
+    min-width: 0;
+  }
+  .tile-small .tile-title {
+    gap: 6px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .tile-title-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--fg-soft);
+  }
+  .tile-small .tile-title-icon { width: 20px; height: 20px; }
+  .tile-title-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .tile-large .tile-title-text { -webkit-line-clamp: 3; }
+  .tile-small .tile-title-text { -webkit-line-clamp: 2; }
+
+  /* Description */
+  .tile-description {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .tile-large .tile-description { -webkit-line-clamp: 4; }
+
+  /* Bottom row: left content (badge) + right content (function buttons) */
+  .tile-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  /* Context menu button in top-right of tile */
+  .tile-menu-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-6);
+    cursor: pointer;
+    color: var(--fg-muted);
+  }
+  .tile-menu-btn:hover { background: var(--neutral-container-soft); }
+
+  /* Section label between grids (for demo — showing both sizes on same page) */
+  .tiles-section-label {
+    margin: 32px 0 12px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .tiles-section-label:first-child { margin-top: 0; }
+</style>
+</head>
+<body>
+
+  <!-- SIDEBAR (collapsed) -->
+  <nav class="sidebar collapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="menu-btn">
+          <svg width="24" height="24"><use href="../../icons.svg#menu"/></svg>
+        </div>
+      </div>
+      <div class="sidebar-search">
+        <div class="nav-item-root">
+          <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#search"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-menu-items" id="navMenuItems">
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#calendar"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#warning-circle"/></svg></a>
+      </div>
+      <div class="nav-item-root active">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#analytics"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#cow"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clipboard-list"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clock"/></svg></a>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item-root">
+        <a class="nav-link with-counter" href="#">
+          <svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#megaphone"/></svg>
+          <span class="nav-counter">4</span>
+        </a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#">
+          <span class="nav-avatar nav-avatar-status03">6</span>
+        </a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#user"/></svg></a>
+      </div>
+    </div>
+  </nav>
+
+
+  <div class="main">
+    <div class="content">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  PAGE TILES                                       ║
+           ║  Pattern: PageHeader + FilterBar (с TileSize      ║
+           ║  switcher S/M/L справа) + TileGrid                ║
+           ║  Source: /analytics/custom-reports                ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">Отчёты</h1>
+        </div>
+        <div class="page-header-right">
+          <button class="btn medium36 primary accent">
+            <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+            <span class="children">Создать отчёт</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter bar: search + filters на left, TileSize switcher на right -->
+      <div class="tiles-filter-bar">
+        <div class="tiles-filter-bar-left">
+          <div class="filter-search">
+            <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+            <span class="filter-search-placeholder">Поиск</span>
+          </div>
+          <button class="btn small24 secondary neutral">
+            <svg width="16" height="16"><use href="../../icons.svg#filter"/></svg>
+            <span class="children">Фильтры</span>
+          </button>
+        </div>
+        <div class="tiles-filter-bar-right">
+          <!-- TileSizeRadioGroup (segmented, medium24).
+               Structure: wrapper .segmented > label.segmented-tab > .segmented-tab-button > .segmented-tab-text -->
+          <div class="segmented" role="radiogroup" aria-label="Размер карточек">
+            <label class="segmented-tab" aria-checked="false">
+              <div class="segmented-tab-button">
+                <span class="segmented-tab-text">S</span>
+              </div>
+            </label>
+            <label class="segmented-tab active" aria-checked="true">
+              <div class="segmented-tab-button">
+                <span class="segmented-tab-text">M</span>
+              </div>
+            </label>
+            <label class="segmented-tab" aria-checked="false">
+              <div class="segmented-tab-button">
+                <span class="segmented-tab-text">L</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ======== MEDIUM TILES (196px) — active size ======== -->
+      <div class="tiles-section-label">Размер M (196px — title + description + bottom badge)</div>
+      <div class="tile-grid tile-grid-medium">
+
+        <div class="tile tile-medium">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#chart"/></svg>
+                <span class="tile-title-text">Продуктивность по группам</span>
+              </div>
+              <div class="tile-description">
+                Среднесуточный удой, жир, белок и соматические клетки по каждой группе за выбранный период.
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-neutral"><span class="text">Все роли</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-medium">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#calendar"/></svg>
+                <span class="tile-title-text">Воспроизводство — месячный срез</span>
+              </div>
+              <div class="tile-description">
+                HDR, PR, CR и распределение осеменений по дням в доении для лактирующих коров.
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-accent"><span class="text">Осеменатор</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-medium">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#warning-circle"/></svg>
+                <span class="tile-title-text">Мастит — клинический и субклинический</span>
+              </div>
+              <div class="tile-description">
+                Список коров на лечении, причины выбытия из стада по заболеваниям вымени.
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-warning"><span class="text">Вет Врач</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-medium">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#cow"/></svg>
+                <span class="tile-title-text">Новотельные — 60 дней после отёла</span>
+              </div>
+              <div class="tile-description">
+                Контроль здоровья, удоя и осеменения коров в первые два месяца лактации.
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-success"><span class="text">Зоотехник</span></span>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- ======== SMALL TILES (100px — only title) ======== -->
+      <div class="tiles-section-label">Размер S (100px — только title, без description)</div>
+      <div class="tile-grid tile-grid-small">
+
+        <div class="tile tile-small">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#chart"/></svg>
+                <span class="tile-title-text">Продуктивность по группам</span>
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-neutral"><span class="text">Все роли</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-small">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#calendar"/></svg>
+                <span class="tile-title-text">Воспроизводство — месячный срез</span>
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-accent"><span class="text">Осеменатор</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-small">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#warning-circle"/></svg>
+                <span class="tile-title-text">Мастит — клинический и субклинический</span>
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-warning"><span class="text">Вет Врач</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-small">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#cow"/></svg>
+                <span class="tile-title-text">Новотельные — 60 дней после отёла</span>
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-success"><span class="text">Зоотехник</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-small">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#list"/></svg>
+                <span class="tile-title-text">Сухостой — статус групп</span>
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-neutral"><span class="text">Все роли</span></span>
+          </div>
+        </div>
+
+        <div class="tile tile-small">
+          <div class="tile-top">
+            <div class="tile-main">
+              <div class="tile-title">
+                <svg class="tile-title-icon"><use href="../../icons.svg#clipboard-list"/></svg>
+                <span class="tile-title-text">Выбракованные животные</span>
+              </div>
+            </div>
+            <button class="tile-menu-btn" aria-label="Меню">
+              <svg width="16" height="16"><use href="../../icons.svg#dots"/></svg>
+            </button>
+          </div>
+          <div class="tile-bottom">
+            <span class="badge small16 theme-default color-neutral"><span class="text">Директор</span></span>
+          </div>
+        </div>
+
+      </div>
+
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <script src="../../sidebar.js"></script>
+
+
+  <!-- FIGMA HANDOFF
+    Компоненты:
+      - Page Header (title + primary action btn-md «Создать отчёт»)
+      - StickyBorderedPanel (filter bar: Search + «Фильтры» button + TileSize switcher)
+      - RadioGroup segmented medium24 (S/M/L) — переключатель размера tiles
+      - Tile (small 100px / medium 196px / large 260px)
+      - Badge (neutral/accent/warning/success - default)
+
+    Сетка tiles (autoGridTiles):
+      - display: grid, auto-fill, minmax(tile-min-width, 1fr), gap 24px
+      - S: minmax(244px, 1fr)
+      - M: minmax(296px, 1fr)
+      - L: minmax(428px, 1fr)
+
+    Размеры tile:
+      - small:  100px, padding 12px, title only (bodySmallStrong 14/500/20), icon 20px
+      - medium: 196px, padding 16px, title (bodyMediumStrong 16/500/24) + description (2 lines)
+      - large:  260px, padding 16px, title 3 lines + description 4 lines
+
+    Источник:
+      - src/routes/.../+analytics/+custom-reports/+index.tsx
+      - src/features/layouts/components/Tile/index.module.scss + index.tsx
+      - src/features/layouts/components/TileSizeRadioGroup/index.tsx
+      - src/features/layouts/hooks/useTileSize.tsx
+      - src/styles/modules/contentGrid.module.scss .autoGridTiles
+      - src/shared/components/RadioGroup/index.module.scss .segmented
+      - src/shared/components/RadioGroup/components/RadioSegmentedTab/index.module.scss .medium24
+      - tokens: --tile-min-width-small 244, -medium 296, -large 428
+  -->
+  <!-- AiAssistantButton FAB — в продукте fixed right:32 bottom:32 на всех страницах.
+       Source: widgets/aiAssistant/components/AiAssistantButton/index.tsx -->
+  <button class="ai-assistant-btn" type="button" aria-expanded="false" data-is-floating-element="true">
+    <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#arkasha"/></svg></span></span>
+    <span class="children">Чат с ИИ</span>
+  </button>
+
+
+</body>
+</html>

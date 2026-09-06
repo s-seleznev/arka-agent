@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Checkbox</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px; font-weight: 500; line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px; text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 16px;
+    font-size: 14px; line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace; font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px; line-height: 18px;
+    color: var(--fg-soft);
+  }
+  .dom-tree {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px; line-height: 18px;
+    color: var(--fg-default);
+    white-space: pre; overflow-x: auto;
+  }
+  .variant-caption {
+    margin: 0 0 8px;
+    font-size: 11px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px; text-transform: uppercase;
+  }
+  .row {
+    display: flex; flex-wrap: wrap; gap: 24px; align-items: center;
+  }
+  .matrix {
+    display: grid; gap: 16px 24px;
+    grid-template-columns: repeat(3, minmax(0, max-content));
+    align-items: center;
+  }
+  .cell-caption {
+    font-size: 12px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted);
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       0. CANONICAL DOM — КАК ПРАВИЛЬНО
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Checkbox · canonical DOM</p>
+    <p class="block-section-note">Единственный правильный DOM для чекбокса. Копируй отсюда. Размер <code>size-16/20/24</code> вешается на <b>root</b> <code>.checkbox</code>, не на <code>.border</code>. SVG лежит внутри <code>.icon</code> wrapper'а — именно <code>.icon</code> имеет <code>scale: 0/1</code> transition, управляемый через <code>aria-checked</code>. Без этого иконка всегда видна и в натуральную величину.</p>
+    <p class="block-section-source">Source: Checkbox/index.tsx:230-247 (DOM) + Checkbox/index.module.scss:82-110 (.border, .icon, scale по aria-checked)</p>
+
+    <div class="dom-tree">&lt;label class="checkbox normal size-20"
+       aria-checked="true"
+       aria-disabled="false"&gt;
+  &lt;div class="border"&gt;
+    &lt;span class="icon"&gt;
+      &lt;svg&gt;&lt;use href="../../icons.svg#check"/&gt;&lt;/svg&gt;
+    &lt;/span&gt;
+  &lt;/div&gt;
+  &lt;!-- опционально, если withLabel --&gt;
+  &lt;span class="label"&gt;Текст&lt;/span&gt;
+&lt;/label&gt;</div>
+
+    <p class="block-section-note" style="margin-bottom: 0;">Для <b>indeterminate</b> — <code>aria-checked="mixed"</code> + иконка <code>#minus</code>. Для <b>disabled</b> — <code>aria-disabled="true"</code>. Для <b>withLabel</b> — добавить класс <code>.withLabel</code> на root (grid-template-columns меняется на <code>auto 1fr</code>). <b>Combo-only правило:</b> все модификаторы (<code>.size-16</code>, <code>.withLabel</code>, <code>.colored</code>, <code>.normal</code>, <code>.icons</code>) — только в combo с <code>.checkbox</code>.</p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       1. SIZES × CHECKED STATE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Sizes × checked state</p>
+    <p class="block-section-note">Три размера (<code>size-16</code> / <code>size-20</code> / <code>size-24</code>) × три state'а checked (unchecked / checked / indeterminate). Иконки внутри border: <code>#check</code> для checked, <code>#minus</code> для indeterminate. В unchecked состоянии иконка в DOM есть, но <code>scale: 0</code> делает её невидимой.</p>
+    <p class="block-section-source">Source: Checkbox/index.module.scss:82-110 + icons.svg#check, icons.svg#minus</p>
+
+    <div class="matrix">
+      <div class="cell-caption">unchecked</div>
+      <div class="cell-caption">checked (true)</div>
+      <div class="cell-caption">indeterminate (mixed)</div>
+
+      <!-- size-16 -->
+      <label class="checkbox normal size-16" aria-checked="false">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#check"/></svg></span>
+        </div>
+      </label>
+      <label class="checkbox normal size-16" aria-checked="true">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#check"/></svg></span>
+        </div>
+      </label>
+      <label class="checkbox normal size-16" aria-checked="mixed">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span>
+        </div>
+      </label>
+
+      <!-- size-20 (default) -->
+      <label class="checkbox normal size-20" aria-checked="false">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#check"/></svg></span>
+        </div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="true">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#check"/></svg></span>
+        </div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="mixed">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span>
+        </div>
+      </label>
+
+      <!-- size-24 -->
+      <label class="checkbox normal size-24" aria-checked="false">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#check"/></svg></span>
+        </div>
+      </label>
+      <label class="checkbox normal size-24" aria-checked="true">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#check"/></svg></span>
+        </div>
+      </label>
+      <label class="checkbox normal size-24" aria-checked="mixed">
+        <div class="border">
+          <span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span>
+        </div>
+      </label>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. STATES (hover / pressed / focus / disabled)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Состояния</p>
+    <p class="block-section-note">Hover/pressed/focus-visible меняют <code>--checkbox-color</code> и <code>--checkbox-color-background</code>. Disabled переключает <code>aria-disabled="true"</code> — убирает border, меняет фон на <code>neutral-container-soft</code>, иконка <code>fg-disabled</code>. Hover доступен реальный (навести мышью), остальные — симуляция через <code>data-is-pressed</code> / <code>data-is-focus-visible</code>.</p>
+    <p class="block-section-source">Source: Checkbox/index.module.scss:28-67 (:hover, data-is-pressed, data-is-focus-visible, aria-disabled)</p>
+
+    <div class="matrix">
+      <div class="cell-caption">default</div>
+      <div class="cell-caption">checked</div>
+      <div class="cell-caption">disabled</div>
+
+      <!-- row 1: unchecked + disabled+unchecked -->
+      <label class="checkbox normal size-20" aria-checked="false">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="false" aria-disabled="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+
+      <div class="cell-caption">pressed</div>
+      <div class="cell-caption">checked + pressed</div>
+      <div class="cell-caption">disabled + checked</div>
+
+      <label class="checkbox normal size-20" aria-checked="false" data-is-pressed="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="true" data-is-pressed="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="true" aria-disabled="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+
+      <div class="cell-caption">focus-visible</div>
+      <div class="cell-caption">focus + checked</div>
+      <div class="cell-caption">disabled + mixed</div>
+
+      <label class="checkbox normal size-20" aria-checked="false" data-is-focus-visible="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="true" data-is-focus-visible="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20" aria-checked="mixed" aria-disabled="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span></div>
+      </label>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. WITH LABEL
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">withLabel — чекбокс с текстом</p>
+    <p class="block-section-note">Когда передан <code>label</code> — product-src добавляет класс <code>.withLabel</code> (grid-template-columns переключается на <code>auto 1fr</code>). Текст оборачивается в Typography, variant зависит от <code>size</code>: <code>size16</code> → <code>descriptionLarge</code> (12/400/16), <code>size20</code> → <code>bodySmall</code> (14/400/20), <code>size24</code> → <code>bodyMedium</code> (16/400/24). Label-элемент оборачивает всё (сам label кликабельный).</p>
+    <p class="block-section-source">Source: Checkbox/index.tsx:91-96 LABEL_TYPOGRAPHY_VARIANT_BY_SIZE + index.module.scss:21-23 (.withLabel grid)</p>
+
+    <div style="display: grid; gap: 16px; grid-template-columns: 1fr;">
+      <label class="checkbox normal size-16 withLabel" aria-checked="false">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+        <span class="label" style="font-size: 12px; line-height: 16px;">Размер 16 — descriptionLarge (12/400/16)</span>
+      </label>
+      <label class="checkbox normal size-20 withLabel" aria-checked="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+        <span class="label">Размер 20 — bodySmall (14/400/20), default</span>
+      </label>
+      <label class="checkbox normal size-24 withLabel" aria-checked="mixed">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span></div>
+        <span class="label" style="font-size: 16px; line-height: 24px;">Размер 24 — bodyMedium (16/400/24)</span>
+      </label>
+      <label class="checkbox normal size-20 withLabel" aria-checked="false" aria-disabled="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+        <span class="label">Disabled — серый текст, cursor not-allowed</span>
+      </label>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. COLORED (custom color)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">colored — кастомный цвет через CSS-переменную</p>
+    <p class="block-section-note">Когда передан prop <code>color</code> — добавляется класс <code>.colored</code> + inline-style с переменными <code>--checkbox-color-default/-hover/-pressed</code>. Border в unchecked использует этот цвет (вместо <code>border-soft</code>). В checked — bg тоже этим цветом. Используется в фильтрах и легенде графиков.</p>
+    <p class="block-section-source">Source: Checkbox/index.tsx:209-212 + index.module.scss:50-52 (.colored)</p>
+
+    <div class="row">
+      <label class="checkbox normal size-20 colored" aria-checked="false"
+             style="--checkbox-color-default: var(--success-default); --checkbox-color-hover: var(--success-hover); --checkbox-color-pressed: var(--success-active);">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20 colored" aria-checked="true"
+             style="--checkbox-color-default: var(--success-default); --checkbox-color-hover: var(--success-hover); --checkbox-color-pressed: var(--success-active);">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20 colored" aria-checked="false"
+             style="--checkbox-color-default: var(--error-default); --checkbox-color-hover: var(--error-hover); --checkbox-color-pressed: var(--error-active);">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20 colored" aria-checked="true"
+             style="--checkbox-color-default: var(--error-default); --checkbox-color-hover: var(--error-hover); --checkbox-color-pressed: var(--error-active);">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+      <label class="checkbox normal size-20 colored" aria-checked="true"
+             style="--checkbox-color-default: var(--info-default); --checkbox-color-hover: var(--info-hover); --checkbox-color-pressed: var(--info-active);">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+      </label>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. VARIANT .icons (eye-show / eye-keep-out)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">variant="icons" — не чекбокс, а toggle "видимость"</p>
+    <p class="block-section-note">Альтернативный variant из enum <code>CheckboxVariants.icons</code>. В <code>Checkbox.tsx:113-119</code> при <code>variant=icons</code> иконки по умолчанию: <code>selectedIconVariant=IconVariants.eyeShow</code>, <code>unselectedIconVariant=IconVariants.eyeKeepOut</code>. В SCSS правило одно: <code>.icons .icon { color: fg-soft }</code> — ни <code>.border</code>, ни <code>scale</code>, ни <code>bg</code> не переопределяются. Иконка всегда видна (scale default = 1), border — transparent wrapper без визуала. Состояние определяется тем <strong>какая именно иконка</strong> рендерится, а не стилизацией box'а.</p>
+    <p class="block-section-source">Source: Checkbox/index.tsx:113-119 (selectedIconVariant/unselectedIconVariant defaults) + index.module.scss:119-123 (only `.icon { color: fg-soft }` rule)</p>
+
+    <div class="row">
+      <label class="checkbox icons size-20" aria-checked="false">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#eye-keep-out"/></svg></span></div>
+      </label>
+      <label class="checkbox icons size-20" aria-checked="true">
+        <div class="border"><span class="icon"><svg><use href="../../icons.svg#eye-show"/></svg></span></div>
+      </label>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. CHEAT SHEET — copy-paste готовые snippet'ы
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Cheat sheet — копируй отсюда в другие шаблоны</p>
+    <p class="block-section-note">Наиболее частые use-case'ы одной копипастой. Все DOM-структуры совпадают с product-src 1:1.</p>
+
+    <div class="dom-tree">&lt;!-- Чекбокс в ячейке таблицы (functionCell) --&gt;
+&lt;td class="functionCell"&gt;
+  &lt;div class="grid place-items-center"&gt;
+    &lt;label class="checkbox normal size-16" aria-checked="false"&gt;
+      &lt;div class="border"&gt;&lt;span class="icon"&gt;&lt;svg&gt;&lt;use href="../../icons.svg#check"/&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+&lt;/td&gt;
+
+&lt;!-- Header таблицы: все выбраны --&gt;
+&lt;label class="checkbox normal size-16" aria-checked="true"&gt;
+  &lt;div class="border"&gt;&lt;span class="icon"&gt;&lt;svg&gt;&lt;use href="../../icons.svg#check"/&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;/label&gt;
+
+&lt;!-- Header таблицы: часть выбрана (indeterminate) --&gt;
+&lt;label class="checkbox normal size-16" aria-checked="mixed"&gt;
+  &lt;div class="border"&gt;&lt;span class="icon"&gt;&lt;svg&gt;&lt;use href="../../icons.svg#minus"/&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;/label&gt;
+
+&lt;!-- Чекбокс в форме с лейблом --&gt;
+&lt;label class="checkbox normal size-20 withLabel" aria-checked="false"&gt;
+  &lt;div class="border"&gt;&lt;span class="icon"&gt;&lt;svg&gt;&lt;use href="../../icons.svg#check"/&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/div&gt;
+  &lt;span class="label"&gt;Получать уведомления&lt;/span&gt;
+&lt;/label&gt;
+
+&lt;!-- Chip selectable (с embedded checkbox) --&gt;
+&lt;div class="chip medium24 interactiveContainer"&gt;
+  &lt;label class="checkbox normal size-16" aria-checked="false"&gt;
+    &lt;div class="border"&gt;&lt;span class="icon"&gt;&lt;svg&gt;&lt;use href="../../icons.svg#check"/&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/div&gt;
+  &lt;/label&gt;
+  &lt;div class="flex-1 ellipsis px-2"&gt;Молочные&lt;/div&gt;
+&lt;/div&gt;</div>
+  </div>
+
+</body>
+</html>

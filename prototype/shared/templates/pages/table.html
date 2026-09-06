@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Page Table Template</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Icon DOM wrapper (Icon/index.tsx:140-170): span.root > span.innerRoot > svg */
+  /* ============================================
+     TARGETED OVERRIDES — fix shared library tokens
+     to match the live product exactly
+     ============================================ */
+
+  /* 1. Header cell text: product uses --fg-default, shared has --fg-muted */
+  .data-grid-header-cell { color: var(--fg-default); }
+
+  /* 3. Row hover: product uses --neutral-opaque-container-soft, shared has --bg-surface-2 */
+  .data-grid-row:hover .data-grid-cell { background: var(--neutral-opaque-container-soft); }
+
+  /* 4. Selected row */
+  .data-grid-row.selected .data-grid-cell { background: var(--accent-opaque-container-default); }
+  .data-grid-row.selected:hover .data-grid-cell { background: var(--accent-opaque-container-hover); }
+
+
+  /* ============================================
+     TABLE WRAPPER — replaces shared .data-grid border
+     with product's shadow-border pattern
+     Product: panel + shadow-border wrapper around table
+     ============================================ */
+  .table-wrapper {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+    box-shadow: 0 0 0 1px var(--neutral-75);
+    overflow: hidden;
+  }
+  .table-wrapper > .data-grid {
+    border: none;
+    border-radius: 0;
+  }
+  /* When filter bar is before table — table gets bottom radius only */
+  .table-filter-bar + .table-wrapper {
+    border-radius: 0 0 var(--radius-8) var(--radius-8);
+  }
+
+
+  /* ============================================
+     TABLE FILTER BAR (StickyBorderedPanel)
+     Source: StickyBorderedPanel/index.module.scss
+     - .root:  margin: 0 calc(var(--table-border-width) * -1) = 0 -1px
+               (расширяет бока на 1px чтобы совпали с shadow-border таблицы)
+     - .inner: padding 14px 12px, border 1px solid, radius 8 8 0 0, gap 16
+     ============================================ */
+  .table-filter-bar {
+    display: flex;
+    align-items: center;
+    padding: 14px 12px;
+    margin: 0 -1px;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8) var(--radius-8) 0 0;
+    gap: 16px;
+    background: var(--bg-surface-1);
+  }
+  .table-filter-bar-left {
+    display: flex;
+    align-items: center;
+    /* Source: Filters/index.module.scss .filtersWrapper — gap 10px (spacing-6 + spacing-4) */
+    gap: 10px;
+    flex: 1 1;
+    min-width: 80px;
+  }
+  .table-filter-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 1;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+  /* Inner group of filter chips — tighter 6px gap (--filters-gap in codebase) */
+  .filters-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+
+  /* ============================================
+     ACTION BAR OVERLAY
+     Source: Table/index.module.scss — .actionBarCell
+     Product: absolute overlay on header row
+     ============================================ */
+  .table-wrapper-with-action-bar { position: relative; }
+  .action-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    background: var(--neutral-opaque-container-muted);
+    border-bottom: 1px solid var(--border-muted);
+    z-index: 2;
+  }
+  .action-bar .selected-count {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--fg-default);
+    min-width: 100px;
+  }
+  .action-bar .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-6);
+    background: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--fg-default);
+    height: 20px;
+  }
+  .action-bar .action-btn:hover { color: var(--accent-hover); }
+  .action-bar .action-btn-label { font-size: 12px; font-weight: 700; line-height: 16px; }
+  .action-bar .action-btn-failure { color: var(--error-default); }
+  .action-bar .action-btn-failure:hover { color: var(--error-hover); }
+
+
+  /* ============================================
+     PILL TABS (table variant of Tabs component)
+     Source: Tabs/index.module.scss — .data-grid
+     Codebase specifics:
+     - gap: spacing-8 (8px)
+     - padding: calc(spacing-4 - 1px) calc(spacing-6 - 1px) = 3px 5px
+     - border: 1px solid, color same as bg
+     - radius: 6px
+     - bg: transparent (idle) / neutral-opaque-container-soft (hover/active)
+     - color: neutral-on-container (idle) / fg-default (active)
+     - text wrapper Typography has px-2 (padding-inline 2px)
+     ============================================ */
+  .pill-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill-tab {
+    display: flex;
+    align-items: center;
+    padding: 3px 5px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-6);
+    background: transparent;
+    color: var(--neutral-on-container, var(--fg-soft));
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s, color 0.1s;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    user-select: none;
+  }
+  /* Inner text adds 2px inline padding (Typography px-2 class in codebase) */
+  .pill-tab > span {
+    padding-inline: 2px;
+  }
+  .pill-tab:hover {
+    background: var(--neutral-opaque-container-soft);
+    border-color: var(--neutral-opaque-container-soft);
+  }
+  .pill-tab.active {
+    background: var(--neutral-opaque-container-soft);
+    border-color: var(--neutral-opaque-container-soft);
+    color: var(--fg-default);
+  }
+  .pill-tab.active:hover {
+    border-color: var(--neutral-container-default);
+  }
+
+
+  /* ============================================
+     ITEM ACTION CELL — per-row action, hidden until hover
+     Source: Table/index.module.scss — .itemActionCell
+     ============================================ */
+  .data-grid-cell.item-action-cell { padding: 4px; }
+  .data-grid-cell.item-action-cell > * { opacity: 0; transition: opacity 0.1s; }
+  .data-grid-row:hover .data-grid-cell.item-action-cell > *,
+  .data-grid-cell.item-action-cell:focus-within > * { opacity: 1; }
+
+
+  /* ============================================
+     FILTER BAR — INLINE SEARCH INPUT
+     Source: Input small24 + light + search variant
+     Codebase: Input/index.module.scss + Filters/index.module.scss
+     ============================================ */
+  .filter-search {
+    display: flex;
+    align-items: center;
+    width: 240px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--neutral-opaque-container-soft);
+    border: 2px solid transparent;
+    border-radius: var(--radius-6);
+    flex-shrink: 0;
+    color: var(--fg-muted);
+    cursor: text;
+  }
+  .filter-search:hover { border-color: var(--neutral-opaque-container-hover, rgba(73,86,112,0.12)); }
+  .filter-search > svg {
+    margin-right: 8px;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .filter-search-placeholder {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-muted);
+  }
+
+
+  /* ============================================
+     FILTER BAR — CHIP (filter chip)
+     Source: Chip/index.module.scss — medium24
+     Product: 1px border, full radius (pill), padding 3px 7px,
+     bg surface-1, border border-soft. Active: accent bg + border.
+     ============================================ */
+  .filter-select {
+    display: flex;
+    align-items: center;
+    padding: 3px 7px;
+    gap: 4px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-full, 9999px);
+    background: var(--bg-surface-1);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-soft);
+    white-space: nowrap;
+    user-select: none;
+  }
+  .filter-select:hover {
+    background: var(--bg-surface-3);
+  }
+  .filter-select svg {
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .filter-select-active {
+    background: var(--accent-opaque-container-default);
+    border-color: var(--accent-muted);
+    color: var(--accent-active);
+  }
+  .filter-select-active:hover {
+    background: var(--accent-opaque-container-hover);
+  }
+  .filter-select-active svg { color: var(--accent-active); }
+  .filter-select-active b { font-weight: 500; }
+
+
+  /* ============================================
+     FILTER CHIP ACTIVE STATE (legacy — for chip-based filters)
+     ============================================ */
+  .chip.filter-active {
+    background: var(--accent-opaque-container-muted);
+    border-color: var(--accent-muted);
+    color: var(--accent-active);
+  }
+  .chip .chip-label-bold { font-weight: 500; }
+  .chip .chip-value {
+    font-weight: 400;
+    margin-left: 2px;
+    max-width: 155px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+
+  /* ============================================
+     TABS ROW — tabs on left + action buttons on right
+     Product pattern: tabs with right-aligned actions
+     ============================================ */
+  .tabs-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    min-height: 36px;
+  }
+  .tabs-row .tabs {
+    margin-bottom: 0;
+  }
+  .tabs-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+
+  /* ============================================
+     VARIANT SEPARATOR
+     ============================================ */
+  .variant-separator {
+    margin: 48px 0;
+    border: none;
+    border-top: 2px dashed var(--border-muted);
+  }
+</style>
+</head>
+<body>
+
+  <!-- SIDEBAR (collapsed) — Source: GET_ARKA_NAVIGATION_MENU_CONFIG (constants.ts) -->
+  <nav class="sidebar collapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="menu-btn">
+          <svg width="24" height="24"><use href="../../icons.svg#menu"/></svg>
+        </div>
+      </div>
+      <!-- Cow search inside header wrapper — pb-16 of header creates gap to menuItems -->
+      <div class="sidebar-search">
+        <div class="nav-item-root">
+          <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#search"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-menu-items" id="navMenuItems">
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#calendar"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#warning-circle"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#analytics"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#cow"/></svg></a>
+      </div>
+      <!-- Управление — active (Каталог активностей / Группы животных) -->
+      <div class="nav-item-root active">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clipboard-list"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clock"/></svg></a>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <!-- AnnouncementsMenuItem — icon megaphone + counter (warning color) shown in collapsed -->
+      <div class="nav-item-root">
+        <a class="nav-link with-counter" href="#">
+          <svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#megaphone"/></svg>
+          <span class="nav-counter">4</span>
+        </a>
+      </div>
+      <!-- CompanySelector — Avatar (24×24 radius-6, company initial/digit) -->
+      <div class="nav-item-root">
+        <a class="nav-link" href="#">
+          <span class="nav-avatar nav-avatar-status03">6</span>
+        </a>
+      </div>
+      <!-- User profile -->
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#user"/></svg></a>
+      </div>
+    </div>
+  </nav>
+
+
+  <div class="main">
+    <div class="content">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  VARIANT A: FILTER BAR + TABLE + ACTION BAR       ║
+           ║  Pattern: panel-card > filter-chips > table        ║
+           ║  Example: Животные page with selection + actions   ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">Животные</h1>
+        </div>
+        <div class="page-header-right">
+          <button class="btn medium36 secondary neutral">
+            <svg width="20" height="20"><use href="../../icons.svg#chevron-right-circle"/></svg>
+            <span class="children">Переместить</span>
+          </button>
+          <button class="btn medium36 primary accent">
+            <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+            <span class="children">Добавить</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+
+        <!-- Filter bar (StickyBorderedPanel) + Table group -->
+        <div class="table-filter-bar">
+          <div class="table-filter-bar-left">
+            <div class="filter-search">
+              <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+              <span class="filter-search-placeholder">Поиск</span>
+            </div>
+            <div class="filters-group">
+              <div class="filter-select">
+                <span>Группа</span>
+                <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+              </div>
+              <div class="filter-select filter-select-active">
+                <span><b>Статус:</b> Стельная</span>
+                <svg width="16" height="16"><use href="../../icons.svg#x-close"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLE with shadow-border -->
+        <div class="table-wrapper table-wrapper-with-action-bar">
+
+          <!-- Action bar (visible when rows selected) -->
+          <div class="action-bar">
+            <label class="checkbox normal size-16" aria-checked="mixed"><div class="border"><span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span></div></label>
+            <span class="selected-count">Выбрано: 2</span>
+            <button class="action-btn">
+              <svg width="20" height="20"><use href="../../icons.svg#chevron-right-circle"/></svg>
+              <span class="action-btn-label">Переместить</span>
+            </button>
+            <button class="action-btn">
+              <svg width="20" height="20"><use href="../../icons.svg#edit"/></svg>
+              <span class="action-btn-label">Редактировать</span>
+            </button>
+            <button class="action-btn action-btn-failure">
+              <svg width="20" height="20"><use href="../../icons.svg#delete"/></svg>
+              <span class="action-btn-label">Удалить</span>
+            </button>
+          </div>
+
+          <div class="data-grid" style="grid-template-columns: 36px minmax(120px, 1.5fr) 110px 100px 100px 80px 36px;">
+            <div class="data-grid-header">
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+              </div>
+              <div class="data-grid-header-cell">Кличка</div>
+              <div class="data-grid-header-cell">Статус</div>
+              <div class="data-grid-header-cell">Группа</div>
+              <div class="data-grid-header-cell">Дата</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Удой, кг</div>
+              <div class="data-grid-header-cell" style="display:flex; align-items:center; justify-content:flex-end; padding-right:8px;">
+                <span class="icon cursor-pointer" role="button" tabindex="0" aria-label="Настройки колонок"><span class="innerRoot" style="width: 16px; height: 16px; color: var(--fg-muted);"><svg role="img"><use href="../../icons.svg#settings"/></svg></span></span>
+              </div>
+            </div>
+            <div class="data-grid-body">
+              <!-- Row 1: unchecked -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Зорька 1234</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-success"><span class="text">Стельная</span></span></div>
+                <div class="data-grid-cell">Группа 1</div>
+                <div class="data-grid-cell">15.04.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">28.5</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <!-- Row 2: selected -->
+              <div class="data-grid-row selected">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="true"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Берёзка 2456</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-warning"><span class="text">В охоте</span></span></div>
+                <div class="data-grid-cell">Новотел</div>
+                <div class="data-grid-cell">12.04.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">32.1</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <!-- Row 3: unchecked -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Ласточка 3789</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-accent"><span class="text">Осеменена</span></span></div>
+                <div class="data-grid-cell">Группа 2</div>
+                <div class="data-grid-cell">10.04.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">25.3</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <!-- Row 4: selected -->
+              <div class="data-grid-row selected">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="true"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Ромашка 5678</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-success"><span class="text">Стельная</span></span></div>
+                <div class="data-grid-cell">Группа 1</div>
+                <div class="data-grid-cell">14.04.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">30.7</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <!-- Row 5: unchecked -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Милка 6234</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-error"><span class="text">Больна</span></span></div>
+                <div class="data-grid-cell">Группа 3</div>
+                <div class="data-grid-cell">11.04.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">15.8</div>
+                <div class="data-grid-cell"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /table-wrapper -->
+
+      </div><!-- /panel-card -->
+
+
+      <hr class="variant-separator">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  VARIANT B: LINE TABS + FILTER BAR + TABLE        ║
+           ║  Pattern: tabs > panel-card > filter-bar > table   ║
+           ║  Example: Генетика / Реестр семени                 ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">Генетика</h1>
+        </div>
+      </div>
+
+      <!-- Line tabs above card, with action buttons on the right -->
+      <div class="tabs-row">
+        <div class="tabs line">
+          <div class="tab">Закрепление быков</div>
+          <div class="tab active">Реестр семени</div>
+          <div class="tab">Быки</div>
+          <div class="tab">Поставщики семени</div>
+        </div>
+        <div class="tabs-row-actions">
+          <button class="btn small24 secondary neutral">
+            <svg width="16" height="16"><use href="../../icons.svg#clock"/></svg>
+            <span class="children">История движения семени</span>
+          </button>
+          <button class="btn small24 secondary neutral">
+            <svg width="16" height="16"><use href="../../icons.svg#upload"/></svg>
+            <span class="children">Списать</span>
+          </button>
+          <button class="btn small24 secondary neutral">
+            <svg width="16" height="16"><use href="../../icons.svg#download"/></svg>
+            <span class="children">Внести</span>
+          </button>
+          <button class="btn small24 primary accent">
+            <svg width="16" height="16"><use href="../../icons.svg#plus"/></svg>
+            <span class="children">Добавить семя</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+
+        <!-- Filter bar + Table group: inside card padding -->
+        <div class="table-filter-bar">
+          <div class="table-filter-bar-left">
+            <div class="filter-search">
+              <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+              <span class="filter-search-placeholder">Поиск</span>
+            </div>
+            <button class="btn small24 secondary neutral">
+              <svg width="16" height="16"><use href="../../icons.svg#filter"/></svg>
+              <span class="children">Фильтры</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table with shadow-border bottom radius -->
+        <div class="table-wrapper" style="border-radius: 0 0 var(--radius-8) var(--radius-8);">
+          <div class="data-grid" style="grid-template-columns: 36px 120px minmax(120px, 1fr) 140px 120px 100px 100px 36px;">
+            <div class="data-grid-header">
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+              </div>
+              <div class="data-grid-header-cell">Рег.номер</div>
+              <div class="data-grid-header-cell">Кличка</div>
+              <div class="data-grid-header-cell">Межд.номер</div>
+              <div class="data-grid-header-cell">NAAB-номер</div>
+              <div class="data-grid-header-cell">Порода</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Остаток, доз</div>
+              <div class="data-grid-header-cell" style="display:flex; align-items:center; justify-content:flex-end; padding-right:8px;">
+                <span class="icon cursor-pointer" role="button" tabindex="0" aria-label="Настройки колонок"><span class="innerRoot" style="width: 16px; height: 16px; color: var(--fg-muted);"><svg role="img"><use href="../../icons.svg#settings"/></svg></span></span>
+              </div>
+            </div>
+            <div class="data-grid-body">
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">4398</div>
+                <div class="data-grid-cell">Айсберг</div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell">Н</div>
+                <div class="data-grid-cell data-grid-cell-right">-14</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">12192423</div>
+                <div class="data-grid-cell">ЭТЕЗИАН</div>
+                <div class="data-grid-cell">200ho10606</div>
+                <div class="data-grid-cell">200ho10606</div>
+                <div class="data-grid-cell">X</div>
+                <div class="data-grid-cell data-grid-cell-right">-25</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">12857537</div>
+                <div class="data-grid-cell">Циркус</div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell">Н</div>
+                <div class="data-grid-cell data-grid-cell-right">0</div>
+                <div class="data-grid-cell"></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /table-wrapper -->
+
+      </div><!-- /panel-card -->
+
+
+      <hr class="variant-separator">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  VARIANT C: PILL TABS IN FILTER BAR               ║
+           ║  Pattern: panel-card > filter-bar-with-tabs > table║
+           ║  Example: Каталог активностей                      ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">Каталог активностей</h1>
+        </div>
+        <div class="page-header-right">
+          <button class="btn medium36 primary accent">
+            <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+            <span class="children">Создать активность</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+
+        <!-- Filter bar with pill tabs (RouterTabs variant=table = StickyBorderedPanel) -->
+        <div class="table-filter-bar">
+          <div class="table-filter-bar-left">
+            <div class="pill-tabs">
+              <div class="pill-tab active"><span>Лечение</span></div>
+              <div class="pill-tab"><span>Уход</span></div>
+              <div class="pill-tab"><span>Синхронизация</span></div>
+              <div class="pill-tab"><span>Вакцинация</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table with shadow-border -->
+        <div class="table-wrapper" style="border-radius: 0 0 var(--radius-8) var(--radius-8);">
+          <div class="data-grid" style="grid-template-columns: 36px minmax(160px, 1.5fr) 120px 120px 80px 36px;">
+            <div class="data-grid-header">
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+              </div>
+              <div class="data-grid-header-cell">Название</div>
+              <div class="data-grid-header-cell">Тип</div>
+              <div class="data-grid-header-cell">Дата создания</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Применений</div>
+              <div class="data-grid-header-cell"></div>
+            </div>
+            <div class="data-grid-body">
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Мастит — антибиотик</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-info"><span class="text">Лечение</span></span></div>
+                <div class="data-grid-cell">02.01.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">142</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Кетоз — пропиленгликоль</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-info"><span class="text">Лечение</span></span></div>
+                <div class="data-grid-cell">15.02.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">87</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Хромота — обрезка копыт</a></div>
+                <div class="data-grid-cell"><span class="badge small16 theme-default color-info"><span class="text">Лечение</span></span></div>
+                <div class="data-grid-cell">20.03.2026</div>
+                <div class="data-grid-cell data-grid-cell-right">34</div>
+                <div class="data-grid-cell"></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /table-wrapper -->
+
+      </div><!-- /panel-card -->
+
+
+      <hr class="variant-separator">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  VARIANT D: STANDALONE TABLE (no card wrapper)     ║
+           ║  Pattern: table-wrapper with shadow-border         ║
+           ║  Example: Simple table with filter bar              ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">Справочник</h1>
+        </div>
+      </div>
+
+      <div class="panel-card">
+
+        <div class="table-filter-bar">
+          <div class="table-filter-bar-left">
+            <div class="filter-search">
+              <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+              <span class="filter-search-placeholder">Поиск</span>
+            </div>
+            <button class="btn small24 secondary neutral">
+              <svg width="16" height="16"><use href="../../icons.svg#filter"/></svg>
+              <span class="children">Фильтры</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper" style="border-radius: 0 0 var(--radius-8) var(--radius-8);">
+          <div class="data-grid" style="grid-template-columns: 200px minmax(200px, 1fr) 150px 120px;">
+            <div class="data-grid-header">
+              <div class="data-grid-header-cell">Код</div>
+              <div class="data-grid-header-cell">Название</div>
+              <div class="data-grid-header-cell">Категория</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Количество</div>
+            </div>
+            <div class="data-grid-body">
+              <div class="data-grid-row">
+                <div class="data-grid-cell">VET-001</div>
+                <div class="data-grid-cell">Амоксициллин</div>
+                <div class="data-grid-cell">Антибиотик</div>
+                <div class="data-grid-cell data-grid-cell-right">245</div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell">VET-002</div>
+                <div class="data-grid-cell">Ивермектин</div>
+                <div class="data-grid-cell">Противопаразитарное</div>
+                <div class="data-grid-cell data-grid-cell-right">120</div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell">VET-003</div>
+                <div class="data-grid-cell">Пропиленгликоль</div>
+                <div class="data-grid-cell">Кормовая добавка</div>
+                <div class="data-grid-cell data-grid-cell-right">88</div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /table-wrapper -->
+
+      </div><!-- /panel-card -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <script src="../../sidebar.js"></script>
+  <!-- AiAssistantButton FAB — в продукте fixed right:32 bottom:32 на всех страницах.
+       Source: widgets/aiAssistant/components/AiAssistantButton/index.tsx -->
+  <button class="ai-assistant-btn" type="button" aria-expanded="false" data-is-floating-element="true">
+    <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#arkasha"/></svg></span></span>
+    <span class="children">Чат с ИИ</span>
+  </button>
+
+
+</body>
+</html>

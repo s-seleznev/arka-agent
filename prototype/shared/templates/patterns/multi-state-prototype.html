@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-state prototype — pattern reference</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../layout.css">
+<link rel="stylesheet" href="../../components.css">
+<style>
+  /* ═════════════════════════════════════════════════════════════════
+     MULTI-STATE PROTOTYPE — pattern for task prototypes with multiple
+     user/data states (healthy/sick/in-heat/no-sensor/no-data/…).
+
+     Когда брать: когда в дизайн-задаче один экран, но несколько
+     состояний данных/устройств/пользователя, и нужно показать все
+     состояния в одном прототипе без JS-роутера. Примеры:
+       · animal-card-tab-activity (5 состояний: datamars-healthy,
+         datamars-heat, datamars-sick, heatime, heatime-heat +
+         no-data, no-sensor)
+       · monitoring-section-health-tab (different alert states)
+
+     Как работает: `body[data-state="X"]` хранит активное состояние.
+     У элементов, специфичных для состояния — `class="state-only"
+     data-for="X Y"` (список состояний через пробел). По умолчанию
+     скрыты (`display: none`); раскрываются `display: revert` только
+     когда `body[data-state]` матчит `data-for~="X"`.
+
+     🔴 КРИТИЧЕСКАЯ ЛОВУШКА: `display: revert` возвращает к
+     браузерному default (div → block, span → inline). Это ломает
+     utility-классы `.flex / .inline-flex / .grid` на том же
+     элементе. Для таких контейнеров — scoped-rescue-правило ниже.
+     Детали — SKILL.md §7.4.
+     ═════════════════════════════════════════════════════════════════ */
+
+  /* 1. Базовое скрытие + раскрытие по состоянию.
+     Расширяй список состояний под свою задачу (по одной строке на state). */
+  .state-only { display: none; }
+  body[data-state="state-a"] .state-only[data-for~="state-a"],
+  body[data-state="state-b"] .state-only[data-for~="state-b"],
+  body[data-state="state-c"] .state-only[data-for~="state-c"] {
+    display: revert;
+  }
+
+  /* 2. RESCUE: flex/grid-контейнеры с state-only.
+     Если у элемента, который должен сохранять `display: flex` (или
+     `inline-flex`, `grid`) через utility-класс, стоит `.state-only` —
+     `revert` силует layout. Для каждого такого контейнера добавляй
+     scoped-правило по состоянию:
+
+     ⚠️ НЕ пиши `body[data-state] .my-card.state-only:is([data-for~="a"],
+     [data-for~="b"])` — это сработает во ВСЕХ состояниях сразу и
+     покажет элементы, которые должны быть скрыты.
+
+     ✅ Пиши по одной строке на состояние, с привязкой к конкретному
+     `body[data-state="X"]`: */
+  body[data-state="state-a"] .my-flex-card.state-only[data-for~="state-a"],
+  body[data-state="state-b"] .my-flex-card.state-only[data-for~="state-b"],
+  body[data-state="state-c"] .my-flex-card.state-only[data-for~="state-c"] {
+    display: flex;
+  }
+  /* Добавь ещё один блок с `display: inline-flex;` для badges/chips, если
+     оборачиваешь их state-only'ем напрямую (не через inner-wrapper).
+     Для коротких inline-компонентов обычно проще inner-wrapper:
+     <span class="state-only" data-for="…"><span class="badge …">…</span></span>
+     — внешний span только toggles visibility, внутренний сохраняет свой
+     display. Для карточек/блоков inner-wrapper раздувает DOM — scoped
+     rescue лучше. */
+
+  /* ═════════════════════════════════════════════════════════════════
+     STATE SWITCHER — prototype-only dev-tool для переключения состояний.
+     Фиксированный floating-picker снизу-слева. Удаляется перед Figma-
+     хендовером.
+     ═════════════════════════════════════════════════════════════════ */
+  .state-switcher {
+    position: fixed;
+    left: 32px;
+    bottom: 32px;
+    z-index: 9997;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-10);
+    box-shadow: var(--shadow-lg);
+    font-size: 12px;
+  }
+  .state-switcher__label {
+    font-size: 11px;
+    color: var(--fg-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 4px 6px 2px;
+  }
+  .state-switcher button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--fg-default);
+    font: inherit;
+    text-align: left;
+    padding: 6px 10px;
+    border-radius: var(--radius-6);
+    cursor: pointer;
+  }
+  .state-switcher button:hover { background: var(--neutral-container-hover); }
+  .state-switcher button.active {
+    background: var(--accent-default);
+    color: var(--accent-on-color);
+  }
+
+  /* Demo-scaffolding — только для этой страницы-референса. */
+  body { margin: 0; padding: 48px; background: var(--bg-page); font-family: var(--font); }
+  .demo-card { padding: 24px; border: 1px solid var(--border-muted); border-radius: 12px; background: var(--bg-surface-1); margin-bottom: 16px; }
+  .my-flex-card { flex-direction: column; gap: 8px; padding: 16px; background: var(--bg-surface-3); border-radius: 8px; min-width: 200px; }
+</style>
+</head>
+<body data-state="state-a">
+
+<h1 class="heading2" style="margin: 0 0 24px;">Multi-state prototype — pattern reference</h1>
+
+<!-- ═══ ПРИМЕР: стейт-only элементы ═══ -->
+<div class="demo-card">
+  <b class="bodyMediumStrong">Простой текст — раскрывается через display: revert</b>
+  <div style="margin-top: 12px;">
+    <span class="state-only" data-for="state-a">Показан в State A</span>
+    <span class="state-only" data-for="state-b">Показан в State B</span>
+    <span class="state-only" data-for="state-c">Показан в State C</span>
+    <span class="state-only" data-for="state-a state-b">Показан в A и B</span>
+  </div>
+</div>
+
+<!-- ═══ ПРИМЕР: flex-контейнер требует rescue-правило ═══ -->
+<div class="demo-card">
+  <b class="bodyMediumStrong">flex-контейнер с state-only</b>
+  <div class="flex gap-16" style="margin-top: 12px;">
+    <div class="state-only my-flex-card flex" data-for="state-a">
+      <b class="bodyMediumStrong">Карточка A</b>
+      <span class="displaySmall text-success">42</span>
+      <span class="descriptionLarge text-soft">State A only</span>
+    </div>
+    <div class="state-only my-flex-card flex" data-for="state-b">
+      <b class="bodyMediumStrong">Карточка B</b>
+      <span class="displaySmall text-error">12</span>
+      <span class="descriptionLarge text-soft">State B only</span>
+    </div>
+    <div class="state-only my-flex-card flex" data-for="state-c">
+      <b class="bodyMediumStrong">Карточка C</b>
+      <span class="displaySmall">—</span>
+      <span class="descriptionLarge text-soft">State C only</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STATE SWITCHER (prototype-only) ═══ -->
+<div class="state-switcher" role="group" aria-label="Переключатель состояний">
+  <div class="state-switcher__label">Состояние</div>
+  <button type="button" data-state="state-a" class="active">State A</button>
+  <button type="button" data-state="state-b">State B</button>
+  <button type="button" data-state="state-c">State C</button>
+</div>
+
+<script>
+  document.querySelectorAll('.state-switcher button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = btn.dataset.state;
+      document.body.dataset.state = next;
+      document.querySelectorAll('.state-switcher button')
+        .forEach(b => b.classList.toggle('active', b.dataset.state === next));
+    });
+  });
+</script>
+
+</body>
+</html>

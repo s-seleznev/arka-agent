@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Callouts</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body (fullscreen flex, overflow hidden) */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+  .variant-caption {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .matrix {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr;
+  }
+  .matrix.two-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) {
+    .matrix.two-cols { grid-template-columns: 1fr; }
+  }
+  .dom-tree {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-default);
+    white-space: pre;
+    overflow-x: auto;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  COMPONENT: Callouts                              ║
+       ║  NotificationVariants × CalloutSizes              ║
+       ║  + with close, + with function buttons            ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Структура · wrappers и отступы</p>
+    <p class="block-section-note">Callout — flex-row из 2 частей: <code>Icon</code> + <code>contentWrapper</code>. Внутри wrapper — ещё flex-col с двумя строками: <code>content</code> (текст + close + functionButtons для <code>small8</code>) и отдельный <code>functionButtons</code> (только для <code>medium16</code>). Токен <code>--content-left-margin</code> управляет отступом от иконки: 8 для <code>small8</code>, 12 для <code>medium16</code>.</p>
+    <p class="block-section-source">Source: Callout/index.tsx:79-132 + index.module.scss</p>
+
+    <pre class="dom-tree">div.callout[size][variant]                  ← root: flex, items-start, radius 8
+  span.icon > span.innerRoot > svg                          ← ml: 8, color: --notification-default-color
+                                              size: Icon default 24×24
+  div.contentWrapper                       ← flex col, gap 12, flex 1,
+                                              margin-left: var(--content-left-margin)
+    div.content                     ← flex row, gap 12
+      div.textWrapper                      ← flex col, gap 4, mr-auto, max-w 800
+        h4                                  ← bodySmallStrong 14/500/20 (опционально)
+        p                                   ← bodySmall 14/400/20
+                                              (default = message prop)
+      div.functionButtons (small8) ← align-self: flex-end, gap 12
+      button.close-btn.large24.on-light                  ← self-start, 24×24 (опционально)
+    div.functionButtons (medium16) ← align-self: flex-end, gap 16</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Padding по размерам</p>
+    <pre class="dom-tree">.small8   → padding: 8 12 8 4   · icon ml 4 (+8 = 12 от left)  · gap 12
+.medium16 → padding: 16 16 16 8 · icon ml 8 (+8 = 16 от left)  · gap 16</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. VARIANTS × SIZES (matrix)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">NotificationVariants × CalloutSizes</p>
+    <p class="block-section-note">5 variants (<code>info</code> / <code>success</code> / <code>warning</code> (default) / <code>error</code> / <code>neutral</code>) × 2 sizes. Variant меняет цвет фона + иконку через <code>NOTIFICATION_ICON_VARIANTS_DICT</code>: info → <code>info-circle-filled</code>, success → <code>check-circle-filled</code>, warning → <code>warning-circle-filled</code>, error → <code>cancel-circle-filled</code>, neutral → <code>chevron-right-circle-filled</code>.</p>
+    <p class="block-section-source">Source: notifications.module.scss (color vars) + constants.ts:8-17 (icon map)</p>
+
+    <p class="variant-caption">medium16 (default size)</p>
+    <div class="matrix two-cols" style="margin-bottom: 24px;">
+      <div class="callout medium16 info">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Вместо удаления вы можете деактивировать — история сохранится.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout medium16 success">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Операция завершена успешно.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout medium16 warning">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Эти изменения затронут 42 связанных записей.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout medium16 error">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#cancel-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Не удалось сохранить. Проверьте подключение и повторите.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout medium16 neutral">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-right-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Дополнительный контекст без эмоциональной окраски.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="variant-caption">small8</p>
+    <div class="matrix two-cols">
+      <div class="callout small8 info">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Компактный info-вариант для плотных форм.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout small8 success">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Настройки сохранены.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout small8 warning">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Проверьте заполнение полей.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout small8 error">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#cancel-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Ошибка загрузки данных.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout small8 neutral">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-right-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Нейтральная подсказка.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. CONTENT COMBINATIONS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Варианты содержимого</p>
+    <p class="block-section-note">В коде: <code>title?: ReactNode</code>, <code>subtitle?: ReactNode</code> (default <code>= message</code>), <code>message?: ReactNode</code>. Типичные комбинации:</p>
+    <p class="block-section-source">Source: Callout/index.tsx:28-54 (props) + tsx:107-119 (рендер title/subtitle)</p>
+
+    <div class="matrix">
+      <div>
+        <p class="variant-caption">только message (subtitle = message)</p>
+        <div class="callout medium16 info">
+          <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+          <div class="contentWrapper">
+            <div class="content">
+              <div class="textWrapper">
+                <p>Новые роли применятся после выхода из системы.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">title + message (title строже, subtitle = message)</p>
+        <div class="callout medium16 warning">
+          <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span></span>
+          <div class="contentWrapper">
+            <div class="content">
+              <div class="textWrapper">
+                <h4>Семя используется в осеменениях</h4>
+                <p>Необходима замена семени для 12 активных протоколов.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">title + subtitle (оба переданы явно)</p>
+        <div class="callout medium16 success">
+          <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#check-circle-filled"/></svg></span></span>
+          <div class="contentWrapper">
+            <div class="content">
+              <div class="textWrapper">
+                <h4>Импорт завершён</h4>
+                <p>Загружено 1 247 животных. Отчёт отправлен на user@ferma.ru.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. WITH CLOSE BUTTON
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">withCloseButton + onClose</p>
+    <p class="block-section-note">CloseButton рендерится справа от textWrapper внутри <code>.content</code> с <code>align-self: flex-start</code>. <code>withCloseButton</code> default = <code>!!onClose</code>. Иконка — <code>x-close</code> 24×24 (CloseButton default large24).</p>
+    <p class="block-section-source">Source: Callout/index.tsx:122-128 + CloseButton/index.tsx</p>
+
+    <div class="matrix">
+      <div class="callout medium16 info">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <h4>Обновление до v2.4</h4>
+              <p>Появились новые отчёты по кормлению. Подробнее в changelog.</p>
+            </div>
+            <button class="close-btn large24 on-light" aria-label="Закрыть" style="align-self:flex-start"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout small8 neutral">
+        <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#chevron-right-circle-filled"/></svg></span></span>
+        <div class="contentWrapper">
+          <div class="content">
+            <div class="textWrapper">
+              <p>Нейтральный с close-кнопкой — small8.</p>
+            </div>
+            <button class="close-btn large24 on-light" aria-label="Закрыть" style="align-self:flex-start"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. WITH FUNCTION BUTTONS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">functionButtonProps — кнопки действий</p>
+    <p class="block-section-note">FunctionButton default size = <code>large24</code>, default variant = <code>tertiary</code> (fg-soft). <strong>В ВСЕХ найденных реальных usage'ах Callout в коде</strong> (<code>UploadGenomicEvaluationCsvModal</code>, <code>UploadSemenAssignmentsCsvModal</code>, <code>DatamarsActiveTagIntegrationModal</code>, <code>milking-parlors/schedule.tsx</code>) variant не передаётся — все кнопки рендерятся tertiary (muted gray). FunctionButton-ы располагаются по-разному: в <code>small8</code> — inline справа от текста, в <code>medium16</code> — на новой строке ниже.</p>
+    <p class="block-section-source">Source: Callout/index.tsx:63-77 + FunctionButton/index.tsx:136 (default tertiary) + реальные usage'и через grep functionButtonProps</p>
+
+    <div style="display: grid; gap: 24px;">
+      <div>
+        <p class="variant-caption">medium16 — одна tertiary кнопка (типичный usage)</p>
+        <div class="callout medium16 warning">
+          <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#warning-circle-filled"/></svg></span></span>
+          <div class="contentWrapper">
+            <div class="content">
+              <div class="textWrapper">
+                <h4>Есть не распознанные коровы</h4>
+                <p>В CSV-файле обнаружено 12 строк с ID, которых нет в системе. Остальные записи загружены успешно.</p>
+              </div>
+            </div>
+            <div class="functionButtons">
+              <button class="fn-btn large24 light tertiary functionButtonItem"><span class="children">Скачать не найденных</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">medium16 — две tertiary кнопки (functionButtonProps: array)</p>
+        <div class="callout medium16 info">
+          <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+          <div class="contentWrapper">
+            <div class="content">
+              <div class="textWrapper">
+                <p>Подключено устройство DataMars. Данные обновляются каждые 5 минут.</p>
+              </div>
+            </div>
+            <div class="functionButtons">
+              <button class="fn-btn large24 light tertiary functionButtonItem"><span class="children">Разорвать подключение</span></button>
+              <button class="fn-btn large24 light tertiary functionButtonItem"><span class="children">Настройки</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="variant-caption">small8 — одна кнопка inline справа от текста</p>
+        <div class="callout small8 info">
+          <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+          <div class="contentWrapper">
+            <div class="content">
+              <div class="textWrapper">
+                <p>Расписание доения не настроено для этой фермы.</p>
+              </div>
+              <div class="functionButtons">
+                <button class="fn-btn large24 light tertiary functionButtonItem"><span class="children">Изменить</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. COMBINED: title + subtitle + close + buttons
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Полный состав (title + subtitle + close + function buttons)</p>
+    <p class="block-section-note">Редкий, но валидный кейс. Все кнопки — tertiary (default FunctionButton variant), close-button справа от текста внутри <code>.content</code>.</p>
+    <p class="block-section-source">Source: все пропы Callout одновременно</p>
+
+    <div class="callout medium16 error">
+      <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#cancel-circle-filled"/></svg></span></span>
+      <div class="contentWrapper">
+        <div class="content">
+          <div class="textWrapper">
+            <h4>Ошибка синхронизации с устройствами</h4>
+            <p>Не удалось получить данные с 3 доильных систем за последние 2 часа. Возможные причины — проблемы с сетью или обновление прошивки.</p>
+          </div>
+          <button class="close-btn large24 on-light" aria-label="Закрыть" style="align-self:flex-start"><span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#x-close"/></svg></span></span></button>
+        </div>
+        <div class="functionButtons">
+          <button class="fn-btn large24 light tertiary functionButtonItem"><span class="children">Повторить</span></button>
+          <button class="fn-btn large24 light tertiary functionButtonItem"><span class="children">Открыть логи</span></button>
+        </div>
+      </div>
+    </div>
+
+    <p class="block-section-note" style="margin-top: 16px; padding: 8px 12px; background: var(--info-opaque-container-default); border-radius: 6px; color: var(--fg-default);">
+      <strong>Примечание про variants FunctionButton:</strong> enum <code>FunctionButtonVariants</code> содержит <code>primary / secondary / tertiary / failure</code>. Внутри Callout встречается только <code>tertiary</code> (default). Остальные используются в других местах — Accordion, кастомных компонентах — их каталог будет в будущем <code>components/buttons.html</code>.
+    </p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       7. USAGE CONTEXTS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Где встречается</p>
+    <p class="block-section-note">Callout живёт в <code>services/notifications/components/Callout/</code> — рядом с Toast и Alert, семейство <code>NotificationKinds</code>. Единый enum <code>NotificationVariants</code> и иконки <code>NOTIFICATION_ICON_VARIANTS_DICT</code> на все три компонента.</p>
+
+    <ul style="margin: 0; padding-left: 24px; color: var(--fg-default); font-size: 14px; line-height: 24px;">
+      <li>Внутри модалки — через <code>calloutMessage</code> в <code>useConfirmDelete</code>, <code>ConfirmModal</code> (см. <code>components/modals.html</code>)</li>
+      <li>Inline на страницах — в начале формы или секции как контекстное предупреждение</li>
+      <li>Внутри <code>Form</code> компонента — валидационные сводки</li>
+      <li>В DeleteBullModal — <code>&lt;Callout className="mb-24" title=... message=... /&gt;</code> (пример из кода)</li>
+    </ul>
+  </div>
+
+</body>
+</html>

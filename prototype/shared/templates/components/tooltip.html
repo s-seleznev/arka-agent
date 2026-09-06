@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Tooltip</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 8px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  TOOLTIP
+     ║  Source: src/shared/components/Tooltip/
+     ║    index.tsx                                        — главный компонент
+     ║    components/TooltipBody/index.tsx                 — title + content
+     ║    components/TooltipPortal/index.module.scss       — visual стили портала
+     ║    hooks/useTooltip.ts                              — @floating-ui useFloating
+     ║
+     ║  В demo-шаблоне — static-позиционирование (без @floating-ui), чтобы
+     ║  показать все 12 placement'ов одновременно. В реальном коде
+     ║  положение адаптивное, с flip / shift / autoUpdate.
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Reference — пример кнопки-триггера (help-icon по умолчанию если child не передан) */
+  .tt-ref {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--neutral-muted);
+    cursor: help;
+    flex: none;
+  }
+  .tt-ref:hover { color: var(--neutral-hover); }
+  /* Icon innerRoot wrapper (Icon/index.tsx:156-168): span.innerRoot[width,height,color] */
+  .tt-ref-inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+  }
+  .tt-ref-inner > svg { display: block; width: 100%; height: 100%; }
+
+  /* Tooltip container — @floating-ui в проде. Здесь static-absolute для demo.
+     Source: TooltipPortal/index.module.scss:1-13 */
+  .tt-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+  .tt {
+    position: absolute;
+    z-index: 10;
+    /* width: max-content + max-width — даёт желаемое поведение:
+       - 1 строка → hugs content (max-content)
+       - multi-line → wraps и capping at 264px */
+    width: max-content;
+    max-width: 264px;                               /* --tooltip-max-width */
+    padding: var(--spacing-8) var(--spacing-12);    /* default */
+    border: 1px solid var(--neutral-opaque-container-hover);
+    border-radius: var(--radius-8);
+    background: var(--bg-surface-1);                /* #fff = static-white */
+    box-shadow: var(--shadow-md);                   /* shadow-medium */
+    pointer-events: none;
+    font-family: var(--font);
+  }
+  .tt.large {
+    padding: var(--spacing-12) var(--spacing-16);
+  }
+  /* TooltipBody — grid gap-4 (Source: TooltipBody/index.tsx:28) */
+  .tt-body {
+    display: grid;
+    gap: var(--spacing-4);
+  }
+  /* Title — <b class="tt-title descriptionLargeStrong wrap-break-word min-w-0">
+     Typography descriptionLargeStrong → <b> tag (12/500/16).
+     Source: TooltipBody/index.tsx:30-35 */
+  .tt-title {
+    margin: 0;
+    font-size: 12px; font-weight: 500; line-height: 16px;
+    color: var(--fg-default);
+    font-style: normal;       /* <b> не должен курсивиться */
+    overflow-wrap: break-word;
+    min-width: 0;
+  }
+  /* Content — <span class="tt-content descriptionLarge wrap-break-word min-w-0">
+     Typography descriptionLarge → <span> (12/400/16).
+     Source: TooltipBody/index.tsx:37-42 */
+  .tt-content {
+    margin: 0;
+    font-size: 12px; font-weight: 400; line-height: 16px;
+    color: var(--fg-default);
+    overflow-wrap: break-word;
+    min-width: 0;
+    display: inline-block;    /* <span> с min-width/overflow */
+  }
+
+  /* Arrow — CSS triangle. В коде — FloatingArrow SVG 12×6.
+     Arrow fill = tooltip bg (static-white).
+     Для имитации — две псевдо-границы: белый треугольник поверх «грани» border'а. */
+  .tt-arrow {
+    position: absolute;
+    width: 12px;
+    height: 6px;
+    pointer-events: none;
+  }
+  .tt-arrow::before,
+  .tt-arrow::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    border-style: solid;
+    border-color: transparent;
+  }
+
+  /* Placement positioning — offset 8px от reference (default from useTooltip.ts:40) */
+
+  /* TOP (default) */
+  .tt.top,
+  .tt.top-start,
+  .tt.top-end {
+    bottom: calc(100% + 8px);
+  }
+  .tt.top       { left: 50%; transform: translateX(-50%); }
+  .tt.top-start { left: 0; }
+  .tt.top-end   { right: 0; }
+  .tt.top .tt-arrow,
+  .tt.top-start .tt-arrow,
+  .tt.top-end .tt-arrow {
+    bottom: -6px;
+    width: 12px; height: 6px;
+  }
+  .tt.top .tt-arrow       { left: 50%; transform: translateX(-50%); }
+  .tt.top-start .tt-arrow { left: 12px; }
+  .tt.top-end .tt-arrow   { right: 12px; left: auto; }
+  .tt.top .tt-arrow::before,
+  .tt.top-start .tt-arrow::before,
+  .tt.top-end .tt-arrow::before {
+    border-width: 7px 6px 0 6px;
+    border-top-color: var(--neutral-opaque-container-hover);
+    top: 0; left: 0;
+  }
+  .tt.top .tt-arrow::after,
+  .tt.top-start .tt-arrow::after,
+  .tt.top-end .tt-arrow::after {
+    border-width: 6px 6px 0 6px;
+    border-top-color: var(--bg-surface-1);
+    top: -1px; left: 0;
+  }
+
+  /* BOTTOM */
+  .tt.bottom,
+  .tt.bottom-start,
+  .tt.bottom-end {
+    top: calc(100% + 8px);
+  }
+  .tt.bottom       { left: 50%; transform: translateX(-50%); }
+  .tt.bottom-start { left: 0; }
+  .tt.bottom-end   { right: 0; }
+  .tt.bottom .tt-arrow,
+  .tt.bottom-start .tt-arrow,
+  .tt.bottom-end .tt-arrow {
+    top: -6px;
+    width: 12px; height: 6px;
+  }
+  .tt.bottom .tt-arrow       { left: 50%; transform: translateX(-50%); }
+  .tt.bottom-start .tt-arrow { left: 12px; }
+  .tt.bottom-end .tt-arrow   { right: 12px; left: auto; }
+  .tt.bottom .tt-arrow::before,
+  .tt.bottom-start .tt-arrow::before,
+  .tt.bottom-end .tt-arrow::before {
+    border-width: 0 6px 7px 6px;
+    border-bottom-color: var(--neutral-opaque-container-hover);
+    top: 0; left: 0;
+  }
+  .tt.bottom .tt-arrow::after,
+  .tt.bottom-start .tt-arrow::after,
+  .tt.bottom-end .tt-arrow::after {
+    border-width: 0 6px 6px 6px;
+    border-bottom-color: var(--bg-surface-1);
+    top: 1px; left: 0;
+  }
+
+  /* LEFT */
+  .tt.left,
+  .tt.left-start,
+  .tt.left-end {
+    right: calc(100% + 8px);
+  }
+  .tt.left       { top: 50%; transform: translateY(-50%); }
+  .tt.left-start { top: 0; }
+  .tt.left-end   { bottom: 0; }
+  .tt.left .tt-arrow,
+  .tt.left-start .tt-arrow,
+  .tt.left-end .tt-arrow {
+    right: -6px; left: auto;
+    width: 6px; height: 12px;
+  }
+  .tt.left .tt-arrow       { top: 50%; transform: translateY(-50%); }
+  .tt.left-start .tt-arrow { top: 12px; }
+  .tt.left-end .tt-arrow   { bottom: 12px; top: auto; }
+  .tt.left .tt-arrow::before,
+  .tt.left-start .tt-arrow::before,
+  .tt.left-end .tt-arrow::before {
+    border-width: 6px 0 6px 7px;
+    border-left-color: var(--neutral-opaque-container-hover);
+    top: 0; left: 0;
+  }
+  .tt.left .tt-arrow::after,
+  .tt.left-start .tt-arrow::after,
+  .tt.left-end .tt-arrow::after {
+    border-width: 6px 0 6px 6px;
+    border-left-color: var(--bg-surface-1);
+    top: 0; left: -1px;
+  }
+
+  /* RIGHT */
+  .tt.right,
+  .tt.right-start,
+  .tt.right-end {
+    left: calc(100% + 8px);
+  }
+  .tt.right       { top: 50%; transform: translateY(-50%); }
+  .tt.right-start { top: 0; }
+  .tt.right-end   { bottom: 0; }
+  .tt.right .tt-arrow,
+  .tt.right-start .tt-arrow,
+  .tt.right-end .tt-arrow {
+    left: -6px;
+    width: 6px; height: 12px;
+  }
+  .tt.right .tt-arrow       { top: 50%; transform: translateY(-50%); }
+  .tt.right-start .tt-arrow { top: 12px; }
+  .tt.right-end .tt-arrow   { bottom: 12px; top: auto; }
+  .tt.right .tt-arrow::before,
+  .tt.right-start .tt-arrow::before,
+  .tt.right-end .tt-arrow::before {
+    border-width: 6px 7px 6px 0;
+    border-right-color: var(--neutral-opaque-container-hover);
+    top: 0; left: 0;
+  }
+  .tt.right .tt-arrow::after,
+  .tt.right-start .tt-arrow::after,
+  .tt.right-end .tt-arrow::after {
+    border-width: 6px 6px 6px 0;
+    border-right-color: var(--bg-surface-1);
+    top: 0; left: 1px;
+  }
+
+  /* Демо-ячейки для placement matrix.
+     flex-direction: column-reverse — caption рендерится в DOM первым (для
+     читаемости), но визуально оказывается ПОД кнопкой. Это важно чтобы
+     top-placement тултипы не перекрывали caption. */
+  .placement-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 120px 16px;
+    padding: 80px 60px;
+  }
+  .placement-cell {
+    display: flex;
+    flex-direction: column-reverse;  /* default: caption ПОД кнопкой (для top-row, tooltip вверх не перекроет) */
+    align-items: center;
+    gap: 12px;
+  }
+  .placement-cell.for-bottom {
+    flex-direction: column;  /* для bottom-row: caption НАД кнопкой (tooltip вниз не перекрывает) */
+  }
+  .placement-caption {
+    font-size: 11px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase;
+    font-family: ui-monospace, monospace;
+  }
+  /* Reference-button для demo — прямоугольник, чтобы placement-start/end видно */
+  .ref-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-8);
+    background: var(--bg-surface-1);
+    color: var(--fg-default);
+    font-family: var(--font);
+    font-size: 14px; font-weight: 500; line-height: 20px;
+    cursor: pointer;
+  }
+
+  /* Блок «demo» для секций sizes / title / max-width / trigger.
+     padding-top большой (120px) — нужно пространство сверху для top-placement
+     тултипов. column-reverse — caption ПОД кнопкой, tooltip вверх не перекроет. */
+  .tt-demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px 80px;
+    padding: 120px 32px 32px;
+    align-items: flex-start;
+  }
+  .tt-demo-item {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  /* Stack-вариант — тултипы шириной до 300+px (DataPointsTooltip, CowChartLegend,
+     maxWidth override 360px) не помещаются рядом, поэтому каждый на своей строке. */
+  .tt-demo-row.stack {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 120px;
+    padding: 160px 32px 48px;
+    align-items: center;
+  }
+  .tt-demo-row.stack .tt-demo-item {
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Tooltip · структура и placement'ы</p>
+    <p class="block-section-note">Tooltip рендерится через <code>@floating-ui/react</code> <code>FloatingPortal</code> — в <code>document.body</code>, с автоматическим flip/shift. Триггер — <code>children</code> (любой элемент, оборачивается через <code>cloneElement</code> с <code>useHover</code>). Если children не передан — рендерится дефолтная иконка <code>help-circle-filled</code> (<code>neutral-muted</code>, cursor help). Внутри — title (опц.) + content, typography <code>descriptionLarge[Strong]</code> 12/400-500/16. В demo используется static-позиционирование, чтобы показать все 12 placement'ов одновременно.</p>
+    <p class="block-section-source">Source: Tooltip/index.tsx + TooltipPortal/index.module.scss + TooltipBody/index.tsx + hooks/useTooltip.ts</p>
+
+    <pre class="dom-tree">Reference (триггер)                    ← children или дефолт help-circle-filled
+  cursor: pointer (если withPointerCursor=true, default)
+  aria-describedby={tooltipId}
+  на hover → FloatingPortal opens
+
+FloatingPortal                          ← portal в document.body
+  div.root[.large]                      ← z tooltip, max-w 264, bg white, radius 8
+                                         shadow-md, border 1px neutral-opaque-container-hover
+                                         padding default 8/12, large 12/16
+    FloatingArrow (12×6)                ← fill = tooltip bg (white)
+    TooltipBody (grid gap-4)
+      Typography descriptionLargeStrong (если title)   ← 12/500/16
+      Typography descriptionLarge (content)            ← 12/400/16
+
+Placements (@floating-ui/react):
+  top (default) · top-start · top-end
+  right · right-start · right-end
+  bottom · bottom-start · bottom-end
+  left · left-start · left-end</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Props (важные)</p>
+    <pre class="dom-tree">title?            заголовок (descriptionLargeStrong)
+content           тело подсказки (descriptionLarge)
+placement         один из 12 (default 'top')
+offset            доп. смещение от reference (default 8px уже добавлен в useTooltip)
+isLarge           padding 12/16 вместо 8/12
+maxWidth          override max-width: 264px
+delay             задержка показа (ms), default — мгновенно
+mouseOnly         только hover, без keyboard focus
+isDisabled        отключает tooltip полностью
+withPointerCursor default true, добавляет cursor: pointer на reference</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. PLACEMENTS (12 штук)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Placements — 12 позиций</p>
+    <p class="block-section-note">4 стороны × 3 выравнивания (center/start/end). В реальном коде <code>@floating-ui</code> применяет <code>flip()</code> — если нет места в желаемом placement, переключается на противоположный. <code>shift()</code> смещает вдоль основной оси чтобы не выходить за viewport. В demo позиции статичны.</p>
+    <p class="block-section-source">Source: Tooltip/hooks/useTooltip.ts:66-77 (middleware: offset, flip, shift, arrow)</p>
+
+    <div class="placement-grid">
+      <!-- TOP row -->
+      <div class="placement-cell">
+        <span class="placement-caption">top-start</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt top-start"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip top-start</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell">
+        <span class="placement-caption">top (default)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip top</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell">
+        <span class="placement-caption">top-end</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt top-end"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip top-end</span></div></div>
+        </div>
+      </div>
+
+      <!-- RIGHT row (использую 3 ячейки для right-start/right/right-end) -->
+      <div class="placement-cell">
+        <span class="placement-caption">right-start</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt right-start"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip right-start</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell">
+        <span class="placement-caption">right</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt right"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip right</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell">
+        <span class="placement-caption">right-end</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt right-end"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip right-end</span></div></div>
+        </div>
+      </div>
+
+      <!-- BOTTOM row -->
+      <div class="placement-cell for-bottom">
+        <span class="placement-caption">bottom-start</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt bottom-start"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip bottom-start</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell for-bottom">
+        <span class="placement-caption">bottom</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt bottom"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip bottom</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell for-bottom">
+        <span class="placement-caption">bottom-end</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt bottom-end"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip bottom-end</span></div></div>
+        </div>
+      </div>
+
+      <!-- LEFT row -->
+      <div class="placement-cell">
+        <span class="placement-caption">left-start</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt left-start"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip left-start</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell">
+        <span class="placement-caption">left</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt left"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip left</span></div></div>
+        </div>
+      </div>
+      <div class="placement-cell">
+        <span class="placement-caption">left-end</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Reference</button>
+          <div class="tt left-end"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Tooltip left-end</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. SIZES (default vs isLarge)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Sizes · default vs isLarge</p>
+    <p class="block-section-note"><code>isLarge=true</code> увеличивает padding с <code>8 12</code> до <code>12 16</code>. Остальное — без изменений. Используется для более «внятных» тултипов с title + длинным описанием.</p>
+    <p class="block-section-source">Source: TooltipPortal/index.module.scss:7-17 (.root + .large padding override)</p>
+
+    <div class="tt-demo-row">
+      <div class="tt-demo-item">
+        <span class="placement-caption">default (padding 8/12)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Наведи</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Короткая подсказка</span></div></div>
+        </div>
+      </div>
+      <div class="tt-demo-item">
+        <span class="placement-caption">isLarge (padding 12/16)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Наведи</button>
+          <div class="tt top large"><div class="tt-arrow"></div><div class="tt-body"><b class="tt-title descriptionLargeStrong wrap-break-word min-w-0">Заголовок</b><span class="tt-content descriptionLarge wrap-break-word min-w-0">Развёрнутое описание, которое читается лучше с увеличенным padding.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. CONTENT — с title / без
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Content — title + content / только content</p>
+    <p class="block-section-note">TooltipBody рендерит title (если передан, <code>descriptionLargeStrong</code>) + content (<code>descriptionLarge</code>). Gap между ними — 4px. <code>maxWidth</code> override позволяет сделать более узкий/широкий tooltip если контент требует.</p>
+    <p class="block-section-source">Source: TooltipBody/index.tsx:22-45 + TooltipPortal/index.tsx:60-62 (maxWidth prop)</p>
+
+    <div class="tt-demo-row stack">
+      <div class="tt-demo-item">
+        <span class="placement-caption">только content</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Hover</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Скопировать инвентарный номер в буфер</span></div></div>
+        </div>
+      </div>
+      <div class="tt-demo-item">
+        <span class="placement-caption">title + content</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Hover</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><b class="tt-title descriptionLargeStrong wrap-break-word min-w-0">CR (Conception Rate)</b><span class="tt-content descriptionLarge wrap-break-word min-w-0">Процент успешных осеменений от общего количества за период.</span></div></div>
+        </div>
+      </div>
+      <div class="tt-demo-item">
+        <span class="placement-caption">maxWidth override (360px)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Hover</button>
+          <div class="tt top" style="max-width: 360px;"><div class="tt-arrow"></div><div class="tt-body"><b class="tt-title descriptionLargeStrong wrap-break-word min-w-0">Детальное описание</b><span class="tt-content descriptionLarge wrap-break-word min-w-0">Когда стандартных 264px недостаточно, через <code style="font-family: ui-monospace, monospace; font-size: 11px;">maxWidth</code> prop можно задать любое число или строку (px / %).</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4b. MAX-WIDTH BEHAVIOR — hugs vs wraps
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Max-width 264px · hugs vs wraps</p>
+    <p class="block-section-note">В коде задан <strong>только</strong> <code>max-width: 264px</code> (без <code>width</code> и <code>min-width</code>). Поведение: короткий контент → тултип обнимает по ширине контента (content-width). Длинный → переносится, фиксируется на 264px.</p>
+    <p class="block-section-source">Source: TooltipPortal/index.module.scss:3-7 — <code>--tooltip-max-width: 264px</code>, <code>max-width: var(--tooltip-max-width)</code>. Нет min-width / width.</p>
+
+    <div class="tt-demo-row">
+      <div class="tt-demo-item">
+        <span class="placement-caption">1 строка → hugs content (70px)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Short</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Коротко</span></div></div>
+        </div>
+      </div>
+      <div class="tt-demo-item">
+        <span class="placement-caption">1 строка → hugs content (средний)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Medium</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Средней длины подсказка</span></div></div>
+        </div>
+      </div>
+      <div class="tt-demo-item">
+        <span class="placement-caption">multi-line → wraps at 264px</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Long</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Длинная подсказка которая не помещается в одну строку и переносится, ширина зафиксируется на максимуме 264 пикселя.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. CUSTOM CONTENT — примеры из кодовой базы
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Custom content · реальные use-cases из кода</p>
+    <p class="block-section-note"><code>content</code> / <code>children</code> — любой ReactNode. В product-src встречаются три типичных паттерна кастомного контента: (1) <strong>DataPointsTooltip</strong> для графиков — список data points с coloured dots и значениями, (2) <strong>CowChartLegend</strong> — color-coded легенда в колонках, (3) <strong>InseminationWindowCell</strong> — title + многострочное описание с временем.</p>
+    <p class="block-section-source">Source: features/charts/components/DataPointsTooltip + widgets/cowChart/components/CowChartLegend + widgets/activitySensors/components/InseminationWindowCell</p>
+
+    <div class="tt-demo-row stack">
+      <!-- DataPointsTooltip — список data points с coloured dots и значениями -->
+      <div class="tt-demo-item">
+        <span class="placement-caption">chart data points (DataPointsTooltip)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Chart hover</button>
+          <div class="tt top" style="max-width: none; padding: 8px 12px;">
+            <div class="tt-arrow"></div>
+            <div class="tt-body" style="gap: 8px;">
+              <b class="tt-title descriptionLargeStrong wrap-break-word min-w-0">15 апреля 2026</b>
+              <ul style="display: grid; grid-template-columns: auto 1fr auto; column-gap: 8px; row-gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 16px; color: var(--fg-default);">
+                <li style="display: contents;">
+                  <span style="display: inline-flex; align-items: center; padding-left: 2px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success-default);"></span>
+                  </span>
+                  <span>Удой (молоко)</span>
+                  <span style="text-align: right; font-variant-numeric: tabular-nums;">28,4 кг</span>
+                </li>
+                <li style="display: contents;">
+                  <span style="display: inline-flex; align-items: center; padding-left: 2px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--info-default);"></span>
+                  </span>
+                  <span>Жир</span>
+                  <span style="text-align: right; font-variant-numeric: tabular-nums;">4,12 %</span>
+                </li>
+                <li style="display: contents;">
+                  <span style="display: inline-flex; align-items: center; padding-left: 2px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--warning-default);"></span>
+                  </span>
+                  <span>Белок</span>
+                  <span style="text-align: right; font-variant-numeric: tabular-nums;">3,42 %</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CowChartLegend — color-coded легенда в колонках -->
+      <div class="tt-demo-item">
+        <span class="placement-caption">chart legend (CowChartLegend)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Показать легенду</button>
+          <div class="tt top" style="max-width: none; padding: 8px 12px;">
+            <div class="tt-arrow"></div>
+            <div class="tt-body" style="gap: 8px;">
+              <b class="tt-title descriptionLargeStrong wrap-break-word min-w-0" style="font-size: 14px; font-weight: 500; line-height: 20px;">Кривые на графике:</b>
+              <div style="display: flex; gap: 16px; margin-top: 4px;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 12px; line-height: 16px; color: var(--success-default);">Удой молока</span>
+                  <span style="font-size: 12px; line-height: 16px; color: var(--info-default);">Жир %</span>
+                  <span style="font-size: 12px; line-height: 16px; color: var(--warning-default);">Белок %</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 12px; line-height: 16px; color: var(--error-default);">Соматика</span>
+                  <span style="font-size: 12px; line-height: 16px; color: var(--accent-default);">Доения/день</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- InseminationWindowCell — title + описание + цветной таймлайн -->
+      <div class="tt-demo-item">
+        <span class="placement-caption">timeline (InseminationWindowCell)</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Окно осеменения</button>
+          <div class="tt top">
+            <div class="tt-arrow"></div>
+            <div class="tt-body">
+              <b class="tt-title descriptionLargeStrong wrap-break-word min-w-0">Оптимальное окно</b>
+              <span class="tt-content descriptionLarge wrap-break-word min-w-0">Лучшее время с 14:30 до 18:00. Охота закончится в 22:15.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. TRIGGER — default icon vs custom
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Trigger — default help-icon vs custom reference</p>
+    <p class="block-section-note">Если в <code>&lt;Tooltip&gt;</code> не передан <code>children</code> — рендерится дефолтная иконка <code>help-circle-filled</code> размером 16 (<code>SizeVariants.size16</code>), цвет <code>neutral-muted</code>, cursor <code>help</code>, на hover <code>neutral-hover</code>. Если передан children — он оборачивается через <code>cloneElement</code> с <code>useHover</code> и получает <code>cursor: pointer</code> (если <code>withPointerCursor=true</code>, default).</p>
+    <p class="block-section-source">Source: Tooltip/index.tsx:103-111 (default Icon children) + 137-160 (cloneElement с floating-props) + index.module.scss:3-10 (.tooltipIcon)</p>
+
+    <div class="tt-demo-row stack">
+      <div class="tt-demo-item">
+        <span class="placement-caption">default — help-circle-filled</span>
+        <div class="tt-wrap">
+          <span class="tt-ref" role="img" aria-label="Подсказка"><span class="tt-ref-inner"><svg><use href="../../icons.svg#help-circle-filled"/></svg></span></span>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Я дефолтная help-иконка tooltip'а</span></div></div>
+        </div>
+      </div>
+      <div class="tt-demo-item">
+        <span class="placement-caption">custom — любая кнопка</span>
+        <div class="tt-wrap">
+          <button class="ref-btn">Custom trigger</button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><span class="tt-content descriptionLarge wrap-break-word min-w-0">Любой React-элемент становится триггером</span></div></div>
+        </div>
+      </div>
+      <div class="tt-demo-item">
+        <span class="placement-caption">custom — icon-only кнопка</span>
+        <div class="tt-wrap">
+          <button class="ref-btn" style="width: 36px; padding: 0; justify-content: center;">
+            <svg width="20" height="20"><use href="../../icons.svg#settings"/></svg>
+          </button>
+          <div class="tt top"><div class="tt-arrow"></div><div class="tt-body"><b class="tt-title descriptionLargeStrong wrap-break-word min-w-0">Настройки</b><span class="tt-content descriptionLarge wrap-break-word min-w-0">Открыть панель настроек профиля</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

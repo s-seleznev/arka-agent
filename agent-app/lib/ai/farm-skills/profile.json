@@ -1,0 +1,14 @@
+{
+  "id": "lactis-prime-8",
+  "name": "Лактис Прайм 8",
+  "version": 2,
+  "sourceCompanyId": "8",
+  "scope": "Simulation policy for the current authorized view; not a farm identity or access grant",
+  "decisions": [
+    {"id":"dry-off","value":"queue: pregnancyDays >=213; missed: >217; plan: expected date range","origin":"Selected source variants 5201,5174,5141"},
+    {"id":"ultrasound-missed","value":"days since insemination >39","origin":"Actual predicate 5173, not its title >44"},
+    {"id":"ovsynch-insemination","value":"CURRENT_OVSYNCH_DAY=10; local start date is day1, day10=start+9 dates; active assignment with actual start, not pregnant, not exited, known current status other than DO_NOT_INSEMINATE, current assignment AI date empty. Milk withdrawal is not a breeding ban.","origin":"Explicit simulation assumption filling missing company8 process; not an exported company8 rule"},
+    {"id":"named-stage-blocks","value":"Selected stages combine with OR; predicates within each stage use AND; return distinct animals","origin":"Simulation presentation decision; source block-combination semantics unverified"},
+    {"id":"unperformed-check","value":"For check-date not-equal today, include missing check explicitly via OR(is_empty,neq)","origin":"Simulation decision; raw SQL NULL semantics not silently changed for exact CSV rules"}
+  ]
+}

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Pattern: Panel Card</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 8px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+  .stage {
+    /* Демо панелей — кладём их на bg-page (поверх block-section который уже белый).
+       В проде панели обычно на bg-page (серый) — выделяются surface-1 (белый). */
+    background: var(--bg-page);
+    border-radius: var(--radius-8);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .stage .panel-stage-label {
+    font-size: 11px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase;
+  }
+  .matrix-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) { .matrix-grid { grid-template-columns: 1fr; } }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  PANEL — базовые классы из panel.module.scss
+     ║
+     ║  Source: src/styles/modules/panel.module.scss
+     ║  В product-src применяются через CSS-modules: panelStyles.panel,
+     ║  panelStyles.largePanel, panelStyles.darkPanel и т.д.
+     ║
+     ║  Композиция:
+     ║    .panel               base: bg surface-1, radius 8
+     ║    .smallPanel   → panel + radius 6
+     ║    .largePanel   → panel + radius 12
+     ║    .darkPanel    → panel + bg surface-3 (вместо surface-1)
+     ║    .largeDarkPanel → darkPanel + largePanel (bg surface-3 + radius 12)
+     ║    .borderedPanel → panel + 1px border border-muted
+     ║    .smallBorderedPanel → borderedPanel + smallPanel
+     ║
+     ║  Padding панели не задаётся классом — добавляется отдельно
+     ║  (в коде обычно `p-content-grid` = var(--content-grid-gap) = 24px).
+     ║  В этом шаблоне — явный padding 24 на .panel-content.
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  .panel {
+    --panel-bg-color: var(--bg-surface-1);
+    --panel-border-radius: var(--radius-8);
+    background: var(--panel-bg-color);
+    border-radius: var(--panel-border-radius);
+  }
+  .small-panel { --panel-border-radius: var(--radius-6); }
+  .large-panel { --panel-border-radius: var(--radius-12); }
+  .dark-panel { --panel-bg-color: var(--bg-surface-3); }
+  .large-dark-panel {
+    --panel-bg-color: var(--bg-surface-3);
+    --panel-border-radius: var(--radius-12);
+  }
+  .bordered-panel { border: var(--border-width-1) solid var(--border-muted); }
+  .small-bordered-panel {
+    border: var(--border-width-1) solid var(--border-muted);
+    --panel-border-radius: var(--radius-6);
+  }
+
+  /* Standard padding для контента внутри panel (p-content-grid = 24) */
+  .panel-content {
+    padding: var(--spacing-24);
+  }
+
+  /* ───── Card header (title + actions) ─────
+     Source: shared/layout.css .card-header (существующий класс).
+     Паттерн: flex row, title слева (h2 22/700/24), actions справа (gap 8).
+     При использовании ВНУТРИ panel'а, padding уменьшить до padding-panel'а. */
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-16);
+    padding: 0 0 var(--spacing-16);
+    /* padding снизу = gap между header и content */
+  }
+  .card-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-12);
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .card-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 24px;
+    color: var(--fg-default);
+  }
+  .card-subtitle {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .card-header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-8);
+    flex-shrink: 0;
+  }
+
+  /* ───── Card footer (action buttons row) ─────
+     Паттерн: flex row justify-end, gap 8-12, padding-top отделяет от content. */
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-8);
+    padding: var(--spacing-16) 0 0;
+  }
+
+  /* ───── Demo content — typography и placeholder-текст ───── */
+  .demo-para {
+    margin: 0 0 var(--spacing-8);
+    font-size: 14px; line-height: 20px;
+    color: var(--fg-default);
+  }
+  .demo-para:last-child { margin-bottom: 0; }
+  .demo-para.muted { color: var(--fg-soft); }
+
+  /* ───── Stat rows (для карточек со статистикой) ───── */
+  .stat-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--spacing-12) 0;
+    border-top: var(--border-width-1) solid var(--border-muted);
+    gap: var(--spacing-16);
+  }
+  .stat-row:first-child { border-top: 0; padding-top: 0; }
+  .stat-row:last-child { padding-bottom: 0; }
+  .stat-label { font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .stat-value { font-size: 16px; font-weight: 500; line-height: 24px; color: var(--fg-default); font-variant-numeric: tabular-nums; }
+
+  /* Button / FunctionButton — стили из shared/components.css.
+     В HTML использовать полное combo: .btn.medium36.primary.accent и
+     .fn-btn.large24.light.tertiary. */
+
+  /* ───── Skeleton placeholders ───── */
+  .skeleton-line {
+    height: 20px;
+    border-radius: var(--radius-4);
+    background: var(--neutral-container-active);
+    animation: pc-skel-pulse 1.4s ease-in-out infinite;
+  }
+  .skeleton-title {
+    height: 24px;
+    width: 40%;
+    max-width: 240px;
+    border-radius: var(--radius-4);
+    background: var(--neutral-container-active);
+    animation: pc-skel-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pc-skel-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Panel Card · композиция + паттерн header / content / footer</p>
+    <p class="block-section-note">В product-src нет отдельного PanelCard-компонента. Панели собираются из классов <code>panel.module.scss</code> + свободный DOM внутри. Базовый класс <code>.panel</code> — только bg и radius; padding, header и footer добавляются поверх. Для collapsible-варианта используй <code>Accordion</code> (см. <a href="../components/accordion.html">components/accordion.html</a>) — он уже использует panel-классы внутри.</p>
+    <p class="block-section-source">Source: src/styles/modules/panel.module.scss (7 композиций) + shared/layout.css .card-header + реальные usage в routes/+$companyId/.../+cows/+$cowId/+info.tsx (panelStyles.largePanel + p-content-grid)</p>
+
+    <pre class="dom-tree">Panel classes (panel.module.scss — composable CSS-modules):
+  .panel               bg surface-1, radius 8                    — base
+  .smallPanel          → panel + radius 6                        — компактная
+  .largePanel          → panel + radius 12                       — главная карточка (default)
+  .darkPanel           → panel + bg surface-3                    — на белом bg, выделяется серым
+  .largeDarkPanel      → darkPanel + largePanel                  — крупная тёмная
+  .borderedPanel       → panel + 1px border border-muted         — на плоском bg
+  .smallBorderedPanel  → borderedPanel + smallPanel              — компактная с границей
+
+Card pattern (собирается вручную):
+  &lt;div.panel.large-panel&gt;
+    &lt;div.card-header&gt;         header с title и actions
+      &lt;div.card-header-left&gt;   h2.card-title + subtitle (опц.)
+      &lt;div.card-header-right&gt;  кнопки (FunctionButton / Button)
+    &lt;div.panel-content&gt;       основной контент — padding 24
+      {children}
+    &lt;div.card-footer&gt;         опциональный футер (НЕ «Отмена/Сохранить» — это
+                               модальный паттерн, см. components/modals.html):
+                               «Показать ещё», статус-инфо, ссылки на детали</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Padding конвенция</p>
+    <pre class="dom-tree">В коде product-src: panelStyles.largePanel + `p-content-grid` (=24px всего внутри).
+В этом шаблоне — явный padding 24 через .panel-content.
+Card-header padding-bottom 16 = gap между header и content.
+Card-footer padding-top 16 = gap между content и footer.</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. PANEL COMPOSITIONS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Panel compositions — 7 вариантов</p>
+    <p class="block-section-note">Bg + radius матрица. В коде через <code>composes</code> в SCSS-modules, здесь — через класс-модификаторы. Padding не входит в панель — добавляется отдельно. Demo на bg-page (серый) для визуализации — в проде панели ставятся на серый bg страницы.</p>
+    <p class="block-section-source">Source: panel.module.scss:3-44 (.panel, .smallPanel, .largePanel, .darkPanel, .largeDarkPanel, .borderedPanel, .smallBorderedPanel)</p>
+
+    <div class="stage">
+      <div class="panel-stage-label">bg-page контекст — на нём видно контраст панелей</div>
+      <div class="matrix-grid">
+        <div>
+          <p class="variant-caption">.smallPanel (radius 6)</p>
+          <div class="panel small-panel">
+            <div class="panel-content">
+              <p class="demo-para">bg surface-1, radius 6. Для компактных elevation-карточек.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">.panel (radius 8)</p>
+          <div class="panel">
+            <div class="panel-content">
+              <p class="demo-para">Базовая панель. bg surface-1, radius 8.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">.largePanel (radius 12) · default</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <p class="demo-para">Главная карточка. bg surface-1, radius 12. Используется чаще всего (cows/info, всех pages/*.html).</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">.darkPanel (bg surface-3)</p>
+          <div class="panel dark-panel">
+            <div class="panel-content">
+              <p class="demo-para">bg surface-3, radius 8. Для вложенных секций внутри светлой панели.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">.largeDarkPanel</p>
+          <div class="panel large-dark-panel">
+            <div class="panel-content">
+              <p class="demo-para">Крупная тёмная. bg surface-3, radius 12.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">.borderedPanel (+ 1px border)</p>
+          <div class="panel bordered-panel">
+            <div class="panel-content">
+              <p class="demo-para">С границей 1px border-muted. Альтернатива darkPanel для разделения на одинаковом bg.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. PANEL CARD — header only
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Panel-card · с header (title + actions)</p>
+    <p class="block-section-note">Типичный card-header: <code>h2.card-title</code> (22/700/24) слева + опциональный subtitle под ним или в <code>card-header-left</code>, + кнопки действий справа. Padding-bottom 16 даёт gap до контента. Кнопки справа обычно <code>FunctionButton tertiary</code> (текст + icon) или icon-only.</p>
+    <p class="block-section-source">Source: shared/layout.css .card-header + реальные usage на dashboard pages</p>
+
+    <div class="stage">
+      <div class="matrix-grid">
+        <div>
+          <p class="variant-caption">title + 1 action</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <h2 class="card-title">Продуктивность</h2>
+                </div>
+                <div class="card-header-right">
+                  <button class="fn-btn large24 light tertiary">
+                    <span class="icon"><svg><use href="../../icons.svg#settings"/></svg></span>
+                    <span class="children">Настройки</span>
+                  </button>
+                </div>
+              </div>
+              <p class="demo-para">Данные по производству молока за последние 30 дней.</p>
+              <p class="demo-para muted">Обновлено 5 минут назад.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">title + subtitle + 2 actions</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="card-header">
+                <div class="card-header-left" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                  <h2 class="card-title">История осеменений</h2>
+                  <span class="card-subtitle">Всего 14 событий за 2024 год</span>
+                </div>
+                <div class="card-header-right">
+                  <button class="fn-btn large24 light tertiary">
+                    <span class="icon"><svg><use href="../../icons.svg#download"/></svg></span>
+                    <span class="children">Экспорт</span>
+                  </button>
+                  <button class="fn-btn large24 light tertiary">
+                    <span class="icon"><svg><use href="../../icons.svg#dots"/></svg></span>
+                  </button>
+                </div>
+              </div>
+              <p class="demo-para">Последнее осеменение — 12.03.2026. Метод: искусственное.</p>
+              <p class="demo-para">Техник: Иванов А. В.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. PANEL CARD — footer patterns
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Panel-card · footer patterns</p>
+    <p class="block-section-note"><strong>Не путать с модалками</strong>. В модалке footer — это action-row «Отмена / Сохранить». В panel-card на detail/dashboard-страницах основные actions обычно идут в <code>card-header-right</code>, а в футере — «Показать ещё», ссылки на детали, статус-инфо. Для модального паттерна «Отмена / Сохранить» смотри <a href="../components/modals.html">components/modals.html</a>.</p>
+    <p class="block-section-source">Source: реальные usage на dashboard / list-panels / detail-cards</p>
+
+    <div class="stage">
+      <div class="matrix-grid">
+        <div>
+          <p class="variant-caption">«Показать ещё» — под списком</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <h2 class="card-title">События</h2>
+                </div>
+              </div>
+              <p class="demo-para">12.03.2026 — осеменение</p>
+              <p class="demo-para">05.06.2025 — отёл</p>
+              <p class="demo-para">20.09.2025 — ветосмотр</p>
+              <div class="card-footer" style="justify-content: flex-start; border-top: 1px solid var(--border-muted); margin-top: 12px;">
+                <button class="fn-btn large24 light tertiary">
+                  <span class="icon"><svg><use href="../../icons.svg#plus"/></svg></span>
+                  <span class="children">Показать ещё 12 событий</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">статус-инфо — muted-текст справа</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <h2 class="card-title">Синхронизация DFS</h2>
+                </div>
+              </div>
+              <p class="demo-para">Данные успешно импортированы.</p>
+              <p class="demo-para muted">Следующая синхронизация — через 4 часа.</p>
+              <div class="card-footer" style="justify-content: space-between;">
+                <span class="demo-para muted" style="margin: 0;">Обновлено 12 минут назад</span>
+                <button class="fn-btn large24 light tertiary">
+                  <span class="icon"><svg><use href="../../icons.svg#update"/></svg></span>
+                  <span class="children">Обновить сейчас</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. PANEL CARD — stats pattern (stat rows)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Panel-card · stats pattern</p>
+    <p class="block-section-note">Распространённый use-case на dashboard и detail-страницах: ряд статов с разделителями <code>border-top border-muted</code>. Label слева, value справа (tabular-nums для ровной колонки цифр). Первая строка без разделителя (через <code>:first-child</code> селектор).</p>
+    <p class="block-section-source">Source: реальные usage на страницах dashboard / analytics / cow-info</p>
+
+    <div class="stage">
+      <div class="matrix-grid">
+        <div>
+          <p class="variant-caption">stats — без header</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="stat-row">
+                <span class="stat-label">Всего коров</span>
+                <span class="stat-value">2 847</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Дойное стадо</span>
+                <span class="stat-value">1 932</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Сухостой</span>
+                <span class="stat-value">312</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Тёлки</span>
+                <span class="stat-value">603</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">stats — с header</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <h2 class="card-title">За март 2026</h2>
+                </div>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Средний удой</span>
+                <span class="stat-value">28,4 кг</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">CR</span>
+                <span class="stat-value">42 %</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Отёлов</span>
+                <span class="stat-value">67</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. STACK OF PANELS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Stack — несколько panel-card подряд</p>
+    <p class="block-section-note">Типичный layout на detail-странице: стопка независимых карточек с gap. В коде gap задаётся wrapper'ом (<code>flex-col gap-8</code>, <code>gap-content-grid</code> и т.п.) или <code>.panel + .panel { margin-top: 16px }</code> из <code>shared/layout.css</code>.</p>
+    <p class="block-section-source">Source: типичный detail-page pattern (cows/$cowId, groups/$groupId)</p>
+
+    <div class="stage">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="panel large-panel">
+          <div class="panel-content">
+            <div class="card-header">
+              <div class="card-header-left">
+                <h2 class="card-title">Основная информация</h2>
+              </div>
+            </div>
+            <p class="demo-para">Инвентарный № 2847. Кличка «Зорька». Дата рождения 12.05.2020.</p>
+          </div>
+        </div>
+        <div class="panel large-panel">
+          <div class="panel-content">
+            <div class="card-header">
+              <div class="card-header-left">
+                <h2 class="card-title">Последние события</h2>
+              </div>
+              <div class="card-header-right">
+                <button class="fn-btn large24 light tertiary">
+                  <span class="icon"><svg><use href="../../icons.svg#plus"/></svg></span>
+                  <span class="children">Добавить</span>
+                </button>
+              </div>
+            </div>
+            <p class="demo-para">12.03.2026 — осеменение</p>
+            <p class="demo-para">05.06.2025 — отёл</p>
+            <p class="demo-para">20.09.2025 — ветосмотр</p>
+          </div>
+        </div>
+        <div class="panel large-panel">
+          <div class="panel-content">
+            <div class="card-header">
+              <div class="card-header-left">
+                <h2 class="card-title">Документы</h2>
+              </div>
+            </div>
+            <p class="demo-para muted">4 файла · последнее обновление 15.04.2026</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       7. SKELETON
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Skeleton — loading state</p>
+    <p class="block-section-note">Базовый паттерн для loading-состояния панели. Внутри — серые плейсхолдеры-линии вместо контента. В коде product-src используется <code>Skeleton.Block</code> с переменной высотой + <code>useSkeletonContext</code> для переключения. Здесь — минимальная CSS-имитация через пульсацию opacity.</p>
+    <p class="block-section-source">Source: shared/components/Skeleton/ + реальные usage в Callout/Button/Accordion (renderWithSkeleton)</p>
+
+    <div class="stage">
+      <div class="matrix-grid">
+        <div>
+          <p class="variant-caption">skeleton без header</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="skeleton-line" style="width: 80%; margin-bottom: 12px;"></div>
+              <div class="skeleton-line" style="width: 100%; margin-bottom: 12px;"></div>
+              <div class="skeleton-line" style="width: 60%;"></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">skeleton с header-title</p>
+          <div class="panel large-panel">
+            <div class="panel-content">
+              <div class="card-header">
+                <div class="card-header-left">
+                  <div class="skeleton-title"></div>
+                </div>
+              </div>
+              <div class="skeleton-line" style="width: 100%; margin-bottom: 12px;"></div>
+              <div class="skeleton-line" style="width: 90%; margin-bottom: 12px;"></div>
+              <div class="skeleton-line" style="width: 45%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

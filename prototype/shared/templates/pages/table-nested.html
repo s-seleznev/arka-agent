@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Page Table Nested Template</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* ============================================
+     TARGETED OVERRIDES (shared with pages/table.html)
+     ============================================ */
+  .data-grid-header-cell { color: var(--fg-default); }
+  .data-grid-row:hover .data-grid-cell { background: var(--neutral-opaque-container-soft); }
+
+  /* ============================================
+     TABLE WRAPPER with shadow-border
+     ============================================ */
+  .table-wrapper {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+    box-shadow: 0 0 0 1px var(--neutral-75);
+    overflow: hidden;
+  }
+  .table-wrapper > .data-grid {
+    border: none;
+    border-radius: 0;
+  }
+  .table-filter-bar + .table-wrapper {
+    border-radius: 0 0 var(--radius-8) var(--radius-8);
+  }
+
+  /* ============================================
+     FILTER BAR (StickyBorderedPanel)
+     ============================================ */
+  .table-filter-bar {
+    display: flex;
+    align-items: center;
+    padding: 14px 12px;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8) var(--radius-8) 0 0;
+    gap: 16px;
+    background: var(--bg-surface-1);
+  }
+  .table-filter-bar-left {
+    display: flex;
+    align-items: center;
+    /* Source: Filters/index.module.scss .filtersWrapper — gap 10px (spacing-6 + spacing-4) */
+    gap: 10px;
+    flex: 1 1;
+    min-width: 80px;
+  }
+  /* Inner group of filter chips — tighter 6px gap (--spacing-6 / --filters-gap in codebase) */
+  .filters-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .table-filter-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 1;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  /* ============================================
+     FILTER SEARCH (inline small24 Input)
+     ============================================ */
+  .filter-search {
+    display: flex;
+    align-items: center;
+    width: 240px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--neutral-opaque-container-soft);
+    border: 2px solid transparent;
+    border-radius: var(--radius-6);
+    flex-shrink: 0;
+    color: var(--fg-muted);
+    cursor: text;
+  }
+  .filter-search > svg {
+    margin-right: 8px;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .filter-search-placeholder {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-muted);
+  }
+
+
+  /* ============================================
+     FILTER SELECT / CHIP
+     Source: Chip/index.module.scss — medium24
+     (used for inline filters in filter bar)
+     ============================================ */
+  .filter-select {
+    display: flex;
+    align-items: center;
+    padding: 3px 7px;
+    gap: 4px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-full, 9999px);
+    background: var(--bg-surface-1);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-soft);
+    white-space: nowrap;
+    user-select: none;
+  }
+  .filter-select:hover {
+    background: var(--bg-surface-3);
+  }
+  .filter-select svg {
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .filter-select-active {
+    background: var(--accent-opaque-container-default);
+    border-color: var(--accent-muted);
+    color: var(--accent-active);
+  }
+  .filter-select-active:hover {
+    background: var(--accent-opaque-container-hover);
+  }
+  .filter-select-active svg { color: var(--accent-active); }
+  .filter-select-active b { font-weight: 500; }
+
+
+  /* ============================================
+     EXPAND HANDLE CELL
+     Source: Table/constants.tsx EXPANDABLE_HANDLE_COLUMN_CONFIG
+     - column width: --table-function-cell-width (36px)
+     - icon: chevronDown 20px
+     - rotate: up (open) / left (closed)
+     ============================================ */
+  .expand-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: var(--fg-muted);
+    cursor: pointer;
+    transition: transform 0.15s ease-out;
+  }
+  /* Closed: chevron points left (rotate -90°) */
+  .expand-handle.closed {
+    transform: rotate(-90deg);
+  }
+  /* Open: chevron points up (rotate 180°) */
+  .expand-handle.open {
+    transform: rotate(180deg);
+  }
+
+
+  /* ============================================
+     NESTED TABLE CONTAINER — holds the nested table
+     Source: Table/index.module.scss
+       .collapsibleChildrenContainerWithNestedRows:
+         padding: 8px 16px 16px calc(36px + 16px)
+                (top | right | bottom | left — left shift aligns nested
+                 table under the parent's "name" column, past function cell)
+         background: --table-expanded-cell-bg = --neutral-opaque-container-muted
+       .nestedTable:
+         border: none
+         --table-border-radius: 0
+     ============================================ */
+  .nested-row {
+    grid-column: 1 / -1;
+    background: var(--neutral-opaque-container-muted);
+    padding: 8px 16px 16px calc(36px + 16px);
+    display: block;
+  }
+  /* Nested table: nestedPrimary theme — header bg = surface-1, no border, no radius */
+  .nested-table {
+    background: var(--bg-surface-1);
+    border: none;
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .nested-table .data-grid-header-cell {
+    background: var(--bg-surface-1);
+  }
+
+
+  /* ============================================
+     VARIANT SEPARATOR
+     ============================================ */
+  .variant-separator {
+    margin: 48px 0;
+    border: none;
+    border-top: 2px dashed var(--border-muted);
+  }
+</style>
+</head>
+<body>
+
+  <!-- SIDEBAR (collapsed) -->
+  <nav class="sidebar collapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="menu-btn">
+          <svg width="24" height="24"><use href="../../icons.svg#menu"/></svg>
+        </div>
+      </div>
+      <div class="sidebar-search">
+        <div class="nav-item-root">
+          <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#search"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-menu-items" id="navMenuItems">
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#calendar"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#warning-circle"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#analytics"/></svg></a>
+      </div>
+      <!-- Стадо — active (Группы животных) -->
+      <div class="nav-item-root active">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#cow"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clipboard-list"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clock"/></svg></a>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item-root">
+        <a class="nav-link with-counter" href="#">
+          <svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#megaphone"/></svg>
+          <span class="nav-counter">4</span>
+        </a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#">
+          <span class="nav-avatar nav-avatar-status03">6</span>
+        </a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#user"/></svg></a>
+      </div>
+    </div>
+  </nav>
+
+
+  <div class="main">
+    <div class="content">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  VARIANT A — penGroups-like                       ║
+           ║  Pattern: outer table + primary "Create" action + ║
+           ║  simple filter bar + nested cows table inside     ║
+           ║  each expanded row                                ║
+           ║  Source: /herd/penGroups                          ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">Группы животных</h1>
+        </div>
+        <div class="page-header-right">
+          <button class="btn medium36 primary accent">
+            <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+            <span class="children">Создать группу</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+
+        <div class="table-filter-bar">
+          <div class="table-filter-bar-left">
+            <div class="filter-search">
+              <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+              <span class="filter-search-placeholder">Поиск</span>
+            </div>
+            <div class="filter-select">
+              <span>Признак</span>
+              <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outer table: pen groups -->
+        <div class="table-wrapper" style="border-radius: 0 0 var(--radius-8) var(--radius-8);">
+          <div class="data-grid" style="grid-template-columns: 36px 36px minmax(160px, 1.2fr) minmax(160px, 1fr) 120px 120px 100px 110px 36px;">
+            <div class="data-grid-header">
+              <div class="data-grid-header-cell data-grid-fn-cell"></div>
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+              </div>
+              <div class="data-grid-header-cell">Название группы</div>
+              <div class="data-grid-header-cell">Признак группы</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Количество<br>голов</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Вместимость<br>группы</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Свободно</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Заполнено</div>
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <svg width="16" height="16" style="color: var(--fg-muted); cursor: pointer;"><use href="../../icons.svg#settings"/></svg>
+              </div>
+            </div>
+            <div class="data-grid-body">
+
+              <!-- Row 1: collapsed -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle closed"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">№ 1 · Сенная</div>
+                <div class="data-grid-cell">
+                  <span class="badge small16 theme-default color-neutral"><span class="text">Пользователь</span></span>
+                </div>
+                <div class="data-grid-cell data-grid-cell-right">390</div>
+                <div class="data-grid-cell data-grid-cell-right">1 460</div>
+                <div class="data-grid-cell data-grid-cell-right">1 070</div>
+                <div class="data-grid-cell data-grid-cell-right">27 %</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Row 2: EXPANDED (open) -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle open"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">№ 111 · Мостовая</div>
+                <div class="data-grid-cell">
+                  <span class="badge small16 theme-default color-neutral" style="margin-right: 4px;"><span class="text">Доение</span></span>
+                  <span class="badge small16 theme-default color-neutral"><span class="text">ИО</span></span>
+                </div>
+                <div class="data-grid-cell data-grid-cell-right">84</div>
+                <div class="data-grid-cell data-grid-cell-right">90</div>
+                <div class="data-grid-cell data-grid-cell-right">6</div>
+                <div class="data-grid-cell data-grid-cell-right">94 %</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- NESTED ROW: appears right after expanded parent -->
+              <div class="nested-row">
+                <div class="nested-table">
+                  <div class="data-grid" style="grid-template-columns: 36px minmax(100px, 1fr) 120px 100px 100px 110px;">
+                    <div class="data-grid-header">
+                      <div class="data-grid-header-cell data-grid-fn-cell">
+                        <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                      </div>
+                      <div class="data-grid-header-cell">Кличка</div>
+                      <div class="data-grid-header-cell">Статус</div>
+                      <div class="data-grid-header-cell data-grid-cell-right">Лактация</div>
+                      <div class="data-grid-header-cell data-grid-cell-right">ДВО</div>
+                      <div class="data-grid-header-cell data-grid-cell-right">Удой, кг</div>
+                    </div>
+                    <div class="data-grid-body">
+                      <div class="data-grid-row">
+                        <div class="data-grid-cell data-grid-fn-cell">
+                          <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                        </div>
+                        <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Зорька 1234</a></div>
+                        <div class="data-grid-cell"><span class="badge small16 theme-default color-success"><span class="text">Стельная</span></span></div>
+                        <div class="data-grid-cell data-grid-cell-right">3</div>
+                        <div class="data-grid-cell data-grid-cell-right">145</div>
+                        <div class="data-grid-cell data-grid-cell-right">28.5</div>
+                      </div>
+                      <div class="data-grid-row">
+                        <div class="data-grid-cell data-grid-fn-cell">
+                          <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                        </div>
+                        <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Ромашка 5678</a></div>
+                        <div class="data-grid-cell"><span class="badge small16 theme-default color-success"><span class="text">Стельная</span></span></div>
+                        <div class="data-grid-cell data-grid-cell-right">2</div>
+                        <div class="data-grid-cell data-grid-cell-right">98</div>
+                        <div class="data-grid-cell data-grid-cell-right">30.7</div>
+                      </div>
+                      <div class="data-grid-row">
+                        <div class="data-grid-cell data-grid-fn-cell">
+                          <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                        </div>
+                        <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Берёзка 2456</a></div>
+                        <div class="data-grid-cell"><span class="badge small16 theme-default color-warning"><span class="text">В охоте</span></span></div>
+                        <div class="data-grid-cell data-grid-cell-right">1</div>
+                        <div class="data-grid-cell data-grid-cell-right">62</div>
+                        <div class="data-grid-cell data-grid-cell-right">32.1</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 3: collapsed -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle closed"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">№ 112 · Тополиная</div>
+                <div class="data-grid-cell">
+                  <span class="badge small16 theme-default color-neutral" style="margin-right: 4px;"><span class="text">Доение</span></span>
+                  <span class="badge small16 theme-default color-neutral"><span class="text">ИО</span></span>
+                </div>
+                <div class="data-grid-cell data-grid-cell-right">121</div>
+                <div class="data-grid-cell data-grid-cell-right">100</div>
+                <div class="data-grid-cell data-grid-cell-right" style="color: var(--error-default);">-21</div>
+                <div class="data-grid-cell data-grid-cell-right">121 %</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Row 4: collapsed -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle closed"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">№ 113 · Брянская</div>
+                <div class="data-grid-cell">
+                  <span class="badge small16 theme-default color-neutral" style="margin-right: 4px;"><span class="text">Доение</span></span>
+                  <span class="badge small16 theme-default color-neutral"><span class="text">ИО</span></span>
+                </div>
+                <div class="data-grid-cell data-grid-cell-right">103</div>
+                <div class="data-grid-cell data-grid-cell-right">100</div>
+                <div class="data-grid-cell data-grid-cell-right" style="color: var(--error-default);">-3</div>
+                <div class="data-grid-cell data-grid-cell-right">103 %</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel-card -->
+
+
+      <hr class="variant-separator">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  VARIANT B — commands-like                        ║
+           ║  Pattern: outer table + multiple filter chips +   ║
+           ║  NO primary header action + nested table inside   ║
+           ║  each expanded row                                ║
+           ║  Source: /events/commands                         ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">История команд</h1>
+        </div>
+      </div>
+
+      <div class="panel-card">
+
+        <div class="table-filter-bar">
+          <div class="table-filter-bar-left">
+            <div class="filter-search">
+              <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+              <span class="filter-search-placeholder">Поиск</span>
+            </div>
+            <div class="filters-group">
+              <div class="filter-select">
+                <span>Период ввода</span>
+                <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+              </div>
+              <div class="filter-select">
+                <span>Команда</span>
+                <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+              </div>
+              <div class="filter-select filter-select-active">
+                <span><b>Ввёл:</b> А. Михайлов</span>
+                <svg width="16" height="16"><use href="../../icons.svg#x-close"/></svg>
+              </div>
+              <div class="filter-select">
+                <span>Ещё</span>
+                <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outer table: command launches -->
+        <div class="table-wrapper" style="border-radius: 0 0 var(--radius-8) var(--radius-8);">
+          <div class="data-grid" style="grid-template-columns: 36px 36px 132px minmax(200px, 2fr) 160px minmax(160px, 1fr) 36px;">
+            <div class="data-grid-header">
+              <div class="data-grid-header-cell data-grid-fn-cell"></div>
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+              </div>
+              <div class="data-grid-header-cell">Дата ввода</div>
+              <div class="data-grid-header-cell">Команда</div>
+              <div class="data-grid-header-cell data-grid-cell-right">Количество животных</div>
+              <div class="data-grid-header-cell">Ввёл</div>
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <svg width="16" height="16" style="color: var(--fg-muted); cursor: pointer;"><use href="../../icons.svg#settings"/></svg>
+              </div>
+            </div>
+            <div class="data-grid-body">
+
+              <!-- Row 1: EXPANDED (open) -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle open"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">14.04.2026</div>
+                <div class="data-grid-cell">Осмотр и осеменение</div>
+                <div class="data-grid-cell data-grid-cell-right">12</div>
+                <div class="data-grid-cell">А. Михайлов</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- NESTED ROW -->
+              <div class="nested-row">
+                <div class="nested-table">
+                  <div class="data-grid" style="grid-template-columns: 36px 100px minmax(100px, 1fr) 140px 120px;">
+                    <div class="data-grid-header">
+                      <div class="data-grid-header-cell data-grid-fn-cell">
+                        <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                      </div>
+                      <div class="data-grid-header-cell">Кличка</div>
+                      <div class="data-grid-header-cell">Активность</div>
+                      <div class="data-grid-header-cell">Дата события</div>
+                      <div class="data-grid-header-cell">Результат</div>
+                    </div>
+                    <div class="data-grid-body">
+                      <div class="data-grid-row">
+                        <div class="data-grid-cell data-grid-fn-cell">
+                          <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                        </div>
+                        <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Зорька 1234</a></div>
+                        <div class="data-grid-cell">Осмотр</div>
+                        <div class="data-grid-cell">14.04.2026</div>
+                        <div class="data-grid-cell"><span class="badge small16 theme-default color-success"><span class="text">Здорова</span></span></div>
+                      </div>
+                      <div class="data-grid-row">
+                        <div class="data-grid-cell data-grid-fn-cell">
+                          <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                        </div>
+                        <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Берёзка 2456</a></div>
+                        <div class="data-grid-cell">Осеменение</div>
+                        <div class="data-grid-cell">14.04.2026</div>
+                        <div class="data-grid-cell"><span class="badge small16 theme-default color-accent"><span class="text">Осеменена</span></span></div>
+                      </div>
+                      <div class="data-grid-row">
+                        <div class="data-grid-cell data-grid-fn-cell">
+                          <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                        </div>
+                        <div class="data-grid-cell"><a href="#" style="color: var(--fg-default); text-decoration: underline;">Ласточка 3789</a></div>
+                        <div class="data-grid-cell">Осмотр</div>
+                        <div class="data-grid-cell">14.04.2026</div>
+                        <div class="data-grid-cell"><span class="badge small16 theme-default color-warning"><span class="text">Хромота</span></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 2: collapsed -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle closed"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">13.04.2026</div>
+                <div class="data-grid-cell">Лечение мастита</div>
+                <div class="data-grid-cell data-grid-cell-right">4</div>
+                <div class="data-grid-cell">Е. Иванова</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Row 3: collapsed -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle closed"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">12.04.2026</div>
+                <div class="data-grid-cell">Запуск</div>
+                <div class="data-grid-cell data-grid-cell-right">7</div>
+                <div class="data-grid-cell">А. Михайлов</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Row 4: collapsed -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <div class="expand-handle closed"><svg width="20" height="20"><use href="../../icons.svg#chevron-down"/></svg></div>
+                </div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">10.04.2026</div>
+                <div class="data-grid-cell">Предзапуск в 171 группу</div>
+                <div class="data-grid-cell data-grid-cell-right">23</div>
+                <div class="data-grid-cell">М. Петров</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel-card -->
+
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <script src="../../sidebar.js"></script>
+
+
+  <!-- FIGMA HANDOFF
+    Варианты:
+      - A: penGroups-like — primary action в header, 1 filter-select (Признак)
+      - B: commands-like — без action в header, несколько filter-select (период, команда, активный chip, ещё)
+
+    Компоненты:
+      - Page Header (с/без primary action)
+      - Panel Card (largePanel 24px padding, 12px radius)
+      - StickyBorderedPanel (filter bar)
+      - Table (primary theme) — outer table
+      - Table (nestedPrimary theme) — inner table внутри expandable row
+      - Expand handle: IconVariants.chevronDown + rotate (up=open -90°=closed)
+      - Filter chip (medium24) — inline-фильтры в фильтр-баре
+      - Badge (neutral-default, success-default, warning-default, accent-default)
+
+    Новые паттерны (vs pages/table.html):
+      - .expand-handle — sticky function cell 36px с chevron-down, поворот -90°=закрыто, 180°=открыто
+      - .nested-row — wrapper с grid-column: 1 / -1, bg --neutral-opaque-container-muted,
+        padding 8px 16px 16px 52px (calc(36px + 16px)) — содержит .nested-table
+      - .nested-table — обёртка TableThemes.nestedPrimary: без бордера и radius,
+        header bg = bg-surface-1, withBorder
+
+    Состояния:
+      - Row collapsed (chevron ‹)
+      - Row expanded (chevron ⌃) + показана вложенная таблица
+
+    Источник в кодовой базе:
+      - src/routes/.../+herd/+penGroups/components/PenGroupTable/index.tsx
+      - src/routes/.../+herd/+penGroups/components/PenGroupNestedTable/index.tsx
+      - src/shared/components/Table/constants.tsx (EXPANDABLE_HANDLE_COLUMN_CONFIG)
+      - src/shared/components/Table/index.module.scss (.expandableRow, .nestedPrimary)
+  -->
+  <!-- AiAssistantButton FAB — в продукте fixed right:32 bottom:32 на всех страницах.
+       Source: widgets/aiAssistant/components/AiAssistantButton/index.tsx -->
+  <button class="ai-assistant-btn" type="button" aria-expanded="false" data-is-floating-element="true">
+    <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#arkasha"/></svg></span></span>
+    <span class="children">Чат с ИИ</span>
+  </button>
+
+
+</body>
+</html>

@@ -1,0 +1,756 @@
+/* ============================================
+   ARKA Design System Tokens
+   Source: Design/Front/product-src/
+   ============================================ */
+
+:root {
+
+  /* ============================================
+     1. FONT
+     ============================================ */
+  --font: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ============================================
+     2. FOREGROUND
+     ============================================ */
+  --fg-default: #0f1116;
+  --fg-soft: #495670;
+  --fg-muted: #8991a2;
+  --fg-disabled: rgba(73,86,112,0.5);
+
+  /* ============================================
+     3. BACKGROUND
+     ============================================ */
+  --bg-page: #f4f4f6;
+  --bg-surface-0: rgba(255,255,255,0.35);
+  --bg-surface-1: #ffffff;
+  --bg-surface-2: #fafafb;
+  --bg-surface-3: #f4f4f6;
+  --bg-surface-4: #edeef1;
+  --bg-surface-5: #d2d5db;
+  --bg-disabled: rgba(73,86,112,0.1);
+
+  /* ============================================
+     4. BORDER
+     ============================================ */
+  --border-default: rgba(73,86,112,0.5);
+  --border-soft: rgba(73,86,112,0.25);
+  --border-muted: rgba(73,86,112,0.15);
+
+  /* ============================================
+     5. FOCUS
+     ============================================ */
+  --focus-default: rgba(247,103,7,0.25);
+
+  /* ============================================
+     6. COLOR PALETTES
+     ============================================ */
+
+  /* --- Accent (Brand Orange) --- */
+  --accent-0: #ffffff;
+  --accent-10: #fffaf8;
+  --accent-30: #fff5ef;
+  --accent-50: #fef0e6;
+  --accent-75: #fee5d4;
+  --accent-100: #fdd9c1;
+  --accent-150: #fcc6a2;
+  --accent-200: #fbb383;
+  --accent-300: #fa9c5e;
+  --accent-400: #f98539;
+  --accent-500: #f76707;
+  --accent-600: #d25706;
+  --accent-700: #ad4805;
+  --accent-800: #943e04;
+  --accent-900: #7b3403;
+  --accent-925: #6a2c03;
+  --accent-950: #562402;
+  --accent-990: #311501;
+  --accent-1000: #000000;
+
+  --accent-default: #f76707;
+  --accent-soft: #f98539;
+  --accent-muted: #fbb383;
+  --accent-hover: #d25706;
+  --accent-active: #ad4805;
+  --accent-on-color: #ffffff;
+  --accent-on-container: #f76707;
+  --accent-container-default: rgba(247,103,7,0.1);
+  --accent-container-soft: rgba(247,103,7,0.05);
+  --accent-container-muted: rgba(247,103,7,0.03);
+  --accent-container-hover: rgba(247,103,7,0.2);
+  --accent-container-active: rgba(247,103,7,0.3);
+  --accent-opaque-container-default: #fef0e6;
+  --accent-opaque-container-soft: #fff5ef;
+  --accent-opaque-container-muted: #fffaf8;
+  --accent-opaque-container-hover: #fee5d4;
+  --accent-opaque-container-active: #fcc6a2;
+
+  /* --- Neutral (Blue-Gray) --- */
+  --neutral-0: #ffffff;
+  --neutral-10: #fafafb;
+  --neutral-30: #f4f4f6;
+  --neutral-50: #edeef1;
+  --neutral-75: #e0e2e6;
+  --neutral-100: #d2d5db;
+  --neutral-150: #bbc0ca;
+  --neutral-200: #a4abb8;
+  --neutral-300: #8991a2;
+  --neutral-400: #6d788d;
+  --neutral-500: #495670;
+  --neutral-600: #3e495f;
+  --neutral-700: #333c4e;
+  --neutral-800: #2c3443;
+  --neutral-900: #242b38;
+  --neutral-925: #1f2530;
+  --neutral-950: #1a1e27;
+  --neutral-990: #0f1116;
+  --neutral-1000: #000000;
+
+  --neutral-default: #495670;
+  --neutral-soft: #6d788d;
+  --neutral-muted: #a4abb8;
+  --neutral-hover: #3e495f;
+  --neutral-active: #333c4e;
+  --neutral-on-color: #ffffff;
+  --neutral-on-container: #495670;
+  --neutral-container-default: rgba(73,86,112,0.12);
+  --neutral-container-soft: rgba(73,86,112,0.07);
+  --neutral-container-muted: rgba(73,86,112,0.05);
+  --neutral-container-hover: rgba(73,86,112,0.22);
+  --neutral-container-active: rgba(73,86,112,0.32);
+  --neutral-opaque-container-default: #edeef1;
+  --neutral-opaque-container-soft: #f4f4f6;
+  --neutral-opaque-container-muted: #fafafb;
+  --neutral-opaque-container-hover: #e0e2e6;
+  --neutral-opaque-container-active: #bbc0ca;
+
+  /* --- Success (Green) --- */
+  --success-0: #ffffff;
+  --success-10: #f8fcf9;
+  --success-30: #f0f9f3;
+  --success-50: #e7f6ed;
+  --success-75: #d5f0df;
+  --success-100: #c2e9d1;
+  --success-150: #a4deba;
+  --success-200: #85d2a3;
+  --success-300: #60c588;
+  --success-400: #3bb86d;
+  --success-500: #0aa648;
+  --success-600: #088d3d;
+  --success-700: #077432;
+  --success-800: #06642b;
+  --success-900: #055324;
+  --success-925: #04471f;
+  --success-950: #033a19;
+  --success-990: #02210e;
+  --success-1000: #000000;
+
+  --success-default: #0aa648;
+  --success-soft: #3bb86d;
+  --success-muted: #85d2a3;
+  --success-hover: #088d3d;
+  --success-active: #077432;
+  --success-on-color: #ffffff;
+  --success-on-container: #0aa648;
+  --success-container-default: rgba(10,166,72,0.1);
+  --success-container-soft: rgba(10,166,72,0.05);
+  --success-container-muted: rgba(10,166,72,0.03);
+  --success-container-hover: rgba(10,166,72,0.2);
+  --success-container-active: rgba(10,166,72,0.3);
+  --success-opaque-container-default: #e7f6ed;
+  --success-opaque-container-soft: #f0f9f3;
+  --success-opaque-container-muted: #f8fcf9;
+  --success-opaque-container-hover: #d5f0df;
+  --success-opaque-container-active: #a4deba;
+
+  /* --- Error (Red) --- */
+  --error-0: #ffffff;
+  --error-10: #fef8f8;
+  --error-30: #fdf0f0;
+  --error-50: #fce8e8;
+  --error-75: #fad7d7;
+  --error-100: #f7c6c6;
+  --error-150: #f3aaaa;
+  --error-200: #ee8d8d;
+  --error-300: #ea6b6b;
+  --error-400: #e44949;
+  --error-500: #de1b1b;
+  --error-600: #bd1717;
+  --error-700: #9b1313;
+  --error-800: #851010;
+  --error-900: #6f0d0d;
+  --error-925: #5f0c0c;
+  --error-950: #4e0909;
+  --error-990: #2c0505;
+  --error-1000: #000000;
+
+  --error-default: #de1b1b;
+  --error-soft: #e44949;
+  --error-muted: #ee8d8d;
+  --error-hover: #bd1717;
+  --error-active: #9b1313;
+  --error-on-color: #ffffff;
+  --error-on-container: #de1b1b;
+  --error-container-default: rgba(222,27,27,0.1);
+  --error-container-soft: rgba(222,27,27,0.05);
+  --error-container-muted: rgba(222,27,27,0.03);
+  --error-container-hover: rgba(222,27,27,0.2);
+  --error-container-active: rgba(222,27,27,0.3);
+  --error-opaque-container-default: #fce8e8;
+  --error-opaque-container-soft: #fdf0f0;
+  --error-opaque-container-muted: #fef8f8;
+  --error-opaque-container-hover: #fad7d7;
+  --error-opaque-container-active: #f3aaaa;
+
+  /* --- Warning (Amber) --- */
+  --warning-0: #ffffff;
+  --warning-10: #fefcf7;
+  --warning-30: #fef8ef;
+  --warning-50: #fef4e6;
+  --warning-75: #fdecd3;
+  --warning-100: #fce3bf;
+  --warning-150: #fbd6a0;
+  --warning-200: #f9c880;
+  --warning-300: #f7b859;
+  --warning-400: #f5a733;
+  --warning-500: #f29100;
+  --warning-600: #ce7b00;
+  --warning-700: #a96500;
+  --warning-800: #915700;
+  --warning-900: #794800;
+  --warning-925: #683e00;
+  --warning-950: #553300;
+  --warning-990: #301d00;
+  --warning-1000: #000000;
+
+  --warning-default: #f29100;
+  --warning-soft: #f5a733;
+  --warning-muted: #f9c880;
+  --warning-hover: #ce7b00;
+  --warning-active: #a96500;
+  --warning-on-color: #ffffff;
+  --warning-on-container: #f29100;
+  --warning-container-default: rgba(242,145,0,0.1);
+  --warning-container-soft: rgba(242,145,0,0.05);
+  --warning-container-muted: rgba(242,145,0,0.03);
+  --warning-container-hover: rgba(242,145,0,0.2);
+  --warning-container-active: rgba(242,145,0,0.3);
+  --warning-opaque-container-default: #fef4e6;
+  --warning-opaque-container-soft: #fef8ef;
+  --warning-opaque-container-muted: #fefcf7;
+  --warning-opaque-container-hover: #fdecd3;
+  --warning-opaque-container-active: #fbd6a0;
+
+  /* --- Info (Blue) --- */
+  --info-0: #ffffff;
+  --info-10: #f8fbfe;
+  --info-30: #f0f7fe;
+  --info-50: #e7f3fd;
+  --info-75: #d5eafc;
+  --info-100: #c2e1fa;
+  --info-150: #a3d2f8;
+  --info-200: #84c3f6;
+  --info-300: #5fb1f3;
+  --info-400: #3a9ff1;
+  --info-500: #0987ed;
+  --info-600: #0873c9;
+  --info-700: #065fa6;
+  --info-800: #05518e;
+  --info-900: #044477;
+  --info-925: #043a66;
+  --info-950: #032f53;
+  --info-990: #021b2f;
+  --info-1000: #000000;
+
+  --info-default: #0987ed;
+  --info-soft: #3a9ff1;
+  --info-muted: #84c3f6;
+  --info-hover: #0873c9;
+  --info-active: #065fa6;
+  --info-on-color: #ffffff;
+  --info-on-container: #0987ed;
+  --info-container-default: rgba(9,135,237,0.1);
+  --info-container-soft: rgba(9,135,237,0.05);
+  --info-container-muted: rgba(9,135,237,0.03);
+  --info-container-hover: rgba(9,135,237,0.2);
+  --info-container-active: rgba(9,135,237,0.3);
+  --info-opaque-container-default: #e7f3fd;
+  --info-opaque-container-soft: #f0f7fe;
+  --info-opaque-container-muted: #f8fbfe;
+  --info-opaque-container-hover: #d5eafc;
+  --info-opaque-container-active: #a3d2f8;
+
+  /* --- Status01 (Teal) --- */
+  --status01-0: #ffffff;
+  --status01-10: #f8fbfb;
+  --status01-30: #f0f7f7;
+  --status01-50: #e7f3f2;
+  --status01-75: #d5eae9;
+  --status01-100: #c2e1df;
+  --status01-150: #a4d2cf;
+  --status01-200: #85c3bf;
+  --status01-300: #60b1ac;
+  --status01-400: #3c9f98;
+  --status01-500: #0b877f;
+  --status01-600: #09736c;
+  --status01-700: #085f59;
+  --status01-800: #07514c;
+  --status01-900: #06443f;
+  --status01-925: #053a37;
+  --status01-950: #042f2c;
+  --status01-990: #021b19;
+  --status01-1000: #000000;
+
+  --status01-default: #0b877f;
+  --status01-soft: #3c9f98;
+  --status01-muted: #85c3bf;
+  --status01-hover: #09736c;
+  --status01-active: #085f59;
+  --status01-on-color: #ffffff;
+  --status01-on-container: #0b877f;
+  --status01-container-default: rgba(11,135,127,0.1);
+  --status01-container-soft: rgba(11,135,127,0.05);
+  --status01-container-muted: rgba(11,135,127,0.03);
+  --status01-container-hover: rgba(11,135,127,0.2);
+  --status01-container-active: rgba(11,135,127,0.3);
+  --status01-opaque-container-default: #e7f3f2;
+  --status01-opaque-container-soft: #f0f7f7;
+  --status01-opaque-container-muted: #f8fbfb;
+  --status01-opaque-container-hover: #d5eae9;
+  --status01-opaque-container-active: #a4d2cf;
+
+  /* --- Status02 (Steel Blue) --- */
+  --status02-0: #ffffff;
+  --status02-10: #f8fbfd;
+  --status02-30: #f0f7fb;
+  --status02-50: #e7f2f8;
+  --status02-75: #d5e9f2;
+  --status02-100: #c3dfec;
+  --status02-150: #a5cfe3;
+  --status02-200: #87beda;
+  --status02-300: #64abcf;
+  --status02-400: #4098c4;
+  --status02-500: #107eb5;
+  --status02-600: #0e6b9a;
+  --status02-700: #0b587f;
+  --status02-800: #0a4b6d;
+  --status02-900: #083f5b;
+  --status02-925: #062c3f;
+  --status02-950: #052332;
+  --status02-990: #031924;
+  --status02-1000: #000000;
+
+  --status02-default: #107eb5;
+  --status02-soft: #4098c4;
+  --status02-muted: #87beda;
+  --status02-hover: #0e6b9a;
+  --status02-active: #0b587f;
+  --status02-on-color: #ffffff;
+  --status02-on-container: #107eb5;
+  --status02-container-default: rgba(16,126,181,0.1);
+  --status02-container-soft: rgba(16,126,181,0.05);
+  --status02-container-muted: rgba(16,126,181,0.03);
+  --status02-container-hover: rgba(16,126,181,0.2);
+  --status02-container-active: rgba(16,126,181,0.3);
+  --status02-opaque-container-default: #e7f2f8;
+  --status02-opaque-container-soft: #f0f7fb;
+  --status02-opaque-container-muted: #f8fbfd;
+  --status02-opaque-container-hover: #d5e9f2;
+  --status02-opaque-container-active: #a5cfe3;
+
+  /* --- Status03 (Purple) --- */
+  --status03-0: #ffffff;
+  --status03-10: #fbfbfe;
+  --status03-30: #f6f6fe;
+  --status03-50: #f0f0fd;
+  --status03-75: #e5e5fb;
+  --status03-100: #dadaf9;
+  --status03-150: #c8c8f7;
+  --status03-200: #b5b5f4;
+  --status03-300: #9f9ff0;
+  --status03-400: #8989ed;
+  --status03-500: #6b6be8;
+  --status03-600: #5b5bc5;
+  --status03-700: #4b4ba2;
+  --status03-800: #40408b;
+  --status03-900: #363674;
+  --status03-925: #252551;
+  --status03-950: #1d1d40;
+  --status03-990: #15152e;
+  --status03-1000: #000000;
+
+  --status03-default: #6b6be8;
+  --status03-soft: #8989ed;
+  --status03-muted: #b5b5f4;
+  --status03-hover: #5b5bc5;
+  --status03-active: #4b4ba2;
+  --status03-on-color: #ffffff;
+  --status03-on-container: #6b6be8;
+  --status03-container-default: rgba(107,107,232,0.1);
+  --status03-container-soft: rgba(107,107,232,0.05);
+  --status03-container-muted: rgba(107,107,232,0.03);
+  --status03-container-hover: rgba(107,107,232,0.2);
+  --status03-container-active: rgba(107,107,232,0.3);
+  --status03-opaque-container-default: #f0f0fd;
+  --status03-opaque-container-soft: #f6f6fe;
+  --status03-opaque-container-muted: #fbfbfe;
+  --status03-opaque-container-hover: #e5e5fb;
+  --status03-opaque-container-active: #c8c8f7;
+
+  /* --- Status04 (Violet) --- */
+  --status04-0: #ffffff;
+  --status04-10: #fcfafe;
+  --status04-30: #f8f4fd;
+  --status04-50: #f4edfb;
+  --status04-75: #ece0f8;
+  --status04-100: #e4d3f4;
+  --status04-150: #d6beef;
+  --status04-200: #c8a8ea;
+  --status04-300: #b88de3;
+  --status04-400: #a873dd;
+  --status04-500: #9250d4;
+  --status04-600: #7c44b4;
+  --status04-700: #663894;
+  --status04-800: #58307f;
+  --status04-900: #49286a;
+  --status04-925: #3f225b;
+  --status04-950: #331c4a;
+  --status04-990: #1d102a;
+  --status04-1000: #000000;
+
+  --status04-default: #9250d4;
+  --status04-soft: #a873dd;
+  --status04-muted: #c8a8ea;
+  --status04-hover: #7c44b4;
+  --status04-active: #663894;
+  --status04-on-color: #ffffff;
+  --status04-on-container: #9250d4;
+  --status04-container-default: rgba(146,80,212,0.1);
+  --status04-container-soft: rgba(146,80,212,0.05);
+  --status04-container-muted: rgba(146,80,212,0.03);
+  --status04-container-hover: rgba(146,80,212,0.2);
+  --status04-container-active: rgba(146,80,212,0.3);
+  --status04-opaque-container-default: #f4edfb;
+  --status04-opaque-container-soft: #f8f4fd;
+  --status04-opaque-container-muted: #fcfafe;
+  --status04-opaque-container-hover: #ece0f8;
+  --status04-opaque-container-active: #d6beef;
+
+  /* --- Status05 (Pink) --- */
+  --status05-0: #ffffff;
+  --status05-10: #fef8fb;
+  --status05-30: #fdf1f6;
+  --status05-50: #fbe9f0;
+  --status05-75: #f8d9e5;
+  --status05-100: #f4c8da;
+  --status05-150: #efadc8;
+  --status05-200: #ea91b6;
+  --status05-300: #e36f9f;
+  --status05-400: #dd4e89;
+  --status05-500: #d4226c;
+  --status05-600: #b41d5c;
+  --status05-700: #94184b;
+  --status05-800: #7f1441;
+  --status05-900: #6a1136;
+  --status05-925: #5b0f2e;
+  --status05-950: #4a0c26;
+  --status05-990: #2a0716;
+  --status05-1000: #000000;
+
+  --status05-default: #d4226c;
+  --status05-soft: #dd4e89;
+  --status05-muted: #ea91b6;
+  --status05-hover: #b41d5c;
+  --status05-active: #94184b;
+  --status05-on-color: #ffffff;
+  --status05-on-container: #d4226c;
+  --status05-container-default: rgba(212,34,108,0.1);
+  --status05-container-soft: rgba(212,34,108,0.05);
+  --status05-container-muted: rgba(212,34,108,0.03);
+  --status05-container-hover: rgba(212,34,108,0.2);
+  --status05-container-active: rgba(212,34,108,0.3);
+  --status05-opaque-container-default: #fbe9f0;
+  --status05-opaque-container-soft: #fdf1f6;
+  --status05-opaque-container-muted: #fef8fb;
+  --status05-opaque-container-hover: #f8d9e5;
+  --status05-opaque-container-active: #efadc8;
+
+  /* --- Status06 (Brown) --- */
+  --status06-0: #ffffff;
+  --status06-10: #fcfaf7;
+  --status06-30: #faf5ef;
+  --status06-50: #f7efe6;
+  --status06-75: #f1e3d3;
+  --status06-100: #ead7c0;
+  --status06-150: #e0c3a1;
+  --status06-200: #d5af81;
+  --status06-300: #c8975b;
+  --status06-400: #bc7f35;
+  --status06-500: #ab5f02;
+  --status06-600: #915102;
+  --status06-700: #784301;
+  --status06-800: #673901;
+  --status06-900: #552f01;
+  --status06-925: #492901;
+  --status06-950: #3c2101;
+  --status06-990: #221300;
+  --status06-1000: #000000;
+
+  --status06-default: #ab5f02;
+  --status06-soft: #bc7f35;
+  --status06-muted: #d5af81;
+  --status06-hover: #915102;
+  --status06-active: #784301;
+  --status06-on-color: #ffffff;
+  --status06-on-container: #ab5f02;
+  --status06-container-default: rgba(171,95,2,0.1);
+  --status06-container-soft: rgba(171,95,2,0.05);
+  --status06-container-muted: rgba(171,95,2,0.03);
+  --status06-container-hover: rgba(171,95,2,0.2);
+  --status06-container-active: rgba(171,95,2,0.3);
+  --status06-opaque-container-default: #f7efe6;
+  --status06-opaque-container-soft: #faf5ef;
+  --status06-opaque-container-muted: #fcfaf7;
+  --status06-opaque-container-hover: #f1e3d3;
+  --status06-opaque-container-active: #e0c3a1;
+
+  /* ============================================
+     7. STATIC COLORS
+     ============================================ */
+  --color-white: #ffffff;
+  --color-black: #0f1116;
+
+  /* ============================================
+     8. BORDER RADIUS
+     ============================================ */
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-24: 24px;
+  --radius-full: 9999px;
+  --radius-inputs: 8px;
+  --radius-buttons: 8px;
+  --radius-controls: 4px;
+
+  /* ============================================
+     9. BORDER WIDTH
+     ============================================ */
+  --border-width-1: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+  --border-width-inputs: 2px;
+  --border-width-focus: 2px;
+  --border-width-controls: 2px;
+  --border-width-dividers: 1px;
+
+  /* ============================================
+     10. SHADOWS
+     ============================================ */
+  --shadow-sm: 0px 0px 6px 0px rgba(73,86,112,0.02), 0px 2px 4px 0px rgba(73,86,112,0.12);
+  --shadow-md: 0px 0px 4px 0px rgba(73,86,112,0.04), 0px 4px 8px 0px rgba(73,86,112,0.12);
+  --shadow-lg: 0px 0px 4px 0px rgba(73,86,112,0.04), 0px 8px 16px 0px rgba(73,86,112,0.12);
+
+  /* ============================================
+     11. SPACING (base 4px)
+     ============================================ */
+  --spacing-1: 1px;
+  --spacing-2: 2px;
+  --spacing-4: 4px;
+  --spacing-6: 6px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-80: 80px;
+  --spacing-96: 96px;
+  --spacing-128: 128px;
+  --spacing-192: 192px;
+
+  /* ============================================
+     12. SIZE
+     ============================================ */
+  --size-4: 4px;
+  --size-8: 8px;
+  --size-12: 12px;
+  --size-16: 16px;
+  --size-20: 20px;
+  --size-24: 24px;
+  --size-28: 28px;
+  --size-32: 32px;
+  --size-36: 36px;
+  --size-48: 48px;
+  --size-56: 56px;
+  --size-64: 64px;
+
+  /* ============================================
+     13. Z-INDEX
+     ============================================ */
+  --z-always-below: -1;
+  --z-base: 1;
+  --z-old-menu: 10;
+  --z-sticky-content: 2000;
+  --z-sticky-tabs: 3000;
+  --z-menu: 5000;
+  --z-modal: 8000;
+  --z-notifications: 9000;
+  --z-popover: 11000;
+  --z-tooltip: 12000;
+  --z-drag-overlay: 13000;
+
+  /* ============================================
+     14. ANIMATION
+     ============================================ */
+  --duration-fast: 0.1s;
+  --duration-medium: 0.2s;
+  --duration-slow: 0.3s;
+  --duration-pulse: 2s;
+  --easing-pulse: cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* ============================================
+     17. COMPONENT TOKENS
+     ============================================ */
+
+  /* Navigation */
+  --nav-width: 248px;
+  --nav-width-collapsed: 72px;
+
+  /* Mobile Header */
+  --mobile-header-sm: 64px;
+  --mobile-header-md: 80px;
+
+  /* Button */
+  --btn-sm: 24px;
+  --btn-md: 36px;
+  --btn-lg: 48px;
+  --btn-icon-sm: 16px;
+  --btn-icon-md: 20px;
+  --btn-icon-lg: 24px;
+
+  /* Close Button */
+  --close-btn-lg: 24px;
+  --close-btn-md: 20px;
+  --close-btn-sm: 16px;
+  --close-btn-xs: 12px;
+
+  /* Input */
+  --input-width-default: 240px;
+
+  /* Avatar */
+  --avatar-size: 24px;
+
+  /* Popover */
+  --popover-max-height: 300px;
+
+  /* Scrollbar */
+  --scrollbar-size: 8px;
+
+  /* Table */
+  --table-fn-cell-w: 36px;
+  --table-nested-pad: 16px;
+  --table-border-w: 1px;
+  --table-border-r: 8px;
+  --table-border-color: rgba(73,86,112,0.15);
+
+  /* Tabs */
+  --tabs-height: 38px;
+  --tabs-scroll-height: 12px;
+
+  /* Tile */
+  --tile-min-w-sm: 244px;
+  --tile-min-w-md: 296px;
+  --tile-min-w-lg: 428px;
+
+  /* ============================================
+     Content Grid (defaults — overridden per BP)
+     ============================================ */
+  --content-max-width: 1576px;
+  --content-grid-gap: 24px;
+  --content-grid-padding: 48px;
+  --content-grid-columns: 8;
+}
+
+/* ============================================
+   15. TYPOGRAPHY
+   Typography utility classes перенесены в layout.css с product-src 1:1 naming
+   (bodyMediumStrong, descriptionLarge, displaySmall, heading2 и т.д.).
+   Source: src/styles/__generated__/typography-mixins.scss
+   tokens.css должен содержать ТОЛЬКО CSS-переменные, не utility-классы.
+   ============================================ */
+
+
+/* ============================================
+   16. BREAKPOINTS & Content Grid
+   ============================================ */
+
+@custom-media --bp-sm (min-width: 320px) and (max-width: 767px);
+@custom-media --bp-sm-up (min-width: 320px);
+@custom-media --bp-sm-down (max-width: 319px);
+@custom-media --bp-md (min-width: 768px) and (max-width: 1279px);
+@custom-media --bp-md-up (min-width: 768px);
+@custom-media --bp-md-down (max-width: 767px);
+@custom-media --bp-lg (min-width: 1280px) and (max-width: 1919px);
+@custom-media --bp-lg-up (min-width: 1280px);
+@custom-media --bp-lg-down (max-width: 1279px);
+@custom-media --bp-xl-up (min-width: 1920px);
+@custom-media --bp-xl-down (max-width: 1919px);
+
+/* SM: 320-767 */
+@media (min-width: 320px) and (max-width: 767px) {
+  :root {
+    --content-grid-gap: 16px;
+    --content-grid-padding: 16px;
+    --content-grid-columns: 4;
+  }
+}
+
+/* MD: 768-1279 */
+@media (min-width: 768px) and (max-width: 1279px) {
+  :root {
+    --content-grid-gap: 24px;
+    --content-grid-padding: 24px;
+    --content-grid-columns: 6;
+  }
+}
+
+/* LG: 1280-1919 */
+@media (min-width: 1280px) and (max-width: 1919px) {
+  :root {
+    --content-grid-gap: 24px;
+    --content-grid-padding: 48px;
+    --content-grid-columns: 8;
+  }
+}
+
+/* XL: 1920+ */
+@media (min-width: 1920px) {
+  :root {
+    --content-grid-gap: 24px;
+    --content-grid-padding: 48px;
+    --content-grid-columns: 8;
+  }
+}
+
+/* ============================================
+   Reset & Base
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 14px; }
+body {
+  font-family: var(--font);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--fg-default);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* `.hidden` utility перенесён в layout.css (tokens.css должен быть только :root vars) */

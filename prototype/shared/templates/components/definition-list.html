@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: DefinitionList</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 12px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; font-family: ui-monospace, monospace; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  DEFINITION LIST
+     ║  Source: src/shared/components/DefinitionList/index.tsx + index.module.scss
+     ║
+     ║  DOM (index.tsx:118-168):
+     ║    div.root[.list | .wrapped]       — контейнер, roles list
+     ║      div.content                    — flex (list) или grid (wrapped)
+     ║        div.column[]                 — bordered rounded box (1px border-muted, radius 8, overflow hidden)
+     ║          div.item                   — flex row (label + value), разделяются border-top
+     ║            div.label                — flex-1, text-soft, py-8 px-12, bodySmall
+     ║            div.value                — flex-1, py-8 px-12, bodySmall, renderOrMdash
+     ║
+     ║  Modes:
+     ║  • shouldWrap=false (default) — .list, одна колонка, все items в одном bordered боксе.
+     ║    overflow-wrap: anywhere — длинные значения переносятся.
+     ║  • shouldWrap=true — .wrapped, multi-column grid (container queries):
+     ║    - width > 1008px + ≥5 items → 3 колонки
+     ║    - width > 673px  + ≥3 items → 2 колонки
+     ║    - иначе → 1 колонка
+     ║    ellipsis вместо wrap, каждая колонка в своём bordered боксе.
+     ║
+     ║  Typography: label и value оба bodySmall (14/400/20).
+     ║  Empty value → MDASH (—) через renderOrMdash helper.
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* .root — получает .list или .wrapped класс (index.tsx:122-127).
+     В проде .wrapped ещё получает container-type: inline-size для container queries,
+     в demo используем статический .wide модификатор для min-width 180px. */
+  .dl-root.wrapped .dl-content {
+    display: grid;
+    align-items: start;
+    gap: var(--spacing-24);
+  }
+  .dl-content.cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dl-content.cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dl-column {
+    overflow: hidden;
+    border: var(--border-width-1) solid var(--border-muted);
+    border-radius: var(--radius-8);
+  }
+
+  .dl-item {
+    display: flex;
+  }
+  .dl-item + .dl-item {
+    border-top: var(--border-width-1) solid var(--border-muted);
+  }
+
+  .dl-label,
+  .dl-value {
+    flex: 1;
+    padding: var(--spacing-8) var(--spacing-12);
+  }
+  .dl-label {
+    color: var(--fg-soft);
+    min-width: var(--dl-label-min-width, 0);
+    max-width: 260px;
+  }
+  .dl-value {
+    color: var(--fg-default);
+    min-width: 0;
+  }
+  /* Typography bodySmall wrapper (variant=bodySmall → <span>) внутри label/value.
+     Source: DefinitionList/index.tsx:146-161 */
+  .dl-label .bodySmall,
+  .dl-value .bodySmall {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+
+  /* List mode: long values wrap at any character.
+     Source: index.module.scss:46-48 — `.list :is(.label, .value) { overflow-wrap: anywhere; }` */
+  .dl-root.list .dl-label,
+  .dl-root.list .dl-value {
+    overflow-wrap: anywhere;
+  }
+
+  /* Wrapped mode: ellipsis одной строкой.
+     Source: index.module.scss:50-54 */
+  .dl-root.wrapped .dl-label,
+  .dl-root.wrapped .dl-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* Wrapped mode on wide container → label min-width 180px
+     Source: index.module.scss:21-25 (@container > 673px) */
+  .dl-root.wrapped.wide {
+    --dl-label-min-width: 180px;
+  }
+
+  /* Mdash placeholder */
+  .mdash { color: var(--fg-muted); }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">DefinitionList · структура и режимы</p>
+    <p class="block-section-note">Два режима: <code>shouldWrap=false</code> (default) — вертикальный список в одном bordered боксе, длинные значения переносятся по символам. <code>shouldWrap=true</code> — многоколоночный grid (2 или 3 колонки в зависимости от ширины контейнера и количества items), каждая колонка в отдельном bordered боксе, ellipsis вместо переноса. Количество колонок вычисляется через <code>useResizeObserver</code> на container, breakpoints 673px (2 cols) и 1008px (3 cols). Пустые значения автоматически заменяются на <code>—</code> (MDASH) через <code>renderOrMdash</code>.</p>
+    <p class="block-section-source">Source: DefinitionList/index.tsx + index.module.scss + shared/helpers/render (renderOrMdash) + shared/constants/common (MDASH)</p>
+
+    <pre class="dom-tree">div.root[role=list].list|wrapped              ← container, useResizeObserver
+  div.content                                  ← flex (list) или grid cols-1/2/3 (wrapped)
+    div.column[]                               ← 1px border-muted, radius 8, overflow hidden
+      div.item[role=listitem]                  ← flex row
+        div.label.flex-1.text-soft.py-8.px-12  ← Typography bodySmall, min-w 0 / 180 (wrapped wide)
+        div.value.flex-1.py-8.px-12.min-w-0    ← Typography bodySmall, renderOrMdash
+
+Column wrapping (shouldWrap=true):
+  width > 1008 + ≥5 items  → 3 columns
+  width > 673  + ≥3 items  → 2 columns
+  иначе                    → 1 column</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. DEFAULT (list mode, shouldWrap=false)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Default · shouldWrap=false — вертикальный список</p>
+    <p class="block-section-note">Классический паттерн «информационной таблицы» на detail-странице. Один bordered box, items разделены border-top. Типичный use-case — блок «Основные параметры» на cow-info / group-info страницах, также используется в Modal'ах (DatamarsActiveTagIntegrationModal, ScrHeatimeIntegrationModal).</p>
+    <p class="block-section-source">Source: usage в widgets/activitySensors/modals/* + widgets/cowFields/components/CowPinnedFields</p>
+
+    <p class="variant-caption">Основные параметры коровы</p>
+    <div class="dl-root list" role="list">
+      <div class="dl-content">
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Инвентарный номер">Инвентарный номер</span></div>
+            <div class="dl-value"><span class="bodySmall" title="2847">2847</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Кличка">Кличка</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Зорька">Зорька</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Дата рождения">Дата рождения</span></div>
+            <div class="dl-value"><span class="bodySmall" title="12.05.2020">12.05.2020</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Порода">Порода</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Голштинская">Голштинская</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Группа">Группа</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Группа 2 · молочные">Группа 2 · молочные</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Статус воспроизводства">Статус воспроизводства</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Стельная">Стельная</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Комментарий оператора">Комментарий оператора</span></div>
+            <div class="dl-value"><span class="bodySmall"><span class="mdash">—</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. WRAPPED — 2 columns
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Wrapped · 2 columns (width > 673px, items ≥3)</p>
+    <p class="block-section-note">Когда контейнер шире 673px и items ≥3 — рендерится 2 колонки. Items раскидываются пополам: первая колонка получает <code>ceil(data.length / 2)</code> items, вторая — остаток. В <code>.wrapped</code>-режиме применяется <code>ellipsis</code> (без wrap), label получает <code>min-width 180px</code> на широких container'ах.</p>
+    <p class="block-section-source">Source: index.tsx:50-64 (splitIntoColumns) + 85-95 (breakpoint logic) + index.module.scss:21-25 (container query для min-width)</p>
+
+    <p class="variant-caption">Параметры фермы — 8 items в 2 колонках</p>
+    <div class="dl-root wrapped wide" role="list">
+      <div class="dl-content cols-2">
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Название">Название</span></div>
+            <div class="dl-value"><span class="bodySmall" title="ООО «Малиновка-Агро»">ООО «Малиновка-Агро»</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Юридический адрес">Юридический адрес</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Московская обл., г. Подольск">Московская обл., г. Подольск</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Директор">Директор</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Петров А. И.">Петров А. И.</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Контактный телефон">Контактный телефон</span></div>
+            <div class="dl-value"><span class="bodySmall" title="+7 (495) 123-45-67">+7 (495) 123-45-67</span></div>
+          </div>
+        </div>
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Поголовье">Поголовье</span></div>
+            <div class="dl-value"><span class="bodySmall" title="2 847">2 847</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Дойное стадо">Дойное стадо</span></div>
+            <div class="dl-value"><span class="bodySmall" title="1 932">1 932</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Ферм">Ферм</span></div>
+            <div class="dl-value"><span class="bodySmall" title="3">3</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Система управления">Система управления</span></div>
+            <div class="dl-value"><span class="bodySmall" title="DFS · УСВ 2.0">DFS · УСВ 2.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. WRAPPED — 3 columns
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Wrapped · 3 columns (width > 1008px, items ≥5)</p>
+    <p class="block-section-note">На широких container'ах (например, большие модалки или full-width detail-секции) с данными ≥5 items — 3 колонки. Используется для dashboard-style блоков с plотным набором ключевых параметров.</p>
+    <p class="block-section-source">Source: index.tsx:85-88 (LARGE_CONTAINER_WIDTH_BREAKPOINT_PX = 1008)</p>
+
+    <p class="variant-caption">Сводка по лактации — 9 items в 3 колонках</p>
+    <div class="dl-root wrapped wide" role="list">
+      <div class="dl-content cols-3">
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Номер лактации">Номер лактации</span></div>
+            <div class="dl-value"><span class="bodySmall" title="3">3</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Начало">Начало</span></div>
+            <div class="dl-value"><span class="bodySmall" title="05.06.2025">05.06.2025</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Дней в лактации">Дней в лактации</span></div>
+            <div class="dl-value"><span class="bodySmall" title="316">316</span></div>
+          </div>
+        </div>
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Средний удой">Средний удой</span></div>
+            <div class="dl-value"><span class="bodySmall" title="28,4 кг/день">28,4 кг/день</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Жир">Жир</span></div>
+            <div class="dl-value"><span class="bodySmall" title="4,12 %">4,12 %</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Белок">Белок</span></div>
+            <div class="dl-value"><span class="bodySmall" title="3,42 %">3,42 %</span></div>
+          </div>
+        </div>
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Соматические клетки">Соматические клетки</span></div>
+            <div class="dl-value"><span class="bodySmall" title="184 тыс./мл">184 тыс./мл</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Последний контроль">Последний контроль</span></div>
+            <div class="dl-value"><span class="bodySmall" title="12.04.2026">12.04.2026</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Следующий осмотр">Следующий осмотр</span></div>
+            <div class="dl-value"><span class="bodySmall"><span class="mdash">—</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. LONG VALUES — wrap vs ellipsis behavior
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Long values — wrap (list) vs ellipsis (wrapped)</p>
+    <p class="block-section-note">В <code>.list</code> режиме (<code>shouldWrap=false</code>) длинные значения переносятся: <code>overflow-wrap: anywhere</code> — может ломать слово в любом месте. В <code>.wrapped</code> режиме (<code>shouldWrap=true</code>) — <code>ellipsis</code>: <code>overflow hidden + text-overflow ellipsis + white-space nowrap</code>, значение обрезается одной строкой.</p>
+    <p class="block-section-source">Source: index.module.scss:46-54 — <code>.list :is(.label, .value) {overflow-wrap: anywhere}</code> vs <code>.wrapped :is(.label, .value) {overflow: hidden; text-overflow: ellipsis; white-space: nowrap}</code></p>
+
+    <p class="variant-caption">list mode — wrap at any character</p>
+    <div class="dl-root list" role="list" style="margin-bottom: 24px;">
+      <div class="dl-content">
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Идентификатор SCRN">Идентификатор SCRN</span></div>
+            <div class="dl-value"><span class="bodySmall" title="SCRN-2026-04-15-ABCDEF-1234567890-XYZ-LONGVALUEFOROVERFLOWDEMO-9876543210">SCRN-2026-04-15-ABCDEF-1234567890-XYZ-LONGVALUEFOROVERFLOWDEMO-9876543210</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Комментарий">Комментарий</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Длинный комментарий оператора о состоянии здоровья: повышенная молочная продуктивность, но в последний месяц отмечена потеря веса около 8 кг, рекомендовано скорректировать рацион и провести ветосмотр в ближайшие 2 недели.">Длинный комментарий оператора о состоянии здоровья: повышенная молочная продуктивность, но в последний месяц отмечена потеря веса около 8 кг, рекомендовано скорректировать рацион и провести ветосмотр в ближайшие 2 недели.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="variant-caption">wrapped mode — ellipsis</p>
+    <div class="dl-root wrapped wide" role="list">
+      <div class="dl-content cols-2">
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Идентификатор SCRN">Идентификатор SCRN</span></div>
+            <div class="dl-value"><span class="bodySmall" title="SCRN-2026-04-15-ABCDEF-1234567890-XYZ-LONGVALUEFOROVERFLOWDEMO-9876543210">SCRN-2026-04-15-ABCDEF-1234567890-XYZ-LONGVALUEFOROVERFLOWDEMO-9876543210</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Комментарий">Комментарий</span></div>
+            <div class="dl-value"><span class="bodySmall" title="Длинный комментарий оператора о состоянии здоровья: повышенная молочная продуктивность">Длинный комментарий оператора о состоянии здоровья: повышенная молочная продуктивность</span></div>
+          </div>
+        </div>
+        <div class="dl-column">
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Телефон">Телефон</span></div>
+            <div class="dl-value"><span class="bodySmall" title="+7 (495) 123-45-67 добавочный 12345">+7 (495) 123-45-67 добавочный 12345</span></div>
+          </div>
+          <div class="dl-item" role="listitem">
+            <div class="dl-label"><span class="bodySmall" title="Email">Email</span></div>
+            <div class="dl-value"><span class="bodySmall" title="very.long.email.address@malinovka-agro-farm-holding.example.com">very.long.email.address@malinovka-agro-farm-holding.example.com</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

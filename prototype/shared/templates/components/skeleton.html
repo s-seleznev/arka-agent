@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Component: Skeleton</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 12px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; font-family: ui-monospace, monospace; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .grid-cols {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .cell {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 16px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: var(--radius-6);
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  SKELETON
+     ║  Source: src/shared/components/Skeleton/
+     ║    index.tsx                            — wrapper с isLoading context
+     ║    components/SkeletonBlock/            — базовый примитив
+     ║    components/SkeletonText/             — обёртка с размерами per TypographyVariants
+     ║    components/SkeletonLineChart/        — SVG кривая
+     ║    components/SkeletonBarChart/         — столбцы переменной высоты
+     ║
+     ║  Визуал: animation `--keyframes-pulse var(--duration-pulse) var(--easing-pulse) infinite`
+     ║    - duration-pulse: 2s
+     ║    - easing-pulse: cubic-bezier(0.4, 0, 0.6, 1)
+     ║    - keyframe 50%: bg меняется neutral-container-default → neutral-container-soft
+     ║  Default radius: 4 (border-radius-4). isRound → border-radius-full.
+     ║
+     ║  Helper API (context):
+     ║    renderWithSkeleton(skeleton, content)  — переключает по isLoading
+     ║    renderStaticContent(content)            — reset context (для static nodes)
+     ║    renderWithoutSkeleton(content)          — показывает content только если !isLoading
+     ║    getSkeletonClassNames(skel, content)    — conditional className
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* SkeletonBlock DOM (SkeletonBlock/index.tsx:56-80):
+       div[role=status, aria-busy, aria-live=polite, style={width}]
+         div.full-width.inner[style={height, borderRadius}]
+     Outer = bare wrapper; inner = full-width + pulse-animation. */
+  .sk-block {
+    display: block;
+  }
+  .sk-block-inner {
+    border-radius: var(--radius-4);
+    background: var(--neutral-container-default);
+    animation: sk-pulse var(--duration-pulse) var(--easing-pulse) infinite;
+  }
+  .sk-block.round .sk-block-inner { border-radius: 9999px; }
+
+  @keyframes sk-pulse {
+    50% { background: var(--neutral-container-soft); }
+  }
+
+  /* SkeletonText — inline-block, дефолт размеры per TypographyVariants */
+  .sk-text {
+    display: inline-block;
+    border-radius: var(--radius-4);
+    background: var(--neutral-container-default);
+    animation: sk-pulse var(--duration-pulse) var(--easing-pulse) infinite;
+    vertical-align: middle;
+  }
+
+  /* SkeletonLineChart — SVG path, currentColor pulsing */
+  .sk-line-chart {
+    padding: 75px 122px 74px;
+    color: var(--neutral-container-default);
+    animation: sk-chart-pulse var(--duration-pulse) var(--easing-pulse) infinite;
+  }
+  .sk-line-chart svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  @keyframes sk-chart-pulse {
+    50% { color: var(--neutral-container-soft); }
+  }
+
+  /* SkeletonBarChart — horizontal bars with varying heights.
+     Внутри .sk-bar-chart каждый bar — 20% width, flex align-end. */
+  .sk-bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    height: 148px;
+  }
+  .sk-bar-chart .sk-block {
+    height: 100%;
+    width: 20%;
+    display: flex;
+    align-items: flex-end;
+  }
+  .sk-bar-chart .sk-block::after {
+    content: '';
+    display: block;
+    width: 100%;
+    background: inherit;
+    border-radius: inherit;
+    animation: inherit;
+  }
+
+  /* Utility: inline flex row для разделения bars */
+  .sk-bar-chart-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 148px;
+    width: 100%;
+  }
+  .sk-bar {
+    flex: 1;
+    background: var(--neutral-container-default);
+    border-radius: var(--radius-4);
+    animation: sk-pulse var(--duration-pulse) var(--easing-pulse) infinite;
+  }
+
+  /* Composition demo: card с заголовком + текст + блок */
+  .demo-card {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+    padding: 16px;
+    border: 1px solid var(--border-muted);
+    min-width: 280px;
+  }
+  .demo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-muted);
+  }
+  .demo-row:last-child { border-bottom: 0; }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Skeleton · 4 компонента + context API</p>
+    <p class="block-section-note">В коде Skeleton — это wrapper с context'ом (<code>useSkeletonContext</code>): определяет <code>isLoading</code>, его помощники переключают skeleton ↔ content. Под капотом используются 4 sub-компонента: <code>Skeleton.Block</code> (базовый примитив), <code>Skeleton.Text</code> (типографика-aware), <code>Skeleton.LineChart</code>, <code>Skeleton.BarChart</code>. Все используют одну и ту же pulse-анимацию: bg <code>neutral-container-default</code> ↔ <code>neutral-container-soft</code>, длительность 2s, easing <code>cubic-bezier(0.4, 0, 0.6, 1)</code>.</p>
+    <p class="block-section-source">Source: Skeleton/index.tsx + components/SkeletonBlock/ + SkeletonText/ + SkeletonLineChart/ + SkeletonBarChart/</p>
+
+    <pre class="dom-tree">Skeleton (wrapper, context provider)
+  .isLoading → switches children через renderWithSkeleton(skel, content)
+
+Skeleton.Block — основной примитив:
+  props: { size } или { width, height, borderRadius } + isRound
+  DOM: div[role=status, aria-busy, aria-live=polite]
+         div.inner (radius 4, pulse animation, bg neutral-container-default)
+
+Skeleton.Text — обёртка Block с typographyVariant + size (small/medium/large):
+  heights: heading2 20, bodyMediumStrong 20, bodyLargeStrong 24,
+           bodySmall 12, bodySmallStrong 16, descriptionLarge 8, descriptionLargeStrong 8
+  widths per size: см. SKELETON_TEXT_WIDTHS dict в SkeletonText/index.tsx
+
+Skeleton.LineChart — SVG path, padding 75/122/74, currentColor pulsing
+Skeleton.BarChart — 12 bars по 20% width, heights responsive (base 148px)
+
+Context helpers:
+  renderWithSkeleton(skel, content, isStatic?) — переключает по isLoading
+  renderStaticContent(content)                  — reset context
+  renderWithoutSkeleton(content)                — content только при !isLoading
+  getSkeletonClassNames(skel, content)          — conditional className</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Animation tokens</p>
+    <pre class="dom-tree">--duration-pulse: 2s
+--easing-pulse: cubic-bezier(0.4, 0, 0.6, 1)
+@keyframes pulse { 50% { bg: neutral-container-soft } }
+Base bg: neutral-container-default, radius 4 (full когда isRound=true)</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. SKELETON BLOCK — rectangles
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Skeleton.Block — базовый примитив (rectangle / square)</p>
+    <p class="block-section-note">Два режима props: <code>{ size }</code> (квадрат) или <code>{ height, width?, borderRadius? }</code>. <code>width</code> default = <code>'100%'</code> если не передан. Custom <code>borderRadius</code> переопределяет дефолтные 4px.</p>
+    <p class="block-section-source">Source: SkeletonBlock/index.tsx + index.module.scss</p>
+
+    <div class="grid-cols">
+      <div class="cell">
+        <span class="variant-caption">size: 24 (square)</span>
+        <div class="sk-block" role="status" aria-busy="true" aria-live="polite" style="width: 24px;"><div class="sk-block-inner full-width" style="height: 24px;"></div></div>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">size: 40 (square)</span>
+        <div class="sk-block" role="status" aria-busy="true" aria-live="polite" style="width: 40px;"><div class="sk-block-inner full-width" style="height: 40px;"></div></div>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">height: 20, width: 100% (line)</span>
+        <div class="sk-block" role="status" aria-busy="true" aria-live="polite"><div class="sk-block-inner full-width" style="height: 20px;"></div></div>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">height: 80, width: 100% (block)</span>
+        <div class="sk-block" role="status" aria-busy="true" aria-live="polite"><div class="sk-block-inner full-width" style="height: 80px;"></div></div>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">height: 40, borderRadius: 8</span>
+        <div class="sk-block" role="status" aria-busy="true" aria-live="polite"><div class="sk-block-inner full-width" style="height: 40px; border-radius: 8px;"></div></div>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">height: 12, width: 60% (text line)</span>
+        <div class="sk-block" role="status" aria-busy="true" aria-live="polite" style="width: 60%;"><div class="sk-block-inner full-width" style="height: 12px;"></div></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. SKELETON BLOCK — isRound
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Skeleton.Block · isRound — circles / dots</p>
+    <p class="block-section-note"><code>isRound={true}</code> → <code>border-radius-full</code> (9999px). Используется для Avatar-placeholder'ов, точек, small indicators.</p>
+    <p class="block-section-source">Source: SkeletonBlock/index.tsx:67-72 (isRound → rounded-full)</p>
+
+    <div class="row">
+      <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 16px;"><div class="sk-block-inner full-width" style="height: 16px;"></div></div>
+      <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 20px;"><div class="sk-block-inner full-width" style="height: 20px;"></div></div>
+      <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 24px;"><div class="sk-block-inner full-width" style="height: 24px;"></div></div>
+      <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 32px;"><div class="sk-block-inner full-width" style="height: 32px;"></div></div>
+      <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 40px;"><div class="sk-block-inner full-width" style="height: 40px;"></div></div>
+      <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 56px;"><div class="sk-block-inner full-width" style="height: 56px;"></div></div>
+    </div>
+    <p class="variant-caption" style="margin-top: 16px;">16 · 20 · 24 (avatar) · 32 · 40 · 56 px</p>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. SKELETON TEXT — typography-aware sizes
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Skeleton.Text — heights + widths из TypographyVariants dict</p>
+    <p class="block-section-note">Для каждого <code>TypographyVariants</code> определены высота и 3 варианта ширины (<code>TextSkeletonSizes.small | medium | large</code>). Высота имитирует «наполненность» x-height буквы в данном размере шрифта, ширина — типичная длина текста. Встроено в любой <code>Typography</code> через <code>skeletonSize</code> prop.</p>
+    <p class="block-section-source">Source: SkeletonText/index.tsx:25-113 (SKELETON_TEXT_HEIGHTS + SKELETON_TEXT_WIDTHS dicts)</p>
+
+    <div class="grid-cols">
+      <div class="cell">
+        <span class="variant-caption">heading2 · medium (height 20, width 230)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 20px; width: 230px;"></span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodyLargeStrong · medium (height 24, width 180)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 24px; width: 180px;"></span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodyMediumStrong · medium (20 / 180)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 20px; width: 180px;"></span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodySmallStrong · large (16 / 180)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 16px; width: 180px;"></span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodySmall · medium (12 / 72)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 12px; width: 72px;"></span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">bodySmall · large (12 / 320)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 12px; width: 320px;"></span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">descriptionLarge · medium (8 / 72)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 8px; width: 72px;"></span>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">descriptionLargeStrong · large (8 / 180)</span>
+        <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 8px; width: 180px;"></span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. CHARTS — LineChart + BarChart
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Skeleton.LineChart + Skeleton.BarChart</p>
+    <p class="block-section-note"><code>LineChart</code> — SVG-path imitating кривую, pulses через <code>currentColor</code> (не background). Padding 75/122/74 встроен, занимает <code>full-height</code> parent'а. <code>BarChart</code> — 12 столбцов по 20% ширины, высоты <code>[12, 20, 32, 48, 56, 72, 100, 132, 148, 148, 148, 148]</code> в пропорции к base 148px. В demo показываю упрощённую версию BarChart.</p>
+    <p class="block-section-source">Source: SkeletonLineChart/index.tsx + SkeletonBarChart/index.tsx:11-14 (BASE_BAR_HEIGHTS_PX)</p>
+
+    <p class="variant-caption">Skeleton.LineChart (svg path)</p>
+    <div style="background: var(--bg-surface-1); border-radius: 12px; border: 1px solid var(--border-muted); margin-bottom: 24px; overflow: hidden;">
+      <div class="sk-line-chart" role="status" aria-busy="true" aria-live="polite">
+        <svg viewBox="0 0 1239 258" fill="none">
+          <path d="M1 198.5L96.5 111L191 156L285.5 68.5L381 135L476 90L573 110.5L667.5 90L763 256L858 155L953 211.5L1048 155L1143 242.5L1237.5 1" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+    </div>
+
+    <p class="variant-caption">Skeleton.BarChart (12 bars, varying heights)</p>
+    <div style="background: var(--bg-surface-1); border-radius: 12px; border: 1px solid var(--border-muted); padding: 24px;">
+      <div class="sk-bar-chart-row" role="status" aria-busy="true" aria-live="polite">
+        <div class="sk-bar" style="height: 8%;"></div>
+        <div class="sk-bar" style="height: 13%;"></div>
+        <div class="sk-bar" style="height: 22%;"></div>
+        <div class="sk-bar" style="height: 32%;"></div>
+        <div class="sk-bar" style="height: 38%;"></div>
+        <div class="sk-bar" style="height: 49%;"></div>
+        <div class="sk-bar" style="height: 68%;"></div>
+        <div class="sk-bar" style="height: 89%;"></div>
+        <div class="sk-bar" style="height: 100%;"></div>
+        <div class="sk-bar" style="height: 100%;"></div>
+        <div class="sk-bar" style="height: 100%;"></div>
+        <div class="sk-bar" style="height: 100%;"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. COMPOSITION — real use-cases
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Композиции — реальные use-cases</p>
+    <p class="block-section-note">Обычно skeleton собирается из нескольких <code>Skeleton.Block</code> / <code>Skeleton.Text</code> для имитации структуры контента. Два типичных паттерна: (1) <strong>карточка</strong> — avatar-круг + title + описание + action; (2) <strong>строка таблицы / списка</strong> — несколько text-блоков в флексе.</p>
+    <p class="block-section-source">Source: типичный usage в cow-info, dashboard-пейджах, analytics</p>
+
+    <div class="grid-cols" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+      <div class="cell">
+        <span class="variant-caption">card skeleton — header + content</span>
+        <div class="demo-card">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 24px;"><div class="sk-block-inner full-width" style="height: 24px;"></div></div>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 20px; width: 180px;"></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="sk-block" role="status" aria-busy="true" aria-live="polite" style="width: 100%;"><div class="sk-block-inner full-width" style="height: 12px;"></div></div>
+            <div class="sk-block" role="status" aria-busy="true" aria-live="polite" style="width: 90%;"><div class="sk-block-inner full-width" style="height: 12px;"></div></div>
+            <div class="sk-block" role="status" aria-busy="true" aria-live="polite" style="width: 60%;"><div class="sk-block-inner full-width" style="height: 12px;"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">list rows (3 items)</span>
+        <div class="demo-card" style="padding: 0;">
+          <div class="demo-row">
+            <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 24px;"><div class="sk-block-inner full-width" style="height: 24px; flex: none;"></div></div>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 16px; width: 140px;"></span>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 12px; width: 60px; margin-left: auto;"></span>
+          </div>
+          <div class="demo-row">
+            <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 24px;"><div class="sk-block-inner full-width" style="height: 24px; flex: none;"></div></div>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 16px; width: 180px;"></span>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 12px; width: 60px; margin-left: auto;"></span>
+          </div>
+          <div class="demo-row">
+            <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 24px;"><div class="sk-block-inner full-width" style="height: 24px; flex: none;"></div></div>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 16px; width: 120px;"></span>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 12px; width: 60px; margin-left: auto;"></span>
+          </div>
+        </div>
+      </div>
+      <div class="cell">
+        <span class="variant-caption">stat tile (metric + value + trend)</span>
+        <div class="demo-card">
+          <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 12px; width: 100px; display: block; margin-bottom: 12px;"></span>
+          <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 24px; width: 140px; display: block; margin-bottom: 8px;"></span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="sk-block round" role="status" aria-busy="true" aria-live="polite" style="width: 16px;"><div class="sk-block-inner full-width" style="height: 16px;"></div></div>
+            <span class="sk-text" role="status" aria-busy="true" aria-live="polite" style="height: 12px; width: 80px;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

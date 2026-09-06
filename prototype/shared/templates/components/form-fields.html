@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Block: Form Fields</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body (fullscreen flex, overflow hidden) */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+
+  /* Variant grid — arranges examples in rows with fixed-width cells.
+     Stage background:
+       default / .light-stage  — tinted grey (neutral-opaque-container-soft).
+                                 Для white inputs (.input.light) и unchecked checkboxes.
+       .dark-stage             — white (bg-surface-1 + border).
+                                 Для серых .input.dark и .select.dark (bg neutral-container-muted). */
+  .variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    background: var(--neutral-opaque-container-soft);
+    padding: 16px;
+    border-radius: var(--radius-8);
+  }
+  .variants + .variants { margin-top: 12px; }
+  .variants.narrow {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .variants.wide {
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  }
+  .variants.dark-stage {
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-muted);
+  }
+  .variants.with-dropdown-space {
+    padding-bottom: 180px;  /* место под открытый dropdown (~4 опции × 36 + padding) */
+  }
+  .variant-caption {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────
+     Field structure
+     Source: Input/Select/DateInput .root { display: grid; gap: var(--spacing-4); }
+             Label: Typography bodySmall (14/400/20), color: var(--color-fg-soft)
+             FieldFeedback: Typography descriptionLarge (12/400/16) + icon 16 + "mr-4"
+     ─────────────────────────────────────────────────────────────────── */
+  .ff-field {
+    display: grid;
+    gap: var(--spacing-4);
+  }
+  /* Label — use shared .label from components.css (1:1 с product-src Label/index.module.scss).
+     Asterisk для required: .label .asterisk. Optional text — inline span с text-muted/ml-4. */
+
+  /* FieldFeedback — Typography descriptionLarge (12/400/16) + iconSize 16 + mr-4 */
+  .ff-feedback {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-muted);
+  }
+  .ff-feedback.info    { color: var(--info-default); }
+  .ff-feedback.error   { color: var(--error-default); }
+  .ff-feedback .ff-feedback-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 0;
+  }
+  /* Icon innerRoot для FieldFeedback (Icon DOM: span.root > span.innerRoot > svg) */
+  .ff-feedback-icon-inner {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px;
+  }
+  .ff-feedback-icon-inner > svg { display: block; width: 100%; height: 100%; }
+
+  /* Input with addons — addonBefore/addonAfter wrappers.
+     Source: Input/constants.tsx addonBefore wrapper class `mr-8`, addonAfter class `ml-8`. */
+  .ff-input-addon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    color: var(--fg-muted);
+    pointer-events: none;
+  }
+  .ff-input-addon.before { left: 8px; }
+  .ff-input-addon.after { right: 8px; pointer-events: auto; cursor: pointer; }
+  /* Icon size по input-size: small24 → 16, medium36 → 20, large48 → 24.
+     Source: src/shared/components/Input/constants.tsx ICON_SIZE_BY_INPUT_SIZE */
+  .ff-input-addon svg { width: 20px; height: 20px; }
+  .ff-input-wrap.with-addon-before .input.medium36 { padding-left: 36px; }
+  .ff-input-wrap.with-addon-after  .input.medium36 { padding-right: 36px; }
+  .ff-input-wrap { position: relative; }
+
+  /* DateInput / DateRangeInput
+     Source:
+       src/services/dateTime/components/DateInput/index.module.scss
+         .inputContainer { display: flex; padding: 0 spacing-8; border: 2px solid; radius: 8; }
+         .small24/medium36/large48 { --date-input-height: 24/36/48; }
+         .light/.dark { --date-input-bg-default: static-white | bg-surface-3; }
+         :hover → border neutral-opaque-container-hover
+         :focus-within → bg static-white + border accent-muted + outline focus-default
+         [aria-invalid] → border error-muted (:hover → error-default)
+         [aria-disabled] → bg neutral-container-muted, border transparent
+       src/services/dateTime/components/DateInput/index.tsx:283-340 (DOM-структура)
+         <inputContainer flex>
+           <Typography className="flex flex-1 items-center">  ← сегменты подряд БЕЗ gap
+             DateTimeInputSegment × N
+           </Typography>
+           <div className="flex items-center gap-4 ml-8">     ← icons-блок с ml-8 от текста
+             Icon clear? | tooltip? | Icon calendar
+           </div>
+         </inputContainer>
+       src/shared/components/DateTimeInputSegment/index.module.scss
+         .editable { padding: 0 var(--spacing-1); }  ← 1px inline для editable сегментов
+         (literal-сегменты-разделители без padding)
+  */
+  .date-input {
+    display: inline-flex;
+    align-items: center;
+    /* НЕТ gap между .date-field и .date-actions — ml-8 задаётся на .date-actions */
+    height: 36px;
+    padding: 0 var(--spacing-8);
+    border: 2px solid transparent;
+    border-radius: var(--radius-8);
+    background: var(--bg-surface-1);
+    color: var(--fg-default);
+    font-family: var(--font);
+    font-variant-numeric: lining-nums tabular-nums;
+    transition: border-color 0.15s, background-color 0.15s;
+    min-width: 160px;
+    cursor: text;
+    user-select: none;
+  }
+  .date-input.dark { background: var(--bg-surface-3); }
+  .date-input.small24 { height: 24px; padding: 0 var(--spacing-6); font-size: 12px; line-height: 16px; }
+  .date-input.medium36 { height: 36px; font-size: 14px; line-height: 20px; }
+  .date-input.large48 { height: 48px; padding: 0 var(--spacing-12); font-size: 16px; line-height: 24px; }
+  .date-input:hover { border-color: var(--neutral-opaque-container-hover); }
+  .date-input.focused { background: var(--bg-surface-1); border-color: var(--accent-muted); outline: 2px solid var(--focus-default); }
+  .date-input.error { border-color: var(--error-default); }
+  .date-input.disabled { background: var(--neutral-container-muted); border-color: transparent; color: var(--fg-muted); cursor: default; }
+
+  /* Wrapper для сегментов = <Typography className="flex flex-1 items-center"> */
+  .date-input .date-field { display: flex; flex: 1 1 auto; align-items: center; }
+  /* editable сегмент (число/placeholder) — padding 0 1 из .editable в DateTimeInputSegment */
+  .date-input .date-segment { padding: 0 var(--spacing-1); }
+  /* literal сегмент (разделитель) — без padding */
+  .date-input .date-sep { color: var(--fg-muted); padding: 0; }
+
+  /* Actions-блок = <div className="flex items-center gap-4 ml-8"> */
+  .date-input .date-actions { display: flex; align-items: center; gap: var(--spacing-4); margin-left: var(--spacing-8); }
+  /* Calendar icon — SizeVariants.size20 (DateInput/index.tsx:334), small24 → size16 */
+  .date-input .date-icon { width: 20px; height: 20px; color: var(--fg-muted); }
+  .date-input.small24 .date-icon { width: 16px; height: 16px; }
+
+  /* Radio group — дополнительный vertical variant (из кодовой базы: verticalRadio) */
+  .radio-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  /* RadioSegmentedTab — теперь используется shared .radio-group.segmented из components.css
+     (1:1 с product-src RadioSegmentedTab: .root + .segmentedTabButton). */
+
+  /* Select placeholder span — в коде .placeholder { color: var(--color-fg-muted); } */
+  .select > span:first-child { color: var(--fg-muted); }
+  .select.filled > span:first-child { color: var(--fg-default); }
+
+  /* Chevron icon override — SelectVariants.full использует SizeVariants.size20
+     (Select/constants.ts ICON_SIZE_BY_SELECT_VARIANT[full] = size20).
+     shared .select .chevron = 16×16, override до 20×20 для full-варианта. */
+  .select .chevron { width: 20px; height: 20px; }
+  .select.small24 .chevron { width: 16px; height: 16px; }
+
+  /* DropdownMenu (popup variant) — по структуре и токенам кодовой базы.
+     Source:
+       DropdownMenu/index.module.scss:
+         .popup { --dropdown-menu-padding: spacing-4; bg: bg-surface-1; min-width: max(280px, width); }
+         .floatingElementRoot { border: 1px solid border-muted; max-height: 340px; }
+         .list { padding: var(--dropdown-menu-padding); }
+       DropdownMenuOption/index.module.scss + index.tsx:
+         .root ←+ JSX 'flex items-center p-2' → padding 2px, radius 8 (transparent bg, outline 2px solid transparent)
+         .contentWrapper ←+ JSX 'flex items-center' → padding 6 (spacing-6), radius 6, bg+color по state
+         .textWrapper ←+ JSX 'flex flex-1 flex-col py-2 px-4' → внутренний padding текста 2/4
+         [aria-selected=true]: bg accent-opaque-container-default, color accent-default
+         .interactive:hover: bg accent-opaque-container-hover
+     Итог от края option до текста: v = 2+6+2 = 10px, h = 2+6+4 = 12px */
+  .ff-dropdown {
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8);
+    padding: var(--spacing-4);          /* .list padding 4 */
+    min-width: 280px;
+    max-height: 340px;
+    overflow: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .ff-dropdown-option {
+    /* .root — padding 2 из JSX 'p-2', radius 8, transparent bg */
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-2);           /* p-2 из TSX DropdownMenuOption:190 */
+    border-radius: var(--radius-8);
+    cursor: pointer;
+    background: transparent;
+    outline: var(--border-width-2) solid transparent;
+    transition: outline-color var(--duration-fast-01) ease-out;
+  }
+  .ff-dropdown-option-inner {
+    /* .contentWrapper — padding 6, radius 6, gap 4 */
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--spacing-6);
+    border-radius: var(--radius-6);
+    gap: var(--spacing-4);
+    background: transparent;
+    color: var(--fg-default);
+    transition: background var(--duration-fast-01) ease-out, color var(--duration-fast-01) ease-out;
+  }
+  .ff-dropdown-option-text {
+    /* .textWrapper — py-2 px-4, flex-col flex-1 из TSX DropdownMenuOption:264 */
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    padding: var(--spacing-2) var(--spacing-4);
+    /* Typography bodySmall: 14/400/20 */
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+  .ff-dropdown-option:hover .ff-dropdown-option-inner {
+    background: var(--accent-opaque-container-hover);
+  }
+  .ff-dropdown-option[aria-selected="true"] .ff-dropdown-option-inner {
+    background: var(--accent-opaque-container-default);
+    color: var(--accent-default);
+  }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  BLOCK: Form Fields                               ║
+       ║  Input / Select / DateInput / DateRangeInput /    ║
+       ║  Checkbox / Radio / Toggle + Label/Feedback       ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       1. INPUT — SIZES
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Input · размеры</p>
+    <p class="block-section-note">Три размера из <code>InputSizes</code>. Высота / типографика / radius зависят от размера. Theme <code>light</code>, без label.</p>
+    <p class="block-section-source">Source: src/shared/components/Input/index.module.scss (.small24/.medium36/.large48)</p>
+
+    <div class="variants narrow">
+      <div>
+        <p class="variant-caption">small24 · desc-large 12/400/16 · radius 6</p>
+        <input class="input small24 light" placeholder="Поиск">
+      </div>
+      <div>
+        <p class="variant-caption">medium36 · body-small 14/400/20 · radius 8</p>
+        <input class="input medium36 light" placeholder="Введите значение">
+      </div>
+      <div>
+        <p class="variant-caption">large48 · body-medium 16/400/24 · radius 10</p>
+        <input class="input large48 light" placeholder="Введите значение">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. INPUT — THEMES
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Input · темы</p>
+    <p class="block-section-note">Default theme в коде Input — не определён дефолтно (передаётся явно). <code>light</code> используется в filters на tiles-страницах, <code>dark</code> — на table-страницах и в ролевых формах. <code>unstyled</code>/<code>basic</code> — для блупринтов и inline-редактирования в таблицах.</p>
+    <p class="block-section-source">Source: src/shared/components/Input/types.ts InputThemes + index.module.scss</p>
+
+    <div class="variants">
+      <div>
+        <p class="variant-caption">light · bg static-white · stage tinted grey</p>
+        <input class="input medium36 light" placeholder="Введите значение">
+      </div>
+    </div>
+    <div class="variants dark-stage">
+      <div>
+        <p class="variant-caption">dark · bg neutral-container-muted · stage white</p>
+        <input class="input medium36 dark" placeholder="Введите значение">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. INPUT — STATES + ADDONS
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Input · состояния и addons</p>
+    <p class="block-section-note">Состояния из <code>.styled</code>: default / focus (bg static-white, border accent-muted) / error (border error) / disabled. Для <code>variant=search</code> — <code>addonBefore</code> с иконкой. Для <code>variant=money</code>/<code>percent</code> суффикс (₽ / %) добавляется к значению через <code>formatRawToDisplayedValue</code>, а не как addon.</p>
+    <p class="block-section-source">Source: Input/index.module.scss .styled · Input/constants.tsx (GET_INPUT_DEFAULT_PROPS_BY_VARIANT_DICT, ICON_SIZE_BY_INPUT_SIZE)</p>
+
+    <div class="variants">
+      <div>
+        <p class="variant-caption">default</p>
+        <input class="input medium36 light" placeholder="Введите значение">
+      </div>
+      <div>
+        <p class="variant-caption">filled</p>
+        <input class="input medium36 light" value="Корова №1245">
+      </div>
+      <div>
+        <p class="variant-caption">error (aria-invalid)</p>
+        <input class="input medium36 light" value="01-02-2025">
+      </div>
+      <div>
+        <p class="variant-caption">disabled</p>
+        <input class="input medium36 light" value="Недоступно" disabled>
+      </div>
+      <div>
+        <p class="variant-caption">variant=search · addonBefore (icon=search, size20 для medium36)</p>
+        <div class="ff-input-wrap with-addon-before">
+          <span class="ff-input-addon before"><svg><use href="../../icons.svg#search"/></svg></span>
+          <input class="input medium36 dark" placeholder="Поиск">
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">isClearable=true · addonAfter (icon=cancel, size20)</p>
+        <div class="ff-input-wrap with-addon-after">
+          <input class="input medium36 light" value="Текст для очистки">
+          <span class="ff-input-addon after"><svg><use href="../../icons.svg#cancel"/></svg></span>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">variant=money · суффикс «₽» в value (формат, НЕ addon)</p>
+        <input class="input medium36 light" value="1 250,00 ₽">
+      </div>
+      <div>
+        <p class="variant-caption">variant=percent · суффикс «%» в value (формат, НЕ addon)</p>
+        <input class="input medium36 light" value="42,5 %">
+      </div>
+      <div>
+        <p class="variant-caption">variant=int · placeholder «Введите число»</p>
+        <input class="input medium36 light" placeholder="Введите число">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. INPUT — MULTILINE (textarea)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Input · multiline (textarea)</p>
+    <p class="block-section-note">При <code>isMultiline=true</code> рендерится <code>&lt;textarea&gt;</code> вместо <code>&lt;input&gt;</code>. inputContainer с <code>align-items: stretch</code>, textarea с <code>scrollbar-gutter: stable</code>. Поддерживает <code>minLines</code> / <code>maxLines</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/Input/index.module.scss .multiline / .textarea</p>
+
+    <div class="variants wide">
+      <div>
+        <p class="variant-caption">textarea · light · minLines 3</p>
+        <textarea class="input medium36 light multiline" placeholder="Комментарий к событию" style="min-height: 72px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. SELECT
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Select · размеры и темы</p>
+    <p class="block-section-note">Три размера из <code>SelectSizes</code> (height 24/36/48, radius 4/6/8). Default theme = <code>SelectThemes.dark</code> (bg neutral-container-muted), <code>light</code> — static-white. Variant <code>full</code> (стандартный trigger с placeholder и chevron).</p>
+    <p class="block-section-source">Source: src/shared/components/Select/index.module.scss + Select.tsx (default theme=dark)</p>
+
+    <!-- DARK theme (default) — stage белый -->
+    <div class="variants dark-stage">
+      <div>
+        <p class="variant-caption">small24 · dark (default)</p>
+        <button class="select medium36 dark small24">
+          <span>Выберите значение</span>
+          <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+        </button>
+      </div>
+      <div>
+        <p class="variant-caption">medium36 · dark (default)</p>
+        <button class="select medium36 dark">
+          <span>Выберите значение</span>
+          <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+        </button>
+      </div>
+      <div>
+        <p class="variant-caption">large48 · dark (default)</p>
+        <button class="select medium36 dark large48">
+          <span>Выберите значение</span>
+          <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- LIGHT theme — stage tinted grey -->
+    <div class="variants">
+      <div>
+        <p class="variant-caption">medium36 · light</p>
+        <button class="select medium36 dark light">
+          <span>Тип события</span>
+          <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+        </button>
+      </div>
+      <div>
+        <p class="variant-caption">medium36 · light · with selected value</p>
+        <button class="select medium36 dark light filled">
+          <span>Осеменение</span>
+          <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+        </button>
+      </div>
+      <div>
+        <p class="variant-caption">medium36 · error (aria-invalid) · bg error-container-soft</p>
+        <button class="select medium36 dark light" aria-invalid="true" style="background: var(--error-container-soft);">
+          <span>Выберите значение</span>
+          <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+        </button>
+      </div>
+      <div>
+        <p class="variant-caption">medium36 · disabled · bg neutral-container-muted</p>
+        <button class="select medium36 dark light filled" disabled aria-disabled="true" style="background: var(--neutral-container-muted); color: var(--fg-muted); cursor: default;">
+          <span style="color: var(--fg-muted);">Недоступно</span>
+          <svg class="chevron" style="color: var(--fg-muted);"><use href="../../icons.svg#chevron-down"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- OPEN dropdown — отдельный stage с зарезервированным местом под popup -->
+    <div class="variants with-dropdown-space">
+      <div>
+        <p class="variant-caption">medium36 · open (expanded) · selected «Отёл»</p>
+        <div style="position: relative;">
+          <button class="select medium36 dark light filled" aria-expanded="true" style="background: var(--bg-surface-1); border-color: var(--accent-muted); outline: 2px solid var(--focus-default);">
+            <span>Отёл</span>
+            <svg class="chevron" style="transform: rotate(180deg);"><use href="../../icons.svg#chevron-down"/></svg>
+          </button>
+          <div class="ff-dropdown" style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%;">
+            <div class="ff-dropdown-option">
+              <div class="ff-dropdown-option-inner"><div class="ff-dropdown-option-text">Осеменение</div></div>
+            </div>
+            <div class="ff-dropdown-option" aria-selected="true">
+              <div class="ff-dropdown-option-inner"><div class="ff-dropdown-option-text">Отёл</div></div>
+            </div>
+            <div class="ff-dropdown-option">
+              <div class="ff-dropdown-option-inner"><div class="ff-dropdown-option-text">Выбытие</div></div>
+            </div>
+            <div class="ff-dropdown-option">
+              <div class="ff-dropdown-option-inner"><div class="ff-dropdown-option-text">Взвешивание</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. DATE INPUT & DATE RANGE INPUT
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">DateInput · DateRangeInput</p>
+    <p class="block-section-note">Сегменты через <code>DateTimeInputSegment</code> (react-aria <code>useDateSegment</code>). Локаль <code>ru-RU</code> из <code>I18nProvider</code> → placeholder'ы строчными (<code>дд</code>/<code>мм</code>/<code>гггг</code>), разделитель между сегментами — literal <code>.</code> (точка). В DateRangeInput между двумя датами hardcoded <code>&amp;ndash;</code> (<code>DateRangeInput/index.tsx:466</code>). Размеры <code>DateInputSizes.small24/medium36/large48</code> (radius 8, border 2px). Темы <code>DateInputThemes.light/dark</code>.</p>
+    <p class="block-section-source">Source: DateInput/index.tsx + DateTimeInputSegment/index.tsx + shared/i18n/types.ts (locale=ru-RU)</p>
+
+    <div class="variants">
+      <div>
+        <p class="variant-caption">DateInput · medium36 · light · default (placeholder)</p>
+        <div class="date-input medium36">
+          <div class="date-field">
+            <span class="date-segment text-muted">дд</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment text-muted">мм</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment text-muted">гггг</span>
+          </div>
+          <div class="date-actions">
+            <svg class="date-icon"><use href="../../icons.svg#calendar"/></svg>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">DateInput · medium36 · filled</p>
+        <div class="date-input medium36">
+          <div class="date-field">
+            <span class="date-segment">15</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">03</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">2026</span>
+          </div>
+          <div class="date-actions">
+            <svg class="date-icon"><use href="../../icons.svg#calendar"/></svg>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">DateInput · medium36 · focused</p>
+        <div class="date-input medium36 focused">
+          <div class="date-field">
+            <span class="date-segment">15</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">03</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">2026</span>
+          </div>
+          <div class="date-actions">
+            <svg class="date-icon"><use href="../../icons.svg#calendar"/></svg>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">DateInput · medium36 · error</p>
+        <div class="date-input medium36 error">
+          <div class="date-field">
+            <span class="date-segment">32</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">13</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">2026</span>
+          </div>
+          <div class="date-actions">
+            <svg class="date-icon"><use href="../../icons.svg#calendar"/></svg>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">DateInput · medium36 · disabled</p>
+        <div class="date-input medium36 disabled">
+          <div class="date-field">
+            <span class="date-segment">15</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">03</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">2026</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">DateInput · small24 · dark</p>
+        <div class="date-input small24 dark">
+          <div class="date-field">
+            <span class="date-segment">15</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">03</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">2026</span>
+          </div>
+        </div>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <p class="variant-caption">DateRangeInput · medium36 · light · filled (разделитель «–» из кода)</p>
+        <div class="date-input date-range-input medium36" style="min-width: 280px;">
+          <div class="date-field">
+            <span class="date-segment">01</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">03</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">2026</span>
+            <span class="date-sep" style="margin: 0 6px;">&ndash;</span>
+            <span class="date-segment">31</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">03</span>
+            <span class="date-sep">.</span>
+            <span class="date-segment">2026</span>
+          </div>
+          <div class="date-actions">
+            <svg class="date-icon"><use href="../../icons.svg#calendar"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       7. CHECKBOX
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Checkbox · размеры и состояния</p>
+    <p class="block-section-note">Размер чекбокса = значение токена <code>SizeVariants</code> (16/20/24). Label-typography зависит от размера: 16 → <code>descriptionLarge</code>, 20 → <code>bodySmall</code>, 24 → <code>bodyMedium</code>. Border 2px, checked-состояние заливается <code>accent-default</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/Checkbox/index.module.scss + index.tsx (LABEL_TYPOGRAPHY_VARIANT_BY_SIZE)</p>
+
+    <p class="block-section-note" style="margin-top: -8px;">Полный каталог checkbox — в <a href="./checkbox.html" style="color: var(--accent-default);">components/checkbox.html</a>. Здесь — краткая сводка 6 состояний.</p>
+
+    <div class="variants narrow">
+      <div>
+        <p class="variant-caption">size 16 · unchecked</p>
+        <label class="checkbox normal size-16 withLabel" aria-checked="false">
+          <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+          <span class="label" style="font-size: 12px; line-height: 16px;">Небольшой чекбокс</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">size 20 · unchecked (default)</p>
+        <label class="checkbox normal size-20 withLabel" aria-checked="false">
+          <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+          <span class="label">Стандартный размер</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">size 24 · unchecked</p>
+        <label class="checkbox normal size-24 withLabel" aria-checked="false">
+          <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+          <span class="label" style="font-size: 16px; line-height: 24px;">Крупный чекбокс</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">size 20 · checked · &lt;Icon variant=check&gt;</p>
+        <label class="checkbox normal size-20 withLabel" aria-checked="true">
+          <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+          <span class="label">Выбрано</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">size 20 · indeterminate · &lt;Icon variant=minus&gt;</p>
+        <label class="checkbox normal size-20 withLabel" aria-checked="mixed">
+          <div class="border"><span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span></div>
+          <span class="label">Часть выбрана</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">size 20 · disabled</p>
+        <label class="checkbox normal size-20 withLabel" aria-checked="false" aria-disabled="true">
+          <div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div>
+          <span class="label">Недоступно</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       8. RADIO GROUP
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">RadioGroup · варианты</p>
+    <p class="block-section-note">Четыре варианта из <code>RadioGroup/index.module.scss</code>: <code>.radio</code> (gap 16, по горизонтали), <code>.verticalRadio</code> (gap 12, по вертикали), <code>.segmented</code> (bg neutral-container-soft, radius 8, padding 2), <code>.chip</code> (gap 6).</p>
+    <p class="block-section-source">Source: src/shared/components/RadioGroup/index.module.scss</p>
+
+    <div class="variants wide">
+      <div>
+        <p class="variant-caption">radio · горизонтально (items-gap 16)</p>
+        <div class="radio-group radio">
+          <div class="items">
+            <label class="item" aria-checked="true">
+              <span class="circle"></span>
+              <span>Корова</span>
+            </label>
+            <label class="item">
+              <span class="circle"></span>
+              <span>Тёлка</span>
+            </label>
+            <label class="item">
+              <span class="circle"></span>
+              <span>Бык</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">verticalRadio · по вертикали (items-gap 12)</p>
+        <div class="radio-group verticalRadio">
+          <div class="items" style="flex-direction: column; align-items: flex-start;">
+            <label class="item" aria-checked="true">
+              <span class="circle"></span>
+              <span>Суммировать с предыдущими результатами</span>
+            </label>
+            <label class="item">
+              <span class="circle"></span>
+              <span>Перезаписать предыдущие результаты</span>
+            </label>
+            <label class="item">
+              <span class="circle"></span>
+              <span>Пропустить существующие</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">segmented · medium24 · RadioSegmentedTab</p>
+        <div class="radio-group segmented">
+          <div class="items">
+            <label class="root medium24" aria-checked="true">
+              <div class="segmentedTabButton"><b>Все</b></div>
+            </label>
+            <label class="root medium24">
+              <div class="segmentedTabButton"><b>Активные</b></div>
+            </label>
+            <label class="root medium24">
+              <div class="segmentedTabButton"><b>Выбывшие</b></div>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">chip · RadioChip — label обёртка + Chip компонент внутри</p>
+        <div class="radio-group chip">
+          <div class="items">
+            <label>
+              <div class="chip medium24 active interactiveContainer">
+                <div class="flex-1 ellipsis px-2">Лактация</div>
+              </div>
+            </label>
+            <label>
+              <div class="chip medium24 interactiveContainer">
+                <div class="flex-1 ellipsis px-2">Сухостой</div>
+              </div>
+            </label>
+            <label>
+              <div class="chip medium24 interactiveContainer">
+                <div class="flex-1 ellipsis px-2">Отёл</div>
+              </div>
+            </label>
+            <label>
+              <div class="chip medium24 interactiveContainer">
+                <div class="flex-1 ellipsis px-2">Осеменение</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       9. TOGGLE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Toggle · размеры и состояния</p>
+    <p class="block-section-note">Два размера из <code>Toggle/index.module.scss</code>: <code>.small16</code> (track 26×16, thumb 12×12, label-gap 8) и <code>.medium24</code> (track 34×20, thumb 16×16, label-gap 12). Checked — track <code>accent-default</code>, thumb сдвигается на <code>var(--thumb-translate)</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/Toggle/index.module.scss</p>
+
+    <div class="variants">
+      <div>
+        <p class="variant-caption">medium24 · off</p>
+        <label class="toggle">
+          <span class="track medium24">
+            <span class="thumb"></span>
+          </span>
+          <span class="label">Показывать архивные</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">medium24 · on</p>
+        <label class="toggle" aria-checked="true">
+          <span class="track medium24">
+            <span class="thumb"></span>
+          </span>
+          <span class="label">Автоматическая проверка</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">small16 · off</p>
+        <label class="toggle">
+          <span class="track small16">
+            <span class="thumb"></span>
+          </span>
+          <span class="label" style="font-size: 12px; line-height: 16px;">Компактный режим</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">small16 · on</p>
+        <label class="toggle" aria-checked="true">
+          <span class="track small16">
+            <span class="thumb"></span>
+          </span>
+          <span class="label" style="font-size: 12px; line-height: 16px;">Группировать по дате</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">medium24 · disabled · off</p>
+        <label class="toggle" aria-disabled="true">
+          <span class="track medium24" style="background: var(--neutral-container-soft);">
+            <span class="thumb"></span>
+          </span>
+          <span class="label" style="color: var(--fg-disabled);">Недоступно</span>
+        </label>
+      </div>
+      <div>
+        <p class="variant-caption">medium24 · disabled · on</p>
+        <label class="toggle" aria-checked="true" aria-disabled="true">
+          <span class="track medium24" style="background: var(--accent-container-active);">
+            <span class="thumb"></span>
+          </span>
+          <span class="label" style="color: var(--fg-disabled);">Заблокировано</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       10. FIELD STRUCTURE — Label + Field + Feedback
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Структура поля · Label + Field + Feedback</p>
+    <p class="block-section-note">Root: <code>display: grid; gap: var(--spacing-4)</code>. Label — <code>Typography bodySmall</code> (14/400/20, <code>color: fg-soft</code>). Feedback — <code>Typography descriptionLarge</code> (12/400/16) с иконкой 16px и <code>mr-4</code>. <code>FeedbackVariants.info|neutral|error</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/{Input,Select,DateInput}/index.module.scss .root · Label/index.tsx · FieldFeedback/index.tsx</p>
+
+    <div class="variants wide">
+      <div>
+        <p class="variant-caption">Basic · label + input</p>
+        <div class="ff-field">
+          <label role="label" class="label"><span class="ellipsis">Кличка коровы</span></label>
+          <input class="input medium36 light" placeholder="Введите кличку">
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">Required · isRequired=true</p>
+        <div class="ff-field">
+          <label role="label" class="label"><span class="ellipsis">Инвентарный номер</span><span class="asterisk">&nbsp;*</span></label>
+          <input class="input medium36 light" placeholder="Введите номер">
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">Optional · isOptional=true · «(Необязательно)»</p>
+        <div class="ff-field">
+          <label role="label" class="label"><span class="ellipsis">Комментарий</span><span class="text-muted ml-4 optional">(Необязательно)</span></label>
+          <input class="input medium36 light" placeholder="Добавьте комментарий">
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">Feedback neutral · helper text · единицы в label</p>
+        <div class="ff-field">
+          <label role="label" class="label"><span class="ellipsis">Вес, кг</span></label>
+          <input class="input medium36 light" placeholder="Введите число">
+          <div class="ff-feedback descriptionLarge flex items-baseline">
+            <span class="ff-feedback-icon mr-4"><span class="ff-feedback-icon-inner"><svg><use href="../../icons.svg#info-circle"/></svg></span></span>
+            <span class="wrap-break-word">Диапазон от 300 до 900 кг.</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">Feedback info · FeedbackVariants.info</p>
+        <div class="ff-field">
+          <label role="label" class="label"><span class="ellipsis">Номер UHF-метки</span></label>
+          <input class="input medium36 light" value="982000123456789">
+          <div class="ff-feedback info descriptionLarge flex items-baseline">
+            <span class="ff-feedback-icon mr-4"><span class="ff-feedback-icon-inner"><svg><use href="../../icons.svg#info-circle"/></svg></span></span>
+            <span class="wrap-break-word">Метка проверена и синхронизирована.</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">Feedback error · hasError + label.error</p>
+        <div class="ff-field">
+          <label role="label" class="label error"><span class="ellipsis">Дата осеменения</span><span class="asterisk">&nbsp;*</span></label>
+          <input class="input medium36 light" value="32.13.2026">
+          <div class="ff-feedback error descriptionLarge flex items-baseline">
+            <span class="ff-feedback-icon mr-4"><span class="ff-feedback-icon-inner"><svg><use href="../../icons.svg#info-circle"/></svg></span></span>
+            <span class="wrap-break-word">Введена некорректная дата.</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">Disabled · isDisabled=true</p>
+        <div class="ff-field">
+          <label role="label" class="label" aria-disabled="true"><span class="ellipsis">Идентификатор фермы</span></label>
+          <input class="input medium36 light" value="FRM-0001" disabled>
+          <div class="ff-feedback descriptionLarge flex items-baseline">
+            <span class="ff-feedback-icon mr-4"><span class="ff-feedback-icon-inner"><svg><use href="../../icons.svg#info-circle"/></svg></span></span>
+            <span class="wrap-break-word">Назначается автоматически при создании.</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="variant-caption">Select + label + required</p>
+        <div class="ff-field">
+          <label role="label" class="label"><span class="ellipsis">Категория события</span><span class="asterisk">&nbsp;*</span></label>
+          <button class="select medium36 dark light">
+            <span>Выберите категорию</span>
+            <svg class="chevron"><use href="../../icons.svg#chevron-down"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

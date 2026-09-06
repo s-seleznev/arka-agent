@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Pattern: Stats Cards (Metric Cards)</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 12px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+
+  /* Demo-сцена: bg-surface-1 (белый) как в проде (analytics-панель),
+     чтобы metric-card на bg-surface-3 (светло-серый) был контрастно виден. */
+  .stage {
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .matrix-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  ReproductionMetricCard
+     ║  Source: src/widgets/analyticsReproduction/components/
+     ║          ReproductionMetricCard/index.tsx (167 lines)
+     ║
+     ║  DOM (1:1 с TSX — utility-классы + Typography-variants):
+     ║    <div.grid.gap-16.p-16.background-bg-surface-3.rounded-8>          (root, min-height 156)
+     ║      <div.flex.gap-12.items-center.justify-between.ellipsis>         (head)
+     ║        <b.bodyMediumStrong.ellipsis>{title}</b>                      Typography bodyMediumStrong → <b>
+     ║        <Tooltip size=24/>                                             help-circle icon
+     ║      <div.grid.gap-12.grid-cols-2>                                   (grid)
+     ║        <div.flex.flex-col>                                           (col: Факт + Value + Delta)
+     ║          <span.descriptionLarge.text-soft>Факт</span>                Typography descriptionLarge → <span>
+     ║          <span.displaySmall.{metricValueClassName}>{value}</span>    Typography displaySmall → <span>
+     ║          <div.bodyMediumStrong.flex.items-center.gap-4.{deltaCls}>   Typography tag='div' bodyMediumStrong
+     ║            <Icon variant=metric-{positive|negative|unchanged} size=24/>
+     ║            {abs(delta)}
+     ║        <div.flex.flex-col.text-soft>                                 (col Цель: text-soft наследуется)
+     ║          <span.descriptionLarge>Цель</span>
+     ║          <span.displaySmall>{target}</span>
+     ║
+     ║  Height: 156px (METRIC_CARD_HEIGHT_PX) — для Skeleton.Block.
+     ║  Colors:
+     ║    metricValueClassName = getMetricColorForegroundClassName(...):
+     ║      value < deviationThresholdPercent  → text-error
+     ║      value < targetPercent              → text-warning
+     ║      value >= targetPercent             → text-success
+     ║      nil target/threshold               → text-soft
+     ║    metricDeltaSettings.className:
+     ║      delta > 0  →  text-success + icon metric-positive
+     ║      delta < 0  →  text-error   + icon metric-negative
+     ║      delta = 0  →  text-soft    + icon metric-unchanged
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* Min-height для metric-card root (METRIC_CARD_HEIGHT_PX = 156) */
+  .metric-card-min-height { min-height: 156px; }
+
+  /* Tooltip trigger — size24 (Tooltip size=SizeVariants.size24) — help-circle icon.
+     В коде это компонент Tooltip с размером 24: svg 24×24, fg-soft, hover accent. */
+  .metric-tooltip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex: none;
+    color: var(--fg-soft);
+    cursor: help;
+  }
+  .metric-tooltip svg { width: 24px; height: 24px; display: block; }
+  .metric-tooltip:hover { color: var(--accent-hover); }
+
+  /* Icon wrapper 1:1 с shared/components/Icon — span.root > span.innerRoot > svg.
+     Используем имена .icon/.innerRoot (не .root/.innerRoot) т.к. flat CSS
+     без CSS Modules имеет конфликт с RadioGroup/RadioSegmentedTab .root. */
+
+  /* Skeleton для metric-card (высота 156px) — Source: renderWithSkeleton + Skeleton.Block */
+  .metric-skeleton {
+    height: 156px;
+    border-radius: var(--radius-8);
+    background: var(--neutral-container-default);
+    animation: ms-pulse var(--duration-pulse, 2s) var(--easing-pulse, cubic-bezier(0.4,0,0.6,1)) infinite;
+  }
+  @keyframes ms-pulse { 50% { background: var(--neutral-container-soft); } }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Stats / Metric cards · ReproductionMetricCard</p>
+    <p class="block-section-note">Карточка KPI с целевым значением и дельтой. Используется на analytics-dashboard'ах репродукции: «CR», «Риск-группа», «Стельность» и пр. Высота фиксированная — 156px. Сетка 2×1 внутри: слева — факт + дельта, справа — цель. Цвет значения «Факт» меняется по отношению к target/deviationThreshold. Цвет дельты и иконка — по знаку delta.</p>
+    <p class="block-section-source">Source: src/widgets/analyticsReproduction/components/ReproductionMetricCard/index.tsx (167 lines)</p>
+
+    <pre class="dom-tree">&lt;div.grid.gap-16.p-16.background-bg-surface-3.rounded-8&gt;        root (min-height 156)
+  &lt;div.flex.gap-12.items-center.justify-between.ellipsis&gt;       head
+    &lt;b.bodyMediumStrong.ellipsis&gt;{title}&lt;/b&gt;                     Typography bodyMediumStrong → &lt;b&gt;
+    &lt;Tooltip size=24/&gt;                                             help-circle icon
+  &lt;div.grid.gap-12.grid-cols-2&gt;                                  grid
+    &lt;div.flex.flex-col&gt;                                          col: Факт + Value + Delta
+      &lt;span.descriptionLarge.text-soft&gt;Факт&lt;/span&gt;
+      &lt;span.displaySmall.{metricValueClassName}&gt;{value}&lt;/span&gt;
+      &lt;div.bodyMediumStrong.flex.items-center.gap-4.{deltaCls}&gt; Typography tag='div' bodyMediumStrong
+        &lt;Icon variant=metric-{positive|negative|unchanged} size=24/&gt;
+        {abs(delta)}
+    &lt;div.flex.flex-col.text-soft&gt;                                col Цель (text-soft наследуется)
+      &lt;span.descriptionLarge&gt;Цель&lt;/span&gt;
+      &lt;span.displaySmall&gt;{target}&lt;/span&gt;</pre>
+
+    <p class="variant-caption" style="margin-top: 16px;">Color rules (getMetricColorForegroundClassName)</p>
+    <pre class="dom-tree">value &lt; deviationThresholdPercent  →  text-error    (критическое отклонение)
+value &lt; targetPercent              →  text-warning  (ниже цели, в допуске)
+value &gt;= targetPercent             →  text-success  (цель достигнута)
+иначе (nil target/threshold)       →  text-soft     (нейтральный)
+
+delta &gt; 0  →  text-success + icon metric-positive
+delta &lt; 0  →  text-error   + icon metric-negative
+delta = 0  →  text-soft    + icon metric-unchanged</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. MATRIX — positive / negative / neutral / warning
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Matrix — все состояния по delta + metric color</p>
+    <p class="block-section-note">Четыре типовых состояния: delta positive + value выше цели (зелёный+зелёный), delta negative + value в допуске (красный+жёлтый), delta neutral + value ниже порога (серый+красный), missing target (всё text-soft + unchanged).</p>
+    <p class="block-section-source">Source: ReproductionMetricCard usage на analytics-dashboard</p>
+
+    <div class="stage">
+      <div class="matrix-grid">
+
+        <!-- POSITIVE + on-target -->
+        <div>
+          <p class="variant-caption">delta &gt; 0 · value ≥ target</p>
+          <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+            <div class="flex gap-12 items-center justify-between ellipsis">
+              <b class="bodyMediumStrong ellipsis">CR (сonception rate)</b>
+              <span class="metric-tooltip" title="Указано значение показателя за цикл 12.03.2026">
+                <svg><use href="../../icons.svg#help-circle"/></svg>
+              </span>
+            </div>
+            <div class="grid gap-12 grid-cols-2">
+              <div class="flex flex-col">
+                <span class="descriptionLarge text-soft">Факт</span>
+                <span class="displaySmall text-success">48 %</span>
+                <div class="bodyMediumStrong flex items-center gap-4 text-success">
+                  <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-positive"/></svg></span></span>
+                  6 %
+                </div>
+              </div>
+              <div class="flex flex-col text-soft">
+                <span class="descriptionLarge">Цель</span>
+                <span class="displaySmall">42 %</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEGATIVE + below target, above threshold (warning) -->
+        <div>
+          <p class="variant-caption">delta &lt; 0 · value &lt; target (warning)</p>
+          <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+            <div class="flex gap-12 items-center justify-between ellipsis">
+              <b class="bodyMediumStrong ellipsis">Стельность после 1-го ос.</b>
+              <span class="metric-tooltip" title="Указано значение показателя за последний цикл">
+                <svg><use href="../../icons.svg#help-circle"/></svg>
+              </span>
+            </div>
+            <div class="grid gap-12 grid-cols-2">
+              <div class="flex flex-col">
+                <span class="descriptionLarge text-soft">Факт</span>
+                <span class="displaySmall text-warning">36 %</span>
+                <div class="bodyMediumStrong flex items-center gap-4 text-error">
+                  <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-negative"/></svg></span></span>
+                  4 %
+                </div>
+              </div>
+              <div class="flex flex-col text-soft">
+                <span class="descriptionLarge">Цель</span>
+                <span class="displaySmall">40 %</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEUTRAL (delta = 0) + value below threshold (error) -->
+        <div>
+          <p class="variant-caption">delta = 0 · value &lt; deviation (error)</p>
+          <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+            <div class="flex gap-12 items-center justify-between ellipsis">
+              <b class="bodyMediumStrong ellipsis">Риск-группа</b>
+              <span class="metric-tooltip" title="Указано значение показателя за цикл 12.03.2026">
+                <svg><use href="../../icons.svg#help-circle"/></svg>
+              </span>
+            </div>
+            <div class="grid gap-12 grid-cols-2">
+              <div class="flex flex-col">
+                <span class="descriptionLarge text-soft">Факт</span>
+                <span class="displaySmall text-error">12 %</span>
+                <div class="bodyMediumStrong flex items-center gap-4 text-soft">
+                  <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-unchanged"/></svg></span></span>
+                  0 %
+                </div>
+              </div>
+              <div class="flex flex-col text-soft">
+                <span class="descriptionLarge">Цель</span>
+                <span class="displaySmall">25 %</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NO DATA — target missing → text-soft everywhere -->
+        <div>
+          <p class="variant-caption">target/threshold = nil · text-soft</p>
+          <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+            <div class="flex gap-12 items-center justify-between ellipsis">
+              <b class="bodyMediumStrong ellipsis">Сервис-период</b>
+              <span class="metric-tooltip" title="Указано значение показателя за последний цикл">
+                <svg><use href="../../icons.svg#help-circle"/></svg>
+              </span>
+            </div>
+            <div class="grid gap-12 grid-cols-2">
+              <div class="flex flex-col">
+                <span class="descriptionLarge text-soft">Факт</span>
+                <span class="displaySmall text-soft">128 дн.</span>
+                <div class="bodyMediumStrong flex items-center gap-4 text-soft">
+                  <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-unchanged"/></svg></span></span>
+                  —
+                </div>
+              </div>
+              <div class="flex flex-col text-soft">
+                <span class="descriptionLarge">Цель</span>
+                <span class="displaySmall">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. DASHBOARD ROW — 4 metric cards in a row
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Dashboard row — 4 карточки в ряд</p>
+    <p class="block-section-note">Типовой layout на analytics/reproduction-странице: grid-cols-4 (или responsive) с равновысокими карточками. В коде product-src — каждая карточка рендерится через <code>&lt;ReproductionMetricCard title=... metric=... /&gt;</code> внутри CSS-grid wrapper'а.</p>
+    <p class="block-section-source">Source: analyticsReproduction widget usage (dashboard layout)</p>
+
+    <div class="stage">
+      <div class="matrix-grid" style="grid-template-columns: repeat(4, minmax(220px, 1fr));">
+
+        <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+          <div class="flex gap-12 items-center justify-between ellipsis">
+            <b class="bodyMediumStrong ellipsis">CR</b>
+            <span class="metric-tooltip" title="За цикл 12.03.2026"><svg><use href="../../icons.svg#help-circle"/></svg></span>
+          </div>
+          <div class="grid gap-12 grid-cols-2">
+            <div class="flex flex-col">
+              <span class="descriptionLarge text-soft">Факт</span>
+              <span class="displaySmall text-success">48 %</span>
+              <div class="bodyMediumStrong flex items-center gap-4 text-success">
+                <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-positive"/></svg></span></span>
+                6 %
+              </div>
+            </div>
+            <div class="flex flex-col text-soft">
+              <span class="descriptionLarge">Цель</span>
+              <span class="displaySmall">42 %</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+          <div class="flex gap-12 items-center justify-between ellipsis">
+            <b class="bodyMediumStrong ellipsis">PR (pregnancy rate)</b>
+            <span class="metric-tooltip" title="За цикл 12.03.2026"><svg><use href="../../icons.svg#help-circle"/></svg></span>
+          </div>
+          <div class="grid gap-12 grid-cols-2">
+            <div class="flex flex-col">
+              <span class="descriptionLarge text-soft">Факт</span>
+              <span class="displaySmall text-warning">22 %</span>
+              <div class="bodyMediumStrong flex items-center gap-4 text-error">
+                <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-negative"/></svg></span></span>
+                3 %
+              </div>
+            </div>
+            <div class="flex flex-col text-soft">
+              <span class="descriptionLarge">Цель</span>
+              <span class="displaySmall">25 %</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+          <div class="flex gap-12 items-center justify-between ellipsis">
+            <b class="bodyMediumStrong ellipsis">HDR (heat detection)</b>
+            <span class="metric-tooltip" title="За последний цикл"><svg><use href="../../icons.svg#help-circle"/></svg></span>
+          </div>
+          <div class="grid gap-12 grid-cols-2">
+            <div class="flex flex-col">
+              <span class="descriptionLarge text-soft">Факт</span>
+              <span class="displaySmall text-success">62 %</span>
+              <div class="bodyMediumStrong flex items-center gap-4 text-success">
+                <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-positive"/></svg></span></span>
+                2 %
+              </div>
+            </div>
+            <div class="flex flex-col text-soft">
+              <span class="descriptionLarge">Цель</span>
+              <span class="displaySmall">60 %</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-16 p-16 background-bg-surface-3 rounded-8 metric-card-min-height">
+          <div class="flex gap-12 items-center justify-between ellipsis">
+            <b class="bodyMediumStrong ellipsis">Абортов</b>
+            <span class="metric-tooltip" title="За последний цикл"><svg><use href="../../icons.svg#help-circle"/></svg></span>
+          </div>
+          <div class="grid gap-12 grid-cols-2">
+            <div class="flex flex-col">
+              <span class="descriptionLarge text-soft">Факт</span>
+              <span class="displaySmall text-error">8 %</span>
+              <div class="bodyMediumStrong flex items-center gap-4 text-error">
+                <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#metric-negative"/></svg></span></span>
+                2 %
+              </div>
+            </div>
+            <div class="flex flex-col text-soft">
+              <span class="descriptionLarge">Цель</span>
+              <span class="displaySmall">5 %</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. SKELETON STATE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Skeleton — loading state</p>
+    <p class="block-section-note">В коде: <code>renderWithSkeleton(&lt;Skeleton.Block height={METRIC_CARD_HEIGHT_PX} /&gt;, cardElement)</code> — фиксированная высота 156px, pulse-animation. 1 блок на всю карточку (не sub-skeleton'ы).</p>
+    <p class="block-section-source">Source: ReproductionMetricCard/index.tsx:44, 158-166</p>
+
+    <div class="stage">
+      <div class="matrix-grid" style="grid-template-columns: repeat(3, minmax(220px, 1fr));">
+        <div class="metric-skeleton"></div>
+        <div class="metric-skeleton"></div>
+        <div class="metric-skeleton"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

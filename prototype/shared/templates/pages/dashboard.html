@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Page: Analytics Reproduction Overview</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* ============================================================
+     ADAPTED DASHBOARD
+     Это не главная «dashboard» продукта — в product-src такой страницы
+     нет. Собран 1:1 по layout страницы:
+       /$companyId/_layout/user/analytics/reproduction/overview
+     (routes/+$companyId/+_layout/+user/+analytics/+reproduction/+overview.tsx)
+     Паттерн, который эта страница иллюстрирует, используется как
+     «analytics dashboard»: фильтр-row → metric cards → large chart-panel.
+     ============================================================ */
+
+  /* Body override — layout.css глобально блокирует overflow, раскомменчиваем scroll */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+
+  /* Icon DOM wrapper — Source: Icon/index.tsx:140-170 */
+  .checkbox .border { border-color: var(--border-soft); }
+
+  /* ============================================================
+     FILTERS ROW — reuse pattern из patterns/filter-bar.html (Вариант 4 tiles-filter-bar)
+     На этой странице (analytics/reproduction/overview) фильтры без StickyBorderedPanel —
+     просто flex (mb-24). Individual filter = .filter-select (chip-style: radius-full,
+     border-soft, bg-surface-1, text-soft/default via <b>).
+     ============================================================ */
+  /* Filters root — flex gap-16 mb-24 (overview.tsx:292-299) */
+  .filters-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  /* Filter chip — 1:1 с patterns/filter-bar.html .filter-select */
+  .filter-select {
+    display: flex;
+    align-items: center;
+    padding: 3px 7px;
+    gap: 4px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-full, 9999px);
+    background: var(--bg-surface-1);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-soft);
+    white-space: nowrap;
+    user-select: none;
+  }
+  .filter-select:hover { background: var(--bg-surface-3); }
+  .filter-select svg { color: var(--fg-muted); flex-shrink: 0; }
+  .filter-select b { font-weight: 500; color: var(--fg-default); font-style: normal; }
+
+
+  /* ============================================================
+     PANEL (largePanel) + content-grid padding
+     Source: styles/modules/panel.module.scss .largePanel
+              + styles/modules/contentGrid.module.scss (.contentGrid / p-content-grid)
+       .largePanel: bg surface-1, radius 12
+       p-content-grid: padding var(--content-grid-gap) = 24
+     Also contentGridPaddingOutbreak — отвечает за outset margins (здесь не нужен).
+     ============================================================ */
+  .panel {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+  }
+  .large-panel { border-radius: var(--radius-12); }
+  .p-content-grid { padding: 24px; }
+  .gap-24 { gap: 24px; }
+  .mb-24 { margin-bottom: 24px; }
+
+  .grid { display: grid; }
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .items-center { align-items: center; }
+  .items-start { align-items: flex-start; }
+  .justify-between { justify-content: space-between; }
+  .gap-4 { gap: 4px; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .gap-16 { gap: 16px; }
+
+
+  /* ============================================================
+     TYPOGRAPHY — heading h3 bodyMediumStrong (16/500/24)
+     Source: Typography variants + overview.tsx:309 (tag=h3 bodyMediumStrong)
+     ============================================================ */
+  .typography-body-medium-strong {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--fg-default);
+  }
+  h3.panel-title {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    color: var(--fg-default);
+  }
+  .typography-display-small {
+    font-family: var(--font);
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 40px;
+  }
+  .typography-description-large {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+  }
+  .text-soft { color: var(--fg-soft); }
+  .text-success { color: var(--success-default); }
+  .text-error { color: var(--error-default); }
+
+
+  /* ============================================================
+     METRIC CARDS ROW — ReproductionMetricCard × 3
+     Source: widgets/analyticsReproduction/components/ReproductionMetricCard/index.tsx
+       root: grid gap-16 p-16 background-bg-surface-3 rounded-8
+       height constant: 156px (METRIC_CARD_HEIGHT_PX)
+       content: [title + tooltip] + grid-cols-2 [(Факт + value + delta) | (Цель + value)]
+     ============================================================ */
+  .metric-card {
+    display: grid;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-surface-3);
+    border-radius: var(--radius-8);
+    min-height: 156px;
+    box-sizing: border-box;
+  }
+  .metric-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    overflow: hidden;
+  }
+  /* Title — product-src Typography bodyMediumStrong + ellipsis. Use utility classes (layout.css).
+     <b class="bodyMediumStrong ellipsis">...</b> */
+  .metric-card-tooltip {
+    flex: none;
+    color: var(--fg-muted);
+  }
+  .metric-card-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .metric-card-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .metric-card-col-label {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-soft);
+  }
+  .metric-card-col-value {
+    font-family: var(--font);
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 40px;
+    color: var(--fg-default);
+  }
+  .metric-card-col-target-label { color: var(--fg-soft); }
+  .metric-card-col-target-value { color: var(--fg-soft); }
+  .metric-card-delta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+
+  /* Chart + cards container — overview.tsx chartWithCards
+     Source: routes/.../reproduction/overview.module.scss:3-20
+     DOM order: .cards (первый) + chart (второй). На 1280+ CSS order
+     переворачивает: chart слева (1fr), cards справа (248px колонка). */
+  .chart-with-cards {
+    display: grid;
+    gap: 32px;
+  }
+  .chart-with-cards .cards {
+    display: grid;
+    gap: 16px;
+  }
+  @media (min-width: 1280px) {
+    .chart-with-cards {
+      grid-template-columns: 1fr 248px;   /* chart 1fr, cards 248px */
+    }
+    .chart-with-cards > :first-child { order: 2; }  /* .cards → вправо */
+    .chart-with-cards > :last-child  { order: 1; }  /* chart → влево */
+  }
+  @media (min-width: 768px) and (max-width: 1279.98px) {
+    /* medium breakpoint: cards в 2 колонки, last-child на 2 span */
+    .chart-with-cards .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .chart-with-cards .cards > :last-child {
+      grid-column: span 2;
+    }
+  }
+
+
+  /* ============================================================
+     CHART PANEL — SVG-имитация (line-chart style)
+     Source: widgets/analyticsReproduction/components/ReproductionHdrAndPrChart
+        + skeleton.html .sk-line-chart (stroke=currentColor, viewBox)
+     Продовая реализация — Recharts / d3. Здесь визуальный плейсхолдер.
+     ============================================================ */
+  .chart-panel {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    padding: 16px;
+    background: var(--bg-surface-1);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  .chart-panel > .chart-legend { order: 0; flex: none; margin: 0 0 12px; }
+  .chart-panel > .chart-axis-y,
+  .chart-panel > .chart-axis-x,
+  .chart-panel > .chart-canvas { order: 1; }
+  .chart-axis-y {
+    position: absolute;
+    left: 8px;
+    top: 48px;     /* после legend ~28px + margin 12 + padding 16 */
+    bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: var(--font);
+    font-size: 11px;
+    line-height: 14px;
+    color: var(--fg-muted);
+    text-align: right;
+    width: 32px;
+  }
+  .chart-axis-x {
+    position: absolute;
+    left: 56px;
+    right: 16px;
+    bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font);
+    font-size: 11px;
+    line-height: 14px;
+    color: var(--fg-muted);
+  }
+  .chart-canvas {
+    position: absolute;
+    left: 56px;
+    right: 16px;
+    top: 48px;
+    bottom: 32px;
+  }
+  .chart-canvas svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .chart-gridline {
+    stroke: var(--border-muted);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+  .chart-line-hdr { stroke: #6B6BE8; stroke-width: 2; fill: none; }
+  .chart-line-pr  { stroke: var(--accent-default); stroke-width: 2; fill: none; }
+  .chart-line-cr  { stroke: var(--success-default); stroke-width: 2; fill: none; }
+  .chart-target-hdr {
+    stroke: #6B6BE8;
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    fill: none;
+    opacity: 0.6;
+  }
+  .chart-dot { fill: var(--bg-surface-1); stroke-width: 2; r: 3; }
+
+  /* Chart legend */
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 8px;
+    font-family: var(--font);
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--fg-soft);
+  }
+  .chart-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .chart-legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .chart-legend-dot.hdr { background: #6B6BE8; }
+  .chart-legend-dot.pr  { background: var(--accent-default); }
+  .chart-legend-dot.cr  { background: var(--success-default); }
+
+
+  /* ============================================================
+     PANEL HEADER — title + right actions (overview.tsx:308-328)
+     ============================================================ */
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  /* Y-axis filters subpanel — overview.tsx:329 (mainChartYAxisModeFiltersElement).
+     Тот же .filter-select pattern, внутри panel. */
+  .subfilters-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+
+  /* ============================================================
+     PAGE LAYOUT — limitedContainer (от layout.css)
+     Source: styles/modules/layout.module.scss .limitedContainer
+     ============================================================ */
+  .limited-container {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  /* Page header — title + right-actions (routerTabsRightActions у overview.tsx) */
+  .analytics-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .analytics-page-header h1 {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 32px;
+    color: var(--fg-default);
+  }
+  /* Tabs — reuse из patterns/tabs-row.html (line tabs = Tabs variant='line').
+     .tabs / .tab — в shared/components.css (sticky, accent-line active).
+     Overrides для <a> (UA underline) + <b> (UA bold 700): */
+  .tabs { margin-bottom: 24px; position: static; } /* убрать sticky на dashboard */
+  a.tab { text-decoration: none; }
+  .tab .bodyMediumStrong { font-weight: 500; font-style: normal; color: inherit; }
+</style>
+</head>
+<body style="margin: 0; min-height: 100vh; background: var(--bg-page); font-family: var(--font); padding: 32px 48px; box-sizing: border-box;">
+
+
+  <!-- =====================================================================
+       ADAPTED DASHBOARD — analytics/reproduction/overview
+       =====================================================================
+       В product-src главной страницы «dashboard» нет. Этот шаблон — собран
+       1:1 по route:
+         /$companyId/_layout/user/analytics/reproduction/overview
+       (overview.tsx) — как представитель «analytics-dashboard» паттерна:
+         Filters-row → Chart-panel с cards слева + HdrAndPrChart справа
+                     → CR-chart panel
+       Вторая панель (CR-chart) убрана ради компактности шаблона,
+       оставлена только главная с HDR/PR/CR-метриками.
+       ===================================================================== -->
+
+
+  <div class="limited-container">
+
+    <!-- Page header (routerTabsRightActions + title) -->
+    <div class="analytics-page-header">
+      <h1>Аналитика · Воспроизводство</h1>
+      <button class="btn small24 secondary neutral" type="button">
+        <svg width="16" height="16"><use href="../../icons.svg#settings"/></svg>
+        <div class="children">Настройки ПДО</div>
+      </button>
+    </div>
+
+    <!-- Router tabs — reuse pattern из patterns/tabs-row.html (Tabs variant='line').
+         Source: src/shared/components/Tabs/components/Tab/index.tsx (Link with b.bodyMediumStrong) -->
+    <div class="tabs line">
+      <a href="#" class="tab active"><b class="bodyMediumStrong">Обзор</b></a>
+      <a href="#" class="tab"><b class="bodyMediumStrong">Отчёт HDR/PR</b></a>
+      <a href="#" class="tab"><b class="bodyMediumStrong">Отчёт CR</b></a>
+      <a href="#" class="tab"><b class="bodyMediumStrong">Перекрёстная таблица</b></a>
+    </div>
+
+
+    <!-- ===================================================
+         FILTERS ROW — reuse .filter-select pattern из patterns/filter-bar.html
+         Source: overview.tsx:292-299 — filtersElement (FarmFilter, DateRangeFilter,
+         FemaleAnimalKindSelect)
+         =================================================== -->
+    <div class="filters-row">
+      <div class="filter-select">
+        <span><b>Ферма:</b> Молочный комплекс №1</span>
+        <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+      </div>
+      <div class="filter-select">
+        <span><b>Период:</b> 18.10.2025 — 18.04.2026</span>
+        <svg width="16" height="16"><use href="../../icons.svg#calendar"/></svg>
+      </div>
+      <div class="filter-select">
+        <span><b>Животные:</b> Коровы</span>
+        <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+      </div>
+    </div>
+
+
+    <!-- ===================================================
+         MAIN PANEL — HDR/PR/CR + Chart
+         Source: overview.tsx:300-374
+         largePanel + p-content-grid + grid gap-24 + mb-24
+         - panel-header: h3 + PermissionGuard → Button «Настройки целей»
+         - Y-axis mode filters subpanel
+         - chartWithCards: 3 metric cards (HDR, PR, CR) + HdrAndPrChart
+         =================================================== -->
+    <div class="panel large-panel p-content-grid grid gap-24 mb-24">
+
+      <div class="panel-header">
+        <h3 class="panel-title">График показателей Выявление (HDR), Стельность (PR) и Оплодотворяемость (CR)</h3>
+        <button class="btn small24 secondary neutral" type="button">
+          <svg width="16" height="16"><use href="../../icons.svg#settings"/></svg>
+          <div class="children">Настройки целей</div>
+        </button>
+      </div>
+
+      <!-- Y-axis mode filters — overview.tsx:329 -->
+      <div class="subfilters-row">
+        <div class="filter-select">
+          <span><b>Шкала:</b> От 0 до 100 %</span>
+          <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+        </div>
+      </div>
+
+      <!-- chartWithCards — 3 metric cards вертикально слева + chart справа -->
+      <div class="chart-with-cards">
+
+        <div class="cards">
+          <!-- ReproductionMetricCard: HDR -->
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <b class="bodyMediumStrong ellipsis">Выявление (HDR)</b>
+              <span class="icon metric-card-tooltip" aria-label="Подсказка"><span class="innerRoot" style="width: 24px; height: 24px; color: currentColor;"><svg><use href="../../icons.svg#help-circle"/></svg></span></span>
+            </div>
+            <div class="metric-card-grid">
+              <div class="metric-card-col">
+                <span class="metric-card-col-label">Факт</span>
+                <span class="metric-card-col-value text-success">72 %</span>
+                <div class="metric-card-delta text-success">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#metric-positive"/></svg></span></span>
+                  <span>4 %</span>
+                </div>
+              </div>
+              <div class="metric-card-col">
+                <span class="metric-card-col-label metric-card-col-target-label">Цель</span>
+                <span class="metric-card-col-value metric-card-col-target-value">70 %</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ReproductionMetricCard: PR -->
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <b class="bodyMediumStrong ellipsis">Стельность (PR)</b>
+              <span class="icon metric-card-tooltip" aria-label="Подсказка"><span class="innerRoot" style="width: 24px; height: 24px; color: currentColor;"><svg><use href="../../icons.svg#help-circle"/></svg></span></span>
+            </div>
+            <div class="metric-card-grid">
+              <div class="metric-card-col">
+                <span class="metric-card-col-label">Факт</span>
+                <span class="metric-card-col-value text-error">28 %</span>
+                <div class="metric-card-delta text-error">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#metric-negative"/></svg></span></span>
+                  <span>2 %</span>
+                </div>
+              </div>
+              <div class="metric-card-col">
+                <span class="metric-card-col-label metric-card-col-target-label">Цель</span>
+                <span class="metric-card-col-value metric-card-col-target-value">32 %</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ReproductionMetricCard: CR -->
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <b class="bodyMediumStrong ellipsis">Оплодотворяемость (CR)</b>
+              <span class="icon metric-card-tooltip" aria-label="Подсказка"><span class="innerRoot" style="width: 24px; height: 24px; color: currentColor;"><svg><use href="../../icons.svg#help-circle"/></svg></span></span>
+            </div>
+            <div class="metric-card-grid">
+              <div class="metric-card-col">
+                <span class="metric-card-col-label">Факт</span>
+                <span class="metric-card-col-value text-success">42 %</span>
+                <div class="metric-card-delta text-soft">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#metric-unchanged"/></svg></span></span>
+                </div>
+              </div>
+              <div class="metric-card-col">
+                <span class="metric-card-col-label metric-card-col-target-label">Цель</span>
+                <span class="metric-card-col-value metric-card-col-target-value">40 %</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ReproductionHdrAndPrChart — SVG-имитация line chart с 3 линиями.
+             Legend рендерится Chart.js внутри chart-wrapper (выше plot area),
+             поэтому в HTML тоже внутри .chart-panel. -->
+        <div class="chart-panel" role="img" aria-label="График HDR, PR, CR по неделям">
+          <div class="chart-legend">
+            <span class="chart-legend-item"><span class="chart-legend-dot hdr"></span>HDR — выявление</span>
+            <span class="chart-legend-item"><span class="chart-legend-dot pr"></span>PR — стельность</span>
+            <span class="chart-legend-item"><span class="chart-legend-dot cr"></span>CR — оплодотворяемость</span>
+            <span class="chart-legend-item text-soft" style="margin-left: auto;">
+              <svg width="12" height="12" style="overflow: visible;"><line x1="0" y1="6" x2="12" y2="6" stroke="#6B6BE8" stroke-width="1" stroke-dasharray="3 3"/></svg>
+              Цель HDR
+            </span>
+          </div>
+          <div class="chart-axis-y">
+            <span>100 %</span>
+            <span>75 %</span>
+            <span>50 %</span>
+            <span>25 %</span>
+            <span>0 %</span>
+          </div>
+          <div class="chart-canvas">
+            <svg viewBox="0 0 800 280" preserveAspectRatio="none">
+              <!-- Gridlines -->
+              <line class="chart-gridline" x1="0" y1="0" x2="800" y2="0"/>
+              <line class="chart-gridline" x1="0" y1="70" x2="800" y2="70"/>
+              <line class="chart-gridline" x1="0" y1="140" x2="800" y2="140"/>
+              <line class="chart-gridline" x1="0" y1="210" x2="800" y2="210"/>
+              <line class="chart-gridline" x1="0" y1="280" x2="800" y2="280"/>
+
+              <!-- Target line HDR 70% → y=84 -->
+              <line class="chart-target-hdr" x1="0" y1="84" x2="800" y2="84"/>
+
+              <!-- HDR line (68 → 72, values around 65-78) -->
+              <polyline class="chart-line-hdr" points="0,90 100,98 200,82 300,78 400,88 500,76 600,82 700,70 800,78"/>
+              <!-- PR line (around 28-30) — lower -->
+              <polyline class="chart-line-pr" points="0,198 100,192 200,196 300,200 400,194 500,202 600,196 700,204 800,202"/>
+              <!-- CR line (around 40-44) — middle -->
+              <polyline class="chart-line-cr" points="0,172 100,160 200,168 300,158 400,166 500,156 600,168 700,162 800,162"/>
+
+              <!-- Dots on last values -->
+              <circle class="chart-dot chart-line-hdr" cx="800" cy="78" stroke="#6B6BE8"/>
+              <circle class="chart-dot chart-line-pr" cx="800" cy="202" stroke="var(--accent-default)"/>
+              <circle class="chart-dot chart-line-cr" cx="800" cy="162" stroke="var(--success-default)"/>
+            </svg>
+          </div>
+          <div class="chart-axis-x">
+            <span>окт 2025</span>
+            <span>ноя 2025</span>
+            <span>дек 2025</span>
+            <span>янв 2026</span>
+            <span>фев 2026</span>
+            <span>мар 2026</span>
+            <span>апр 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===================================================
+         SECONDARY PANEL — ReproductionCrChart
+         Source: overview.tsx:376-397
+         =================================================== -->
+    <div class="panel large-panel p-content-grid grid gap-24">
+      <h3 class="panel-title">График показателя Оплодотворяемость (CR)</h3>
+
+      <!-- crChartFiltersElement: crChartXAxisMode + crChartXAxisStep + crChartYAxisMode
+           Тот же .filter-select pattern (reuse filter-bar.html) -->
+      <div class="subfilters-row">
+        <div class="filter-select">
+          <span><b>Группировка:</b> По дате</span>
+          <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+        </div>
+        <div class="filter-select">
+          <span><b>Временной шаг:</b> Неделя</span>
+          <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+        </div>
+        <div class="filter-select">
+          <span><b>Шкала:</b> От 0 до 100 %</span>
+          <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+        </div>
+      </div>
+
+      <!-- ReproductionCrChart placeholder — bar-chart-ish.
+           Легенда ВНУТРИ chart-panel (как в первом чарте выше — Chart.js
+           default rendering). -->
+      <div class="chart-panel" role="img" aria-label="График CR по неделям">
+        <div class="chart-legend">
+          <span class="chart-legend-item"><span class="chart-legend-dot cr"></span>CR — оплодотворяемость</span>
+          <span class="chart-legend-item text-soft" style="margin-left: auto;">
+            <svg width="12" height="12" style="overflow: visible;"><line x1="0" y1="6" x2="12" y2="6" stroke="var(--success-default)" stroke-width="1" stroke-dasharray="3 3"/></svg>
+            Цель CR
+          </span>
+        </div>
+        <div class="chart-axis-y">
+          <span>100 %</span>
+          <span>75 %</span>
+          <span>50 %</span>
+          <span>25 %</span>
+          <span>0 %</span>
+        </div>
+        <div class="chart-canvas">
+          <svg viewBox="0 0 800 280" preserveAspectRatio="none">
+            <line class="chart-gridline" x1="0" y1="0" x2="800" y2="0"/>
+            <line class="chart-gridline" x1="0" y1="70" x2="800" y2="70"/>
+            <line class="chart-gridline" x1="0" y1="140" x2="800" y2="140"/>
+            <line class="chart-gridline" x1="0" y1="210" x2="800" y2="210"/>
+            <line class="chart-gridline" x1="0" y1="280" x2="800" y2="280"/>
+
+            <!-- Horizontal target -->
+            <line class="chart-target-hdr" x1="0" y1="168" x2="800" y2="168" stroke="var(--success-default)"/>
+
+            <!-- CR line -->
+            <polyline class="chart-line-cr" points="0,176 60,170 120,160 180,158 240,166 300,148 360,152 420,164 480,156 540,162 600,150 660,156 720,146 800,160"/>
+            <circle class="chart-dot" cx="800" cy="160" stroke="var(--success-default)" fill="var(--bg-surface-1)"/>
+          </svg>
+        </div>
+        <div class="chart-axis-x">
+          <span>окт</span>
+          <span>ноя</span>
+          <span>дек</span>
+          <span>янв</span>
+          <span>фев</span>
+          <span>мар</span>
+          <span>апр</span>
+        </div>
+      </div>
+    </div>
+
+
+  </div><!-- /limited-container -->
+
+
+  <!-- FIGMA HANDOFF
+    Source: src/routes/+$companyId/+_layout/+user/+analytics/+reproduction/+overview.tsx
+
+    Страница: /analytics/reproduction/overview
+    Layout (в overview.tsx):
+      <div limitedContainer flex gap-16 items-center mb-24>   filtersElement (FarmFilter, DateRangeFilter, FemaleAnimalKindSelect)
+      <div limitedContainer largePanel p-content-grid grid gap-24 mb-24>
+        <div flex justify-between gap-24>                    h3 (bodyMediumStrong) + Button secondary small24 "Настройки целей"
+        {mainChartYAxisModeFiltersElement}                   ReproductionYAxisModeSelect (static chip)
+        <Skeleton withDelay>
+          <div chartWithCards>                               grid 280px/1fr (или stack on mobile)
+            <div cards>                                      column × 3 ReproductionMetricCard
+              ReproductionMetricCard "Выявление (HDR)"
+              ReproductionMetricCard "Стельность (PR)"
+              ReproductionMetricCard "Оплодотворяемость (CR)"
+            ReproductionHdrAndPrChart                        Recharts line chart с 3 линиями (HDR, PR, CR) + target lines
+      <div limitedContainer largePanel p-content-grid grid gap-24>
+        h3 "График показателя Оплодотворяемость (CR)"
+        {crChartFiltersElement}                              3 selects: XAxisMode / XAxisStep / YAxisMode
+        <Skeleton withDelay>
+          ReproductionCrChart                                bar/line chart с CR
+
+    Компоненты:
+      - ReproductionMetricCard (grid gap-16 p-16 bg-surface-3 radius-8, height 156)
+          header: Typography.bodyMediumStrong + Tooltip (24)
+          grid-cols-2:
+            [col1: Факт / displaySmall value / delta Typography.bodyMediumStrong + icon]
+            [col2: Цель / displaySmall value, text-soft]
+      - ReproductionHdrAndPrChart (SVG line chart, 3 лайна HDR/PR/CR + target-lines)
+      - ReproductionCrChart (SVG bar/line chart CR)
+      - Static filter chip (PopupSearch Select с label+value)
+      - Button secondary small24 (24px high, radius 6, bg neutral-container-default)
+
+    Tokens:
+      --bg-surface-1 панель
+      --bg-surface-3 metric-card bg
+      --accent-default — PR line, primary actions
+      --success-default — CR line, positive delta
+      --error-default — negative delta
+      #6B6BE8 (status03) — HDR line color в проекте
+  -->
+  <!-- AiAssistantButton FAB — в продукте fixed right:32 bottom:32 на всех страницах.
+       Source: widgets/aiAssistant/components/AiAssistantButton/index.tsx -->
+  <button class="ai-assistant-btn" type="button" aria-expanded="false" data-is-floating-element="true">
+    <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#arkasha"/></svg></span></span>
+    <span class="children">Чат с ИИ</span>
+  </button>
+
+
+</body>
+</html>

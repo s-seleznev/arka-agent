@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Block: Empty State (DataBlockedMessage)</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* Override global layout.css body (fullscreen flex with overflow hidden) —
+     block demo pages need normal scrolling */
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 20px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+  .block-section-source {
+    margin: 0 0 20px;
+    padding: 8px 12px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--fg-soft);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────
+     DataBlockedMessage
+     Source: src/shared/components/DataBlockedMessage/index.module.scss + index.tsx
+     DOM (index.tsx:66-104):
+       div.root
+         {iconVariant && Icon className="text-muted mb-4"}
+            → span.root.text-muted.mb-4 > span.innerRoot (size24) > svg
+         {isLoading && Loader className="[mb-12]" size=size24|size32}
+            → div.root[.mb-12] > span.root (Icon) > span.innerRoot > svg.spinner
+         <Typography variant={bodyLargeStrong|bodySmallStrong}>{message}</Typography>
+            → <b> tag (оба Strong variants → TYPOGRAPHY_VARIANT_TO_TAG_DICT = 'b')
+         {description && <Typography className="text-soft" variant=descriptionLarge>{description}</Typography>}
+            → <span class="text-soft descriptionLarge"> (descriptionLarge → 'span')
+         {buttonProps && !isLoading && <Button className="mt-12" ...>}
+            → <button type="button" class="root ... mt-12">
+                <Typography tag='div' className='children'>{children}</Typography>
+     ─────────────────────────────────────────────────────────────────── */
+
+  .dbm-root {
+    display: grid;
+    gap: var(--spacing-12);
+    place-items: center;
+    text-align: center;
+  }
+  /* Icon wrapper (Icon/index.tsx:140-170): span.root > span.innerRoot > svg */
+  .dbm-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fg-muted);        /* text-muted */
+    margin-bottom: 4px;             /* mb-4 */
+    flex-shrink: 0;
+  }
+  .dbm-icon-inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; height: 24px;      /* default size = size24 */
+  }
+  .dbm-icon svg { display: block; width: 24px; height: 24px; }
+
+  /* Typography bodySmallStrong → <b> (14/500/20) */
+  .dbm-message {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--fg-default);
+    margin: 0;
+    font-style: normal;  /* <b> без курсива */
+  }
+  /* Typography bodyLargeStrong → <b> (18/500/24) */
+  .dbm-message.large {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+  /* Typography descriptionLarge → <span> (12/400/16) + text-soft className */
+  .dbm-description {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-soft);
+    margin: 0;
+    max-width: 360px;
+    display: inline-block;   /* <span> с max-width */
+  }
+  /* Button mt-12 className (index.tsx:99).
+     Combined with grid gap 12 → visual gap text→button = 24px. */
+  .dbm-root > .btn { margin-top: 12px; }
+
+  /* Loader DOM (Loader/index.tsx + Icon/Spinner): div.root > span.root (Icon) > span.innerRoot > svg.spinner */
+  .dbm-loader {
+    display: grid;
+    place-items: center;
+  }
+  .dbm-loader-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dbm-loader-icon-inner {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    color: var(--accent-soft);
+  }
+  .dbm-loader.large { margin-bottom: 12px; }              /* isLarge → mb-12 */
+  .dbm-loader.large .dbm-loader-icon-inner { width: 32px; height: 32px; }
+  .dbm-loader-spinner {
+    width: 100%;
+    height: 100%;
+    animation: dbm-spin 1.4s linear infinite;
+  }
+  @keyframes dbm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* Демо-сцена — в продукте DataBlockedMessage рендерится внутри
+     grid place-items:center контейнера (panel, table row, modal body).
+     Здесь имитируем такой контекст. */
+  .dbm-stage {
+    display: grid;
+    place-items: center;
+    padding: 48px 24px;
+    background: var(--bg-page);
+    border-radius: var(--radius-8);
+    min-height: 200px;
+  }
+  .dbm-stage.tall { min-height: 320px; padding: 72px 24px; }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  BLOCK: DataBlockedMessage                        ║
+       ║  Source: src/shared/components/DataBlockedMessage ║
+       ║  Showcasing ONLY combinations that actually exist ║
+       ║  в продукте (no made-up variants).                ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ======== 1. Default · message only (Table noItems) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 1 · default (small) · message only</p>
+    <p class="block-section-note">Базовое пустое состояние таблицы. Иконка <code>info-circle-filled</code> (default), заголовок <code>bodySmallStrong</code> (14/500/20). Используется в <code>Table noItemsMessage</code> когда не передан <code>noItemsDescription</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/Table/index.tsx:240-250 (DataBlockedMessage default props)</p>
+
+    <div class="dbm-stage">
+      <div class="dbm-root">
+        <span class="dbm-icon text-muted mb-4"><span class="dbm-icon-inner"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+        <b class="dbm-message bodySmallStrong">Данные пока не добавлены</b>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 2. Default · icon=search · message + description (Table noSearchItems) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 2 · default (small) · no-search · message + description</p>
+    <p class="block-section-note">Используется в <code>Table</code> для <code>noSearchItemsMessage</code> — внутри захардкожен <code>iconVariant: IconVariants.search</code>. <code>description</code> — <code>descriptionLarge</code> (12/400/16) с <code>text-soft</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/Table/index.tsx:252-262 (iconVariant=search)</p>
+
+    <div class="dbm-stage">
+      <div class="dbm-root">
+        <span class="dbm-icon text-muted mb-4"><span class="dbm-icon-inner"><svg><use href="../../icons.svg#search"/></svg></span></span>
+        <b class="dbm-message bodySmallStrong">По вашему запросу ничего не найдено</b>
+        <span class="dbm-description descriptionLarge text-soft">Используйте другой набор фильтров.</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 3. isLarge · message only (/herd/cows) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 3 · isLarge · message only</p>
+    <p class="block-section-note">Полностраничное пустое состояние. <code>isLarge=true</code> → заголовок <code>bodyLargeStrong</code> (18/500/24). Минимальный вариант — только заголовок, без description и action.</p>
+    <p class="block-section-source">Source: src/routes/+$companyId/+_layout/+user/+herd/+cows/+index.tsx:82-88</p>
+
+    <div class="dbm-stage tall">
+      <div class="dbm-root">
+        <span class="dbm-icon text-muted mb-4"><span class="dbm-icon-inner"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+        <b class="dbm-message large bodyLargeStrong">Животные пока не добавлены</b>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 4. isLarge · message + buttonProps (/select-company integrator) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 4 · isLarge · message + action (без description)</p>
+    <p class="block-section-note">Пустое состояние с CTA. <code>buttonProps</code> рендерится только когда <code>!isLoading</code>, с <code>className="mt-12"</code>. В продукте применяется для интегратора, который ещё не добавил ни одной компании.</p>
+    <p class="block-section-source">Source: src/routes/+select-company/+index.tsx:161-169</p>
+
+    <div class="dbm-stage tall">
+      <div class="dbm-root">
+        <span class="dbm-icon text-muted mb-4"><span class="dbm-icon-inner"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+        <b class="dbm-message large bodyLargeStrong">Компании пока не добавлены</b>
+        <button type="button" class="btn medium36 primary accent mt-12">
+          <svg width="20" height="20"><use href="../../icons.svg#plus"/></svg>
+          <span class="children">Добавить компанию</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 5. isLarge · message + description (/select-company no-access) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 5 · isLarge · message + description (без action)</p>
+    <p class="block-section-note">Для состояний, где пользователь ничего не может сделать сам — только информационное описание. Без кнопки. В продукте — экран «нет доступа ни к одной компании».</p>
+    <p class="block-section-source">Source: src/routes/+select-company/+index.tsx:171-180</p>
+
+    <div class="dbm-stage tall">
+      <div class="dbm-root">
+        <span class="dbm-icon text-muted mb-4"><span class="dbm-icon-inner"><svg><use href="../../icons.svg#info-circle-filled"/></svg></span></span>
+        <b class="dbm-message large bodyLargeStrong">У вас пока нет доступа ни к одной компании</b>
+        <span class="dbm-description descriptionLarge text-soft">Обратитесь к администратору, чтобы вас подключили.</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 6. Default · isLoading · message (Table loader row) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 6 · default · isLoading · message</p>
+    <p class="block-section-note">Строка-лоадер внутри Table — рендерится в ячейке <code>col-span-full</code> когда подгружается следующая страница. <code>Loader</code> size 24, без <code>mb-12</code>, <code>loadingMessage</code> или <code>message</code> через <code>bodySmallStrong</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/Table/index.tsx:263-288</p>
+
+    <div class="dbm-stage">
+      <div class="dbm-root">
+        <div class="dbm-loader" role="status">
+          <span class="dbm-loader-icon">
+            <span class="dbm-loader-icon-inner">
+              <svg class="dbm-loader-spinner" viewBox="0 0 24 24" fill="none" role="status">
+                <path d="M11.9933 3.75102C12.4078 3.75102 12.7439 3.41501 12.7439 3.00051C12.7439 2.58602 12.4078 2.25 11.9933 2.25C8.089 2.25 4.4735 4.6658 2.97937 8.27294C1.48524 11.8801 2.33356 16.1449 5.09435 18.9057C7.85514 21.6664 12.1199 22.5148 15.7271 21.0206C19.3342 19.5265 21.75 15.911 21.75 12.0067C21.75 11.5922 21.414 11.2561 20.9995 11.2561C20.585 11.2561 20.249 11.5922 20.249 12.0067C20.249 15.3103 18.2048 18.3696 15.1526 19.6339C12.1004 20.8981 8.49178 20.1803 6.15573 17.8443C3.81968 15.5082 3.10187 11.8996 4.36614 8.84736C5.6304 5.79516 8.68967 3.75102 11.9933 3.75102Z" fill="currentColor"/>
+              </svg>
+            </span>
+          </span>
+        </div>
+        <b class="dbm-message bodySmallStrong">Загружаем данные таблицы</b>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 7. isLarge · isLoading · message + description (CompanyLoadingBlocker) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 7 · isLarge · isLoading · message + description</p>
+    <p class="block-section-note">Full-page loading blocker. <code>Loader</code> size 32 с <code>className="mb-12"</code>, заголовок <code>bodyLargeStrong</code>, description <code>descriptionLarge</code> + <code>text-soft</code>.</p>
+    <p class="block-section-source">Source: src/entities/companies/components/CompanyLoadingBlocker/index.tsx:52-59</p>
+
+    <div class="dbm-stage tall">
+      <div class="dbm-root">
+        <div class="dbm-loader large" role="status">
+          <span class="dbm-loader-icon">
+            <span class="dbm-loader-icon-inner">
+              <svg class="dbm-loader-spinner" viewBox="0 0 24 24" fill="none" role="status">
+                <path d="M11.9933 3.75102C12.4078 3.75102 12.7439 3.41501 12.7439 3.00051C12.7439 2.58602 12.4078 2.25 11.9933 2.25C8.089 2.25 4.4735 4.6658 2.97937 8.27294C1.48524 11.8801 2.33356 16.1449 5.09435 18.9057C7.85514 21.6664 12.1199 22.5148 15.7271 21.0206C19.3342 19.5265 21.75 15.911 21.75 12.0067C21.75 11.5922 21.414 11.2561 20.9995 11.2561C20.585 11.2561 20.249 11.5922 20.249 12.0067C20.249 15.3103 18.2048 18.3696 15.1526 19.6339C12.1004 20.8981 8.49178 20.1803 6.15573 17.8443C3.81968 15.5082 3.10187 11.8996 4.36614 8.84736C5.6304 5.79516 8.68967 3.75102 11.9933 3.75102Z" fill="currentColor"/>
+              </svg>
+            </span>
+          </span>
+        </div>
+        <b class="dbm-message large bodyLargeStrong">Загрузка файлов... Пожалуйста, подождите</b>
+        <span class="dbm-description descriptionLarge text-soft">Интерфейс компании будет недоступен до завершения загрузки.</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

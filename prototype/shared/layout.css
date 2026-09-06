@@ -1,0 +1,1051 @@
+/* ============================================
+   ARKA Layout — Page Shell, Sidebar, Content,
+   Layout Patterns & Utility Classes
+   Разметка страниц и утилиты продукта АРКА.
+
+   ╔══════════════════════════════════════════════════════════════════╗
+   ║  🔴 ПРАВИЛО №0 — СТРОГИЙ 1:1 С ПРОДУКТОМ                          ║
+   ║                                                                    ║
+   ║  Utility-классы (flex, grid, gap-N, p-N, text-*, bodyMedium,      ║
+   ║  displaySmall, rounded-N, background-bg-surface-N и т.д.) должны  ║
+   ║  дословно совпадать с утилитами продукта.                  ║
+   ║                                                                    ║
+   ║  Typography values (bodyMediumStrong=16/500/24, displaySmall=     ║
+   ║  32/500/44, descriptionLarge=12/400/16 и т.д.) — из               ║
+   ║  typography-mixins.scss. НЕ менять.          ║
+   ║                                                                    ║
+   ╚══════════════════════════════════════════════════════════════════╝
+   ============================================ */
+
+
+/* ============================================
+   1. PAGE SHELL
+   body is flex row: sidebar + main
+   ============================================ */
+body {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+
+/* ============================================
+   2. SIDEBAR — 248px, CSS Grid 3 rows
+   Source: NavigationMenu/index.module.scss
+   ============================================ */
+.sidebar {
+  width: var(--nav-width);
+  min-width: var(--nav-width);
+  background: var(--bg-surface-2);
+  display: grid;
+  grid-template-columns: 100%;
+  /* Source: NavigationMenu .root grid-template-rows: auto 1fr auto
+     (header+search | menuItems | bottomPanel) */
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  overflow: hidden;
+  padding: 24px 0;
+  transition: width 0.2s, min-width 0.2s;
+}
+
+/* Scrollable menu items container */
+.nav-menu-items {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 0;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  transition: border-color 0.2s;
+}
+.nav-menu-items.scroll-top { border-top-color: var(--border-muted); }
+.nav-menu-items.scroll-bottom { border-bottom-color: var(--border-muted); }
+.nav-menu-items::-webkit-scrollbar { width: 8px; }
+.nav-menu-items::-webkit-scrollbar-track { background: transparent; }
+.nav-menu-items::-webkit-scrollbar-thumb {
+  background: var(--neutral-active);
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background-clip: content-box;
+}
+
+/* Sidebar Header — wrapper "pt-4 pb-16" around [logo row] + [cowSearch].
+   Source: NavigationMenu/index.tsx:
+     <div className="pt-4 pb-16">
+       <div className="flex gap-12 py-4 pl-24"> burger + brand </div>
+       <div className="cowSearch"> search </div>
+     </div>
+   The 16px bottom padding creates the gap between search and menuItems. */
+.sidebar-header {
+  padding: 4px 0 16px;
+}
+
+/* Logo row — flex gap-12 py-4 pl-24 */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 4px 24px;
+}
+.sidebar-logo .menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--fg-soft);
+  background: none;
+  border: none;
+  padding: 0;
+}
+.sidebar-logo .brand-svg {
+  height: 24px;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+/* Sidebar Search — NavigationCowSearchSelect (CowAsyncSelect, variant=full, 36px).
+   Source:
+     features/layouts/components/BaseLayout/components/NavigationCowSearchSelect/index.tsx
+     shared/components/Select/index.module.scss → .medium36 + .full (withBorder)
+   Trigger рендерит renderSelectedItem (по умолчанию getItemText) — то есть только
+   текст `formatCow(item, { prefix: '' })` = «№ 1234 · Зорька». Description/badge/avatar
+   видны только в dropdown-items, не в triggere. */
+.sidebar-search {
+  padding: 20px 16px 0;
+  position: relative;
+}
+.nav-cow-search {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 8px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background: var(--neutral-container-muted);
+  color: var(--fg-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.1s, background 0.1s;
+}
+.nav-cow-search:hover {
+  background: var(--neutral-container-soft);
+}
+.nav-cow-search .search-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Selected state: trigger показывает formatCow-текст вместо placeholder —
+   color переключается с fg-muted на fg-default (как у Select .styled когда value). */
+.nav-cow-search.selected .search-label {
+  color: var(--fg-default);
+}
+.nav-cow-search .search-chevron {
+  flex-shrink: 0;
+  margin-left: 8px;
+  color: var(--fg-muted);
+}
+
+/* ============================================
+   NAV ITEMS
+   Source: NavigationMenuItem/index.module.scss
+   ============================================ */
+
+/* Nav Section wrapper */
+.nav-section {
+  padding-left: 16px;
+  padding-right: 8px;          /* 16px - 8px scrollbar */
+}
+
+/* Nav Item Root — 2-level: root > link */
+.nav-item-root {
+  padding: 2px 0;
+  color: var(--fg-soft);
+  cursor: pointer;
+  user-select: none;
+}
+.nav-item-root:hover .nav-link { background: var(--neutral-container-soft); }
+.nav-item-root:active .nav-link { background: var(--neutral-container-default); }
+.nav-item-root.active { color: var(--accent-default); }
+.nav-item-root.active .nav-link { background: var(--accent-container-default); }
+.nav-item-root.active:hover .nav-link { background: var(--accent-container-hover); }
+
+/* Link inside nav item — CSS Grid layout */
+.nav-link {
+  display: grid;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: var(--radius-8);
+  gap: 12px;
+  grid-template-columns: 24px auto;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.15s;
+  color: inherit;
+  text-decoration: none;
+}
+.nav-link.with-chevron {
+  grid-template-columns: 24px auto 1fr;
+}
+
+/* Nav icon — 24x24 slot */
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  color: inherit;
+}
+
+/* Section header — bodyMediumStrong: 16px / 500 / 24px */
+.nav-section-label {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+/* Sub-item — bodyMedium: 16px / 400 / 24px */
+.nav-sub-label {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* Chevron in section header */
+.nav-chevron {
+  width: 16px;
+  height: 16px;
+  justify-self: end;
+  color: var(--fg-muted);
+  transition: transform 0.2s;
+}
+
+/* Top-level items outside sections */
+.nav-toplevel {
+  padding-left: 16px;
+  padding-right: 8px;
+}
+
+/* Spacer — empty 24px slot for sub-items without icon */
+.nav-spacer {
+  width: 24px;
+  height: 24px;
+}
+
+/* Nav Badge (counter) */
+.nav-badge {
+  background: var(--accent-default);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  justify-self: end;
+  line-height: 18px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Sidebar Bottom — matches .bottomPanel */
+.sidebar-bottom {
+  padding: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 16px;
+  padding-right: 8px;
+}
+.sidebar-bottom .nav-item-root { padding: 0; }
+.company-selector {
+  background: var(--neutral-container-muted) !important;
+}
+.company-selector:hover {
+  background: var(--neutral-container-soft) !important;
+}
+
+/* ============================================
+   SIDEBAR COLLAPSED STATE — 72px
+   ============================================ */
+.sidebar.collapsed {
+  width: var(--nav-width-collapsed);
+  min-width: var(--nav-width-collapsed);
+}
+/* CowSearch wrapper — padding 16/20px 16px 0
+   Source: NavigationMenu/index.module.scss .cowSearch */
+.sidebar-search {
+  padding: 20px 16px 0;
+}
+/* In collapsed: search becomes NavigationMenuSelect icon-only with neutral-muted bg
+   Source: NavigationMenuSelect/index.module.scss */
+.sidebar.collapsed .sidebar-search {
+  padding: 20px 0 0;
+  display: flex;
+  justify-content: center;
+}
+.sidebar.collapsed .sidebar-search .nav-link {
+  background: var(--neutral-container-muted);
+}
+.sidebar.collapsed .sidebar-search .nav-link:hover {
+  background: var(--neutral-container-soft);
+}
+
+/* Source: NavigationMenu uses .px-16 around bottom items.
+   In collapsed mode, nav-menu-items still scrolls but scrollbar-gutter is reset
+   (no space for label, scrollbar would break icon centering).
+   Collapsed items align to center of 72px sidebar via padding on nav-link. */
+.sidebar.collapsed .nav-menu-items {
+  scrollbar-gutter: auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+.sidebar.collapsed .sidebar-bottom {
+  padding-left: 0;
+  padding-right: 0;
+}
+.sidebar.collapsed .sidebar-logo {
+  padding: 4px 0;
+  justify-content: center;
+}
+/* Center each nav-item-root inside the 72px sidebar */
+.sidebar.collapsed .nav-item-root {
+  display: flex;
+  justify-content: center;
+}
+
+/* In collapsed mode, link is 40×36 (padding 6px 8px + 24px icon),
+   bg highlight fills exactly this area. Label column collapses. */
+.sidebar.collapsed .nav-link {
+  grid-template-columns: 24px;
+}
+
+/* Icon-with-counter: in collapsed, hide the icon (opacity:0) and show
+   absolute-positioned counter at the center of the icon slot.
+   Source: NavigationMenuItem — .hideForCollapsedWithTransition + .collapsedCounter */
+.sidebar.collapsed .nav-link.with-counter {
+  position: relative;
+}
+.sidebar.collapsed .nav-link.with-counter .nav-icon {
+  opacity: 0;
+}
+.sidebar.collapsed .nav-counter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* Badge variant=counter, color=warning, size=large24
+     Source: Badge/index.module.scss .large24 (padding 2/4, radius 6)
+     + .counter (radius full) */
+  background: var(--warning-container-default);
+  color: var(--warning-default);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  min-width: 24px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Avatar — 24x24, radius 6, typography bodyMedium (16/400/24)
+   Used in CompanySelector (single letter/digit) */
+.nav-avatar {
+  display: grid;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--radius-6);
+  place-items: center;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--fg-soft);
+  user-select: none;
+  background: var(--neutral-container-default);
+}
+/* Optional color variants (status colors for different companies) */
+/* Source: product-src tokens.css --status{01..06}-soft + --status{01..06}-container-default */
+.nav-avatar-status01 { background: var(--status01-container-default); color: var(--status01-soft); }
+.nav-avatar-status02 { background: var(--status02-container-default); color: var(--status02-soft); }
+.nav-avatar-status03 { background: var(--status03-container-default); color: var(--status03-soft); }
+.nav-avatar-status04 { background: var(--status04-container-default); color: var(--status04-soft); }
+.nav-avatar-status05 { background: var(--status05-container-default); color: var(--status05-soft); }
+.nav-avatar-status06 { background: var(--status06-container-default); color: var(--status06-soft); }
+.sidebar.collapsed .sidebar-logo .brand-svg {
+  display: none;
+}
+.sidebar.collapsed .nav-section-label,
+.sidebar.collapsed .nav-sub-label {
+  display: none;
+}
+.sidebar.collapsed .nav-chevron {
+  display: none;
+}
+.sidebar.collapsed .nav-badge {
+  display: none;
+}
+
+
+/* ============================================
+   3. MAIN CONTENT AREA
+   ============================================ */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-page);
+}
+
+/* Scrollable content — padding moved here so scrollbar sits at viewport edge.
+   Source: BaseLayout .content grid-template-rows: var(--content-grid-gap) ...
+   First row = 24px gap (--content-grid-gap) — aligns PageHeader with sidebar burger. */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 48px 48px;
+  scrollbar-gutter: stable;
+}
+.content::-webkit-scrollbar { width: 8px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb {
+  background: var(--neutral-active);
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background-clip: content-box;
+}
+
+/* Content grid responsive padding */
+@media (max-width: 767px) {
+  .content { padding: 16px 16px 48px; }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .content { padding: 24px 24px 48px; }
+}
+@media (min-width: 1280px) {
+  .content { padding: 24px 48px 48px; }
+}
+
+
+/* ============================================
+   4. PAGE HEADER
+   Source: PageHeader component
+   ============================================ */
+/* Page header.
+   Source: PageHeader/index.module.scss
+     .root { composes: headerContainer; padding-bottom: 24px; }
+     .title:not(has rightContent) { padding-block: 6px; }  (via has-check)
+   .headerContainer: flex, flex-wrap: wrap, gap: 12px */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+/* When no right content — title has its own vertical padding 6px */
+.page-header:not(:has(.page-header-right)) .page-header-title {
+  padding-block: 6px;
+}
+.page-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Heading 1: 28px / 32px / 700 */
+/* Heading 2: 22px / 700 / 24px — PageHeader uses TypographyVariants.heading2 */
+.page-header-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--fg-default);
+}
+/* bodySmall: 14px / 400 / 20px */
+.page-header-description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+}
+.page-header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* Source: PageHeader/index.module.scss .rightContent — margin-left: auto */
+.page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.page-header-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+.page-header-back:hover {
+  color: var(--fg-soft);
+}
+
+
+/* ============================================
+   5. PANEL CARD + CARD HEADER
+   ============================================ */
+.panel-card {
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-12);
+  padding: 24px;
+}
+/* Inter-card spacing in product-src is applied via explicit `mb-24` on each
+   non-last card (см. overview.tsx `p-content-grid grid gap-24 mb-24`), не через
+   adjacent-sibling. Оставлять как adjacent-правило было бы некорректно в случаях
+   со `state-only` скрытыми сёстрами — рулят они, даже будучи display:none. */
+
+/* Card Header — on gray bg */
+.card-header {
+  padding: 24px 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+/* Heading 2: 22px / 24px / 700 */
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--fg-default);
+}
+.card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+
+/* ============================================
+   6. TILE GRID
+   ============================================ */
+.tile-grid {
+  display: grid;
+  gap: 16px;
+}
+.tile-grid-sm {
+  grid-template-columns: repeat(auto-fill, minmax(244px, 1fr));
+}
+.tile-grid-md {
+  grid-template-columns: repeat(auto-fill, minmax(296px, 1fr));
+}
+.tile-grid-lg {
+  grid-template-columns: repeat(auto-fill, minmax(428px, 1fr));
+}
+
+/* Tile — Source: src/features/layouts/components/Tile/index.module.scss
+   .root { border-radius: 8, background: surface-1, outline: none }
+   &:hover/active/focus-visible { bg surface-2, outline: 2px border-muted }
+   БЕЗ border и БЕЗ box-shadow. */
+.tile {
+  position: relative;
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-8);
+  padding: 16px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tile:hover,
+.tile:active,
+.tile:focus-visible {
+  background: var(--bg-surface-2);
+  outline: 2px solid var(--border-muted);
+}
+.tile-sm { min-height: 100px; }
+.tile-md { min-height: 196px; }
+.tile-lg { min-height: 260px; }
+
+.tile-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tile-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--fg-muted);
+}
+/* bodySmallStrong: 14px / 500 / 20px */
+.tile-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--fg-default);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* bodySmall: 14px / 400 / 20px */
+.tile-description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.tile-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.tile-actions {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+
+/* ============================================
+   7. MOBILE HEADER
+   ============================================ */
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-surface-1);
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-muted);
+}
+.mobile-header-sm { height: 64px; }
+.mobile-header-md { height: 80px; }
+
+@media (max-width: 767px) {
+  .mobile-header { display: flex; }
+  .sidebar { display: none; }
+  body { flex-direction: column; }
+  .main { padding-top: 64px; }
+}
+
+
+/* ============================================
+   8. ROUTER TABS
+   Source: tabs within content area
+   ============================================ */
+.router-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-page);
+  padding-bottom: 2px;
+}
+.router-tabs-content {
+  display: flex;
+  gap: 16px;
+  height: 38px;
+  overflow-x: auto;
+}
+.router-tabs-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+
+/* ============================================
+   9. UTILITY CLASSES
+   ============================================ */
+
+/* ---- Display ---- */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.grid { display: grid; }
+.hidden { display: none !important; }
+.contents { display: contents; }
+
+/* ---- Flex ---- */
+.flex-col { flex-direction: column; }
+.flex-col-reverse { flex-direction: column-reverse; }
+.flex-row-reverse { flex-direction: row-reverse; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.flex-none { flex: none; }
+.shrink-0 { flex-shrink: 0; }
+
+/* ---- Alignment ---- */
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.justify-end { justify-content: flex-end; }
+.self-start { align-self: flex-start; }
+.self-center { align-self: center; }
+.self-end { align-self: flex-end; }
+.self-stretch { align-self: stretch; }
+.place-items-center { place-items: center; }
+.place-self-center { place-self: center; }
+
+/* ---- Gap (spacing tokens) ---- */
+.gap-2 { gap: 2px; }
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.gap-24 { gap: 24px; }
+.gap-32 { gap: 32px; }
+.gap-40 { gap: 40px; }
+.gap-48 { gap: 48px; }
+
+/* ---- Grid ---- */
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-full { grid-column: 1 / -1; }
+
+/* ---- Spacing: Margin ---- */
+.m-0 { margin: 0; }
+.m-2 { margin: 2px; }
+.m-4 { margin: 4px; }
+.m-6 { margin: 6px; }
+.m-8 { margin: 8px; }
+.m-12 { margin: 12px; }
+.m-16 { margin: 16px; }
+.m-20 { margin: 20px; }
+.m-24 { margin: 24px; }
+.m-32 { margin: 32px; }
+.m-40 { margin: 40px; }
+.m-48 { margin: 48px; }
+
+.mt-0 { margin-top: 0; }
+.mt-2 { margin-top: 2px; }
+.mt-4 { margin-top: 4px; }
+.mt-6 { margin-top: 6px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; }
+.mt-40 { margin-top: 40px; }
+.mt-48 { margin-top: 48px; }
+
+.mr-0 { margin-right: 0; }
+.mr-2 { margin-right: 2px; }
+.mr-4 { margin-right: 4px; }
+.mr-6 { margin-right: 6px; }
+.mr-8 { margin-right: 8px; }
+.mr-12 { margin-right: 12px; }
+.mr-16 { margin-right: 16px; }
+.mr-20 { margin-right: 20px; }
+.mr-24 { margin-right: 24px; }
+.mr-32 { margin-right: 32px; }
+.mr-40 { margin-right: 40px; }
+.mr-48 { margin-right: 48px; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: 2px; }
+.mb-4 { margin-bottom: 4px; }
+.mb-6 { margin-bottom: 6px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-32 { margin-bottom: 32px; }
+.mb-40 { margin-bottom: 40px; }
+.mb-48 { margin-bottom: 48px; }
+
+.ml-0 { margin-left: 0; }
+.ml-2 { margin-left: 2px; }
+.ml-4 { margin-left: 4px; }
+.ml-6 { margin-left: 6px; }
+.ml-8 { margin-left: 8px; }
+.ml-12 { margin-left: 12px; }
+.ml-16 { margin-left: 16px; }
+.ml-20 { margin-left: 20px; }
+.ml-24 { margin-left: 24px; }
+.ml-32 { margin-left: 32px; }
+.ml-40 { margin-left: 40px; }
+.ml-48 { margin-left: 48px; }
+
+.mx-0 { margin-left: 0; margin-right: 0; }
+.mx-2 { margin-left: 2px; margin-right: 2px; }
+.mx-4 { margin-left: 4px; margin-right: 4px; }
+.mx-6 { margin-left: 6px; margin-right: 6px; }
+.mx-8 { margin-left: 8px; margin-right: 8px; }
+.mx-12 { margin-left: 12px; margin-right: 12px; }
+.mx-16 { margin-left: 16px; margin-right: 16px; }
+.mx-20 { margin-left: 20px; margin-right: 20px; }
+.mx-24 { margin-left: 24px; margin-right: 24px; }
+.mx-32 { margin-left: 32px; margin-right: 32px; }
+.mx-40 { margin-left: 40px; margin-right: 40px; }
+.mx-48 { margin-left: 48px; margin-right: 48px; }
+
+.my-0 { margin-top: 0; margin-bottom: 0; }
+.my-2 { margin-top: 2px; margin-bottom: 2px; }
+.my-4 { margin-top: 4px; margin-bottom: 4px; }
+.my-6 { margin-top: 6px; margin-bottom: 6px; }
+.my-8 { margin-top: 8px; margin-bottom: 8px; }
+.my-12 { margin-top: 12px; margin-bottom: 12px; }
+.my-16 { margin-top: 16px; margin-bottom: 16px; }
+.my-20 { margin-top: 20px; margin-bottom: 20px; }
+.my-24 { margin-top: 24px; margin-bottom: 24px; }
+.my-32 { margin-top: 32px; margin-bottom: 32px; }
+.my-40 { margin-top: 40px; margin-bottom: 40px; }
+.my-48 { margin-top: 48px; margin-bottom: 48px; }
+
+.ml-auto { margin-left: auto; }
+.mr-auto { margin-right: auto; }
+.mt-auto { margin-top: auto; }
+
+/* ---- Spacing: Padding ---- */
+.p-0 { padding: 0; }
+.p-2 { padding: 2px; }
+.p-4 { padding: 4px; }
+.p-6 { padding: 6px; }
+.p-8 { padding: 8px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-20 { padding: 20px; }
+.p-24 { padding: 24px; }
+.p-32 { padding: 32px; }
+.p-40 { padding: 40px; }
+.p-48 { padding: 48px; }
+
+.pt-0 { padding-top: 0; }
+.pt-2 { padding-top: 2px; }
+.pt-4 { padding-top: 4px; }
+.pt-6 { padding-top: 6px; }
+.pt-8 { padding-top: 8px; }
+.pt-12 { padding-top: 12px; }
+.pt-16 { padding-top: 16px; }
+.pt-20 { padding-top: 20px; }
+.pt-24 { padding-top: 24px; }
+.pt-32 { padding-top: 32px; }
+.pt-40 { padding-top: 40px; }
+.pt-48 { padding-top: 48px; }
+
+.pr-0 { padding-right: 0; }
+.pr-2 { padding-right: 2px; }
+.pr-4 { padding-right: 4px; }
+.pr-6 { padding-right: 6px; }
+.pr-8 { padding-right: 8px; }
+.pr-12 { padding-right: 12px; }
+.pr-16 { padding-right: 16px; }
+.pr-20 { padding-right: 20px; }
+.pr-24 { padding-right: 24px; }
+.pr-32 { padding-right: 32px; }
+.pr-40 { padding-right: 40px; }
+.pr-48 { padding-right: 48px; }
+
+.pb-0 { padding-bottom: 0; }
+.pb-2 { padding-bottom: 2px; }
+.pb-4 { padding-bottom: 4px; }
+.pb-6 { padding-bottom: 6px; }
+.pb-8 { padding-bottom: 8px; }
+.pb-12 { padding-bottom: 12px; }
+.pb-16 { padding-bottom: 16px; }
+.pb-20 { padding-bottom: 20px; }
+.pb-24 { padding-bottom: 24px; }
+.pb-32 { padding-bottom: 32px; }
+.pb-40 { padding-bottom: 40px; }
+.pb-48 { padding-bottom: 48px; }
+
+.pl-0 { padding-left: 0; }
+.pl-2 { padding-left: 2px; }
+.pl-4 { padding-left: 4px; }
+.pl-6 { padding-left: 6px; }
+.pl-8 { padding-left: 8px; }
+.pl-12 { padding-left: 12px; }
+.pl-16 { padding-left: 16px; }
+.pl-20 { padding-left: 20px; }
+.pl-24 { padding-left: 24px; }
+.pl-32 { padding-left: 32px; }
+.pl-40 { padding-left: 40px; }
+.pl-48 { padding-left: 48px; }
+
+.px-0 { padding-left: 0; padding-right: 0; }
+.px-2 { padding-left: 2px; padding-right: 2px; }
+.px-4 { padding-left: 4px; padding-right: 4px; }
+.px-6 { padding-left: 6px; padding-right: 6px; }
+.px-8 { padding-left: 8px; padding-right: 8px; }
+.px-12 { padding-left: 12px; padding-right: 12px; }
+.px-16 { padding-left: 16px; padding-right: 16px; }
+.px-20 { padding-left: 20px; padding-right: 20px; }
+.px-24 { padding-left: 24px; padding-right: 24px; }
+.px-32 { padding-left: 32px; padding-right: 32px; }
+.px-40 { padding-left: 40px; padding-right: 40px; }
+.px-48 { padding-left: 48px; padding-right: 48px; }
+
+.py-0 { padding-top: 0; padding-bottom: 0; }
+.py-2 { padding-top: 2px; padding-bottom: 2px; }
+.py-4 { padding-top: 4px; padding-bottom: 4px; }
+.py-6 { padding-top: 6px; padding-bottom: 6px; }
+.py-8 { padding-top: 8px; padding-bottom: 8px; }
+.py-12 { padding-top: 12px; padding-bottom: 12px; }
+.py-16 { padding-top: 16px; padding-bottom: 16px; }
+.py-20 { padding-top: 20px; padding-bottom: 20px; }
+.py-24 { padding-top: 24px; padding-bottom: 24px; }
+.py-32 { padding-top: 32px; padding-bottom: 32px; }
+.py-40 { padding-top: 40px; padding-bottom: 40px; }
+.py-48 { padding-top: 48px; padding-bottom: 48px; }
+
+/* ---- Sizing ---- */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-w-0 { min-width: 0; }
+.min-w-full { min-width: 100%; }
+.max-w-full { max-width: 100%; }
+
+/* ---- Text ---- */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.whitespace-nowrap { white-space: nowrap; }
+.capitalize { text-transform: capitalize; }
+.text-underline { text-decoration: underline; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ellipsis-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ellipsis-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---- Typography utility classes ----
+   Source: src/styles/__generated__/typography.module.scss + typography-mixins.scss.
+   Product-src использует Typography component с variant={TypographyVariants.X} → class {X}.
+   Эти utility-классы позволяют ставить те же имена классов 1:1 в HTML. */
+.bodyLarge          { font-size: 18px; font-weight: 400; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; }
+.bodyLargeStrong    { font-size: 18px; font-weight: 500; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.bodyMedium         { font-size: 16px; font-weight: 400; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; }
+.bodyMediumStrong   { font-size: 16px; font-weight: 500; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.bodySmall          { font-size: 14px; font-weight: 400; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; }
+.bodySmallStrong    { font-size: 14px; font-weight: 500; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.descriptionLarge   { font-size: 12px; font-weight: 400; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; }
+.descriptionLargeStrong  { font-size: 12px; font-weight: 500; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.descriptionMedium  { font-size: 11px; font-weight: 400; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; }
+.descriptionMediumStrong { font-size: 11px; font-weight: 500; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.descriptionSmall   { font-size: 10px; font-weight: 400; line-height: 12px; font-variant-numeric: lining-nums tabular-nums; }
+.descriptionSmallStrong  { font-size: 10px; font-weight: 500; line-height: 12px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.displayLarge       { font-size: 48px; font-weight: 500; line-height: 56px; font-variant-numeric: lining-nums tabular-nums; }
+.displayLargeStrong { font-size: 48px; font-weight: 700; line-height: 56px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.displayMedium      { font-size: 40px; font-weight: 500; line-height: 48px; font-variant-numeric: lining-nums tabular-nums; }
+.displayMediumStrong{ font-size: 40px; font-weight: 700; line-height: 48px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.displaySmall       { font-size: 32px; font-weight: 500; line-height: 44px; font-variant-numeric: lining-nums tabular-nums; }
+.displaySmallStrong { font-size: 32px; font-weight: 700; line-height: 44px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.heading1           { font-size: 28px; font-weight: 700; line-height: 32px; font-variant-numeric: lining-nums tabular-nums; }
+.heading2           { font-size: 22px; font-weight: 700; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; }
+.heading3           { font-size: 18px; font-weight: 700; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; }
+.heading4           { font-size: 16px; font-weight: 700; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; }
+.heading5           { font-size: 14px; font-weight: 700; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+
+
+/* ---- Text Colors ---- */
+.text-default { color: var(--fg-default); }
+.text-soft { color: var(--fg-soft); }
+.text-muted { color: var(--fg-muted); }
+.text-disabled { color: var(--fg-disabled); }
+.text-accent { color: var(--accent-default); }
+.text-accent-soft { color: var(--accent-soft); }
+.text-success { color: var(--success-default); }
+.text-error { color: var(--error-default); }
+.text-warning { color: var(--warning-default); }
+.text-info { color: var(--info-default); }
+
+/* ---- Overflow ---- */
+.overflow-auto { overflow: auto; }
+.overflow-hidden { overflow: hidden; }
+.overflow-clip { overflow: clip; }
+
+/* ---- Display ---- */
+.hidden { display: none !important; }
+.hidden-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ---- Pointer / Interaction ---- */
+.pointer-events-none { pointer-events: none; }
+.cursor-default { cursor: default; }
+.cursor-pointer { cursor: pointer; }
+.cursor-grab { cursor: grab; }
+.cursor-grabbing { cursor: grabbing; }
+
+/* ---- Borders ---- */
+.rounded-full { border-radius: 9999px; }
+.rounded-4 { border-radius: var(--radius-4); }
+.rounded-6 { border-radius: var(--radius-6); }
+.rounded-8 { border-radius: var(--radius-8); }
+.rounded-10 { border-radius: var(--radius-10); }
+.rounded-12 { border-radius: var(--radius-12); }
+
+/* Background utilities (bg-surface-N) — Source: product-src atoms background/surface */
+.background-bg-surface-1 { background: var(--bg-surface-1); }
+.background-bg-surface-2 { background: var(--bg-surface-2); }
+.background-bg-surface-3 { background: var(--bg-surface-3); }
+.background-bg-page      { background: var(--bg-page); }
+.border-muted { border: 1px solid var(--border-muted); }
+.border-soft { border: 1px solid var(--border-soft); }
+.shadow-border { box-shadow: 0 0 0 1px var(--neutral-75); }
+
+/* ---- Position ---- */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+
+/* ---- Opacity ---- */
+.opacity-0 { opacity: 0; }
+.opacity-50 { opacity: 0.5; }
+
+
+/* ============================================
+   10. CUSTOM SCROLLBAR
+   ============================================ */
+.custom-scroll::-webkit-scrollbar { width: 8px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: var(--neutral-active);
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background-clip: content-box;
+}

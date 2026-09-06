@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АРКА — прототип: оглавление</title>
+<link rel="stylesheet" href="shared/tokens.css">
+<link rel="stylesheet" href="shared/components.css">
+<link rel="stylesheet" href="shared/layout.css">
+<style>body { display: block; overflow: auto; padding: 48px; background: var(--bg-page); }</style>
+</head>
+<body>
+  <div style="max-width: 720px; margin: 0 auto;">
+    <h1 class="heading1 mb-8">Прототип — заготовка</h1>
+    <p class="bodyMedium text-soft mb-24">Экраны продукта, связанные переходами: Команды, Календарь и открытые списки. Это фон: достраивайте поверх них сценарий «Аркаша создаёт списки». Новые экраны и состояния добавляйте сюда же, в оглавление.</p>
+    <div class="flex flex-col gap-12">
+      <a class="panel-card" style="text-decoration: none;" href="screens/commands.html">
+        <div class="bodyMediumStrong">Команды</div>
+        <div class="bodySmall text-soft">Каталог списков фермы, запуск вручную. Плитка открывает список.</div>
+      </a>
+      <a class="panel-card" style="text-decoration: none;" href="screens/calendar.html">
+        <div class="bodyMediumStrong">Календарь</div>
+        <div class="bodySmall text-soft">Списки с расписанием по дням недели.</div>
+      </a>
+      <a class="panel-card" style="text-decoration: none;" href="screens/list.html">
+        <div class="bodyMediumStrong">Открытые списки</div>
+        <div class="bodySmall text-soft">Каждый список из Команд и Календаря открывается своей таблицей со своими колонками — 11 разных примеров.</div>
+      </a>
+    </div>
+    <p class="bodySmall text-muted mt-24">Компоненты и правила сборки — <span class="bodySmallStrong">shared/README.md</span> и <span class="bodySmallStrong">PROMPT.md</span>. Каталог примитивов — shared/templates/.</p>
+  </div>
+</body>
+</html>

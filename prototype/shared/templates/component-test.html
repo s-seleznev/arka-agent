@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>АРКА — Component Test</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <link rel="stylesheet" href="../components.css">
+  <link rel="stylesheet" href="../layout.css">
+  <style>
+    body {
+      display: block;
+      height: auto;
+      overflow: auto;
+      font-family: var(--font);
+      background: var(--bg-page);
+      margin: 0;
+      padding: 32px;
+      color: var(--fg-default);
+    }
+    .test-section {
+      margin-bottom: 48px;
+    }
+    .test-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 24px;
+      margin: 0 0 16px;
+      color: var(--fg-soft);
+    }
+    .test-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+    .test-label {
+      font-size: 12px;
+      color: var(--fg-muted);
+      min-width: 120px;
+    }
+
+    /* =============================================
+       COMPONENT 1: CHECKBOX
+       Source: Checkbox/index.module.scss
+
+       Structure: <label class="arka-checkbox [checked|indeterminate]">
+                    <div class="arka-checkbox-border">
+                      <svg class="arka-checkbox-icon">...</svg>
+                    </div>
+                  </label>
+
+       Key codebase facts:
+       - .root: display grid, align-items center, cursor pointer
+       - .border: display flex, w/h = --checkbox-size, border-radius-4
+       - .normal unchecked: border 2px solid --color-border-soft, bg --color-neutral-on-color (white)
+       - .normal checked: bg = --color-accent-default, border = --color-accent-default, icon scale 1
+       - .icon: color white, transition scale
+       - hover: border-color --color-border-default, bg --color-neutral-opaque-container-muted
+       ============================================= */
+    .arka-checkbox {
+      position: relative;
+      display: inline-grid;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .arka-checkbox.with-label {
+      grid-template-columns: auto 1fr;
+      gap: 4px 8px;
+    }
+    .arka-checkbox-border {
+      display: flex;
+      width: 20px;
+      height: 20px;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-4);
+      background: #ffffff;
+      transition: background 0.1s ease-out, border-color 0.1s ease-out;
+    }
+    .arka-checkbox-icon {
+      color: #ffffff;
+      transform: scale(0);
+      transition: transform 0.1s ease-out;
+    }
+    /* Hover */
+    .arka-checkbox:hover .arka-checkbox-border {
+      border-color: var(--border-default);
+      background: var(--neutral-opaque-container-muted);
+    }
+    /* Checked */
+    .arka-checkbox.checked .arka-checkbox-border {
+      background: var(--accent-default);
+      border-color: var(--accent-default);
+    }
+    .arka-checkbox.checked .arka-checkbox-icon {
+      transform: scale(1);
+    }
+    /* Indeterminate */
+    .arka-checkbox.indeterminate .arka-checkbox-border {
+      background: var(--accent-default);
+      border-color: var(--accent-default);
+    }
+    .arka-checkbox.indeterminate .arka-checkbox-icon {
+      transform: scale(1);
+    }
+    /* Checked hover */
+    .arka-checkbox.checked:hover .arka-checkbox-border,
+    .arka-checkbox.indeterminate:hover .arka-checkbox-border {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+    /* Disabled */
+    .arka-checkbox.disabled {
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .arka-checkbox.disabled .arka-checkbox-border {
+      background: var(--neutral-container-soft);
+      border-color: var(--neutral-container-muted);
+      border: none;
+    }
+    .arka-checkbox.disabled .arka-checkbox-icon {
+      color: var(--fg-disabled);
+    }
+    .arka-checkbox-label {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+    }
+
+    /* =============================================
+       COMPONENT 2: TABLE (with panel wrapper)
+       Source: Table/index.module.scss + panel.module.scss + borders.scss
+
+       Wrapper: <div class="table-panel">  (= panel + shadow-border)
+       Table:   <table class="arka-table"> (= root primary)
+
+       Key codebase facts:
+       - Panel: bg white, border-radius 8px
+       - shadow-border: box-shadow 0 0 0 1px --neutral-75 (#e0e2e6)
+       - Table root: display grid, grid-template-columns from --table-columns
+       - thead/tbody: display grid, grid-column 1/-1, grid-template-columns subgrid
+       - row: display grid, grid-column 1/-1, grid-template-columns subgrid
+       - cell: display grid, align-items center, padding 8px 12px
+       - cell border: border-bottom 1px solid --table-color-border (rgba(73,86,112,0.15))
+       - header bg: --neutral-opaque-container-muted (#fafafb)
+       - header cell: position relative, text-align left, font: descLargeStrong (12/500/16)
+       - row hover: --table-cell-bg changes to --neutral-opaque-container-soft (#f4f4f6)
+       - selected row: --table-cell-bg = --accent-opaque-container-default (#fef0e6)
+       - last row: no border-bottom
+       - first header cell: border-top-left-radius matches panel radius
+       - table-border-radius = panel-border-radius = 8px
+       ============================================= */
+    .table-panel {
+      background: var(--bg-surface-1);
+      border-radius: var(--radius-8);
+      box-shadow: 0 0 0 1px var(--neutral-75);
+      overflow: hidden;
+    }
+    .arka-table {
+      --table-border-width: 1px;
+      --table-color-border: var(--border-muted);
+      --table-border-radius: var(--radius-8);
+      --table-header-bg: var(--neutral-opaque-container-muted);
+      --table-cell-bg: var(--bg-surface-1);
+      --table-cell-padding-block: 8px;
+      --table-cell-padding-inline: 12px;
+      --table-row-height: 36px;
+
+      display: grid;
+      border-radius: var(--table-border-radius);
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .arka-table thead,
+    .arka-table tbody {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+    .arka-table tr {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      min-height: calc(var(--table-row-height) + 1px);
+    }
+    .arka-table thead tr {
+      min-height: var(--table-row-height);
+    }
+    .arka-table th,
+    .arka-table td {
+      display: grid;
+      align-items: center;
+      padding: var(--table-cell-padding-block) var(--table-cell-padding-inline);
+      border-bottom: var(--table-border-width) solid var(--table-color-border);
+      min-height: var(--table-row-height);
+    }
+    .arka-table th {
+      background: var(--table-header-bg);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+      color: var(--fg-muted);
+      text-align: left;
+      position: relative;
+    }
+    .arka-table td {
+      background: var(--table-cell-bg);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+    }
+    /* First header row: top border radius */
+    .arka-table thead tr:first-child th:first-child {
+      border-top-left-radius: var(--table-border-radius);
+    }
+    .arka-table thead tr:first-child th:last-child {
+      border-top-right-radius: var(--table-border-radius);
+    }
+    /* Last body row: no border-bottom, bottom radius */
+    .arka-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .arka-table tbody tr:last-child td:first-child {
+      border-bottom-left-radius: var(--table-border-radius);
+    }
+    .arka-table tbody tr:last-child td:last-child {
+      border-bottom-right-radius: var(--table-border-radius);
+    }
+    /* Row hover */
+    .arka-table tbody tr:hover td {
+      background: var(--neutral-opaque-container-soft);
+    }
+    /* Selected row */
+    .arka-table tbody tr.selected td {
+      background: var(--accent-opaque-container-default);
+    }
+    .arka-table tbody tr.selected:hover td {
+      background: var(--accent-opaque-container-hover);
+    }
+    /* Cell with background — for selectable tables where bg matters */
+    .arka-table td.cell-bg {
+      background: var(--table-cell-bg);
+    }
+    /* Function cell (checkbox/expand) */
+    .arka-table .fn-cell {
+      padding: 0;
+      place-items: center stretch;
+      width: var(--table-fn-cell-width, 36px);
+    }
+    .arka-table .fn-cell > * {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    /* itemActionCell — per-row actions, hidden until hover */
+    .arka-table .item-action-cell {
+      padding: 4px;
+    }
+    .arka-table .item-action-cell > * {
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+    .arka-table tbody tr:hover .item-action-cell > *,
+    .arka-table .item-action-cell:focus-within > * {
+      opacity: 1;
+    }
+    /* Right-aligned text */
+    .arka-table .text-right {
+      text-align: right;
+      justify-content: flex-end;
+    }
+
+    /* =============================================
+       COMPONENT 3: ACTION BAR
+       Source: Table/index.module.scss — .actionBarCell
+
+       Key codebase facts:
+       - .actionBarCell composes headerCell
+       - position: absolute; inset: 0;  — OVERLAYS the header row
+       - --table-cell-block-padding: 0;
+       - Contains: [selected count] [action buttons...] (flex, gap)
+       - The thead must have position: relative for absolute to work
+       ============================================= */
+    /* Action bar: overlays the table header via absolute positioning on wrapper */
+    .table-panel-with-action-bar {
+      position: relative;
+    }
+    .action-bar-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+      background: var(--neutral-opaque-container-muted);
+      border-top-left-radius: var(--radius-8);
+      border-top-right-radius: var(--radius-8);
+      border-bottom: 1px solid var(--border-muted);
+      z-index: 2;
+    }
+    .action-bar-overlay .selected-count {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+      color: var(--fg-default);
+      min-width: 100px;
+    }
+
+    /* =============================================
+       COMPONENT 4: STICKY BORDERED PANEL (filter bar / tab row)
+       Source: StickyBorderedPanel/index.module.scss
+
+       Key codebase facts:
+       - .inner: display flex, align-items center
+       - padding: calc(8px + 6px) 12px = 14px 12px
+       - border: 1px solid --table-color-border (--border-muted)
+       - border-radius: 8px 8px 0 0 (top corners only)
+       - gap: 16px between left and right
+       - .left: flex 1 1, min-width 80px, display flex, gap 12px
+       - .right: flex-shrink 1, display flex, gap 12px, justify-content flex-end
+
+       When placed before table, table loses its top border-radius
+       ============================================= */
+    .sticky-bordered-panel {
+      background: var(--bg-surface-1);
+    }
+    .sticky-bordered-panel-inner {
+      display: flex;
+      align-items: center;
+      padding: 14px 12px;
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-8) var(--radius-8) 0 0;
+      gap: 16px;
+    }
+    .sticky-bordered-panel-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1 1;
+      min-width: 80px;
+    }
+    .sticky-bordered-panel-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 1;
+      min-width: 0;
+      justify-content: flex-end;
+    }
+    /* When StickyBorderedPanel is before table, table should lose top radius */
+    .sticky-bordered-panel + .table-panel {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+    .sticky-bordered-panel + .table-panel .arka-table {
+      --table-border-radius: 0;
+    }
+    .sticky-bordered-panel + .table-panel .arka-table thead tr:first-child th {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    /* =============================================
+       COMPONENT 5: TABLE TABS (variant = table)
+       Source: Tabs/index.module.scss — .table variant
+
+       Tabs inside StickyBorderedPanel, pill style
+       ============================================= */
+    .table-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0;
+    }
+    .table-tab {
+      display: flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: var(--radius-6);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+      color: var(--fg-soft);
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      transition: background 0.1s, color 0.1s;
+      white-space: nowrap;
+    }
+    .table-tab:hover {
+      background: var(--neutral-container-soft);
+    }
+    .table-tab.active {
+      background: var(--bg-surface-1);
+      border-color: var(--border-muted);
+      color: var(--fg-default);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================
+       TEST 1: CHECKBOX
+       ========================================= -->
+  <div class="test-section">
+    <h2>1. Checkbox (from Checkbox/index.module.scss)</h2>
+
+    <div class="test-row">
+      <span class="test-label">Unchecked (20px)</span>
+      <label class="arka-checkbox">
+        <div class="arka-checkbox-border">
+          <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+          </svg>
+        </div>
+      </label>
+    </div>
+
+    <div class="test-row">
+      <span class="test-label">Checked (20px)</span>
+      <label class="arka-checkbox checked">
+        <div class="arka-checkbox-border">
+          <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+          </svg>
+        </div>
+      </label>
+    </div>
+
+    <div class="test-row">
+      <span class="test-label">Indeterminate</span>
+      <label class="arka-checkbox indeterminate">
+        <div class="arka-checkbox-border">
+          <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </label>
+    </div>
+
+    <div class="test-row">
+      <span class="test-label">With label</span>
+      <label class="arka-checkbox checked with-label">
+        <div class="arka-checkbox-border">
+          <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <span class="arka-checkbox-label">Выбрать всех</span>
+      </label>
+    </div>
+
+    <div class="test-row">
+      <span class="test-label">Disabled checked</span>
+      <label class="arka-checkbox checked disabled">
+        <div class="arka-checkbox-border">
+          <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+          </svg>
+        </div>
+      </label>
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       TEST 2: TABLE with panel wrapper
+       ========================================= -->
+  <div class="test-section">
+    <h2>2. Table with panel wrapper (panel + shadow-border)</h2>
+
+    <div class="table-panel">
+      <table class="arka-table" style="grid-template-columns: 36px 1fr 120px 120px 100px;">
+        <thead>
+          <tr>
+            <th class="fn-cell">
+              <div>
+                <label class="arka-checkbox">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </th>
+            <th>Кличка</th>
+            <th>Группа</th>
+            <th class="text-right">Удой, кг</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Зорька 1234</td>
+            <td>Группа 1</td>
+            <td class="text-right">28.5</td>
+            <td><span class="badge medium20 theme-light color-success">Стельная</span></td>
+          </tr>
+          <tr>
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox checked">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Берёзка 2456</td>
+            <td>Новотел</td>
+            <td class="text-right">32.1</td>
+            <td><span class="badge medium20 theme-light color-accent">В охоте</span></td>
+          </tr>
+          <tr class="selected">
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox checked">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Ласточка 3789</td>
+            <td>Сухостой</td>
+            <td class="text-right">15.8</td>
+            <td><span class="badge medium20 theme-light color-error">Больна</span></td>
+          </tr>
+          <tr>
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Звёздочка 4012</td>
+            <td>Нетели</td>
+            <td class="text-right">22.4</td>
+            <td><span class="badge medium20 theme-light color-info">Осеменена</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       TEST 3: TABLE with ACTION BAR overlay
+       ========================================= -->
+  <div class="test-section">
+    <h2>3. Table with Action Bar (overlays header)</h2>
+
+    <div class="table-panel table-panel-with-action-bar">
+      <!-- Action bar overlay: covers the header row -->
+      <div class="action-bar-overlay">
+        <label class="arka-checkbox indeterminate">
+          <div class="arka-checkbox-border">
+            <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </label>
+        <span class="selected-count">Выбрано: 2</span>
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../icons.svg#arrow-down-right-turn"/></svg>
+          Переместить
+        </button>
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../icons.svg#printer"/></svg>
+          Печать
+        </button>
+        <button class="btn small24 ghost destructive">
+          <svg width="16" height="16"><use href="../icons.svg#delete"/></svg>
+          Удалить
+        </button>
+      </div>
+      <table class="arka-table" style="grid-template-columns: 36px 1fr 120px 120px 100px;">
+        <thead>
+          <tr>
+            <th class="fn-cell">
+              <div>
+                <label class="arka-checkbox indeterminate">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </th>
+            <th>Кличка</th>
+            <th>Группа</th>
+            <th class="text-right">Удой, кг</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="selected">
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox checked">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Зорька 1234</td>
+            <td>Группа 1</td>
+            <td class="text-right">28.5</td>
+            <td><span class="badge medium20 theme-light color-success">Стельная</span></td>
+          </tr>
+          <tr class="selected">
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox checked">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Берёзка 2456</td>
+            <td>Новотел</td>
+            <td class="text-right">32.1</td>
+            <td><span class="badge medium20 theme-light color-accent">В охоте</span></td>
+          </tr>
+          <tr>
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Ласточка 3789</td>
+            <td>Сухостой</td>
+            <td class="text-right">15.8</td>
+            <td><span class="badge medium20 theme-light color-error">Больна</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       TEST 4: STICKY BORDERED PANEL (filter bar)
+       ========================================= -->
+  <div class="test-section">
+    <h2>4. StickyBorderedPanel + Table (filter bar above table)</h2>
+
+    <div class="sticky-bordered-panel">
+      <div class="sticky-bordered-panel-inner">
+        <div class="sticky-bordered-panel-left">
+          <div class="input medium36" style="min-width: 200px;">
+            <svg width="16" height="16" style="color: var(--fg-muted);"><use href="../icons.svg#search"/></svg>
+            <span style="color: var(--fg-muted); font-size: 14px;">Поиск...</span>
+          </div>
+          <button class="btn small24 secondary neutral">
+            <svg width="16" height="16"><use href="../icons.svg#filter"/></svg>
+            Фильтры
+          </button>
+        </div>
+        <div class="sticky-bordered-panel-right">
+          <button class="btn small24 secondary neutral">
+            <svg width="16" height="16"><use href="../icons.svg#download"/></svg>
+            Экспорт
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="table-panel">
+      <table class="arka-table" style="grid-template-columns: 1fr 120px 100px 120px;">
+        <thead>
+          <tr>
+            <th>Кличка</th>
+            <th>Группа</th>
+            <th class="text-right">Удой, кг</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Зорька 1234</td>
+            <td>Группа 1</td>
+            <td class="text-right">28.5</td>
+            <td><span class="badge medium20 theme-light color-success">Стельная</span></td>
+          </tr>
+          <tr>
+            <td>Берёзка 2456</td>
+            <td>Новотел</td>
+            <td class="text-right">32.1</td>
+            <td><span class="badge medium20 theme-light color-accent">В охоте</span></td>
+          </tr>
+          <tr>
+            <td>Ласточка 3789</td>
+            <td>Сухостой</td>
+            <td class="text-right">15.8</td>
+            <td><span class="badge medium20 theme-light color-error">Больна</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       TEST 5: TABLE TABS in StickyBorderedPanel
+       ========================================= -->
+  <div class="test-section">
+    <h2>5. Table Tabs in StickyBorderedPanel + Table</h2>
+
+    <div class="sticky-bordered-panel">
+      <div class="sticky-bordered-panel-inner">
+        <div class="sticky-bordered-panel-left">
+          <div class="table-tabs">
+            <div class="table-tab active">Все коровы</div>
+            <div class="table-tab">Стельные</div>
+            <div class="table-tab">В охоте</div>
+            <div class="table-tab">Больные</div>
+          </div>
+        </div>
+        <div class="sticky-bordered-panel-right">
+          <button class="btn small24 secondary neutral">
+            <svg width="16" height="16"><use href="../icons.svg#settings"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="table-panel">
+      <table class="arka-table" style="grid-template-columns: 36px 1fr 120px 100px 120px;">
+        <thead>
+          <tr>
+            <th class="fn-cell">
+              <div>
+                <label class="arka-checkbox">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </th>
+            <th>Кличка</th>
+            <th>Группа</th>
+            <th class="text-right">Удой, кг</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Зорька 1234</td>
+            <td>Группа 1</td>
+            <td class="text-right">28.5</td>
+            <td><span class="badge medium20 theme-light color-success">Стельная</span></td>
+          </tr>
+          <tr>
+            <td class="fn-cell">
+              <div>
+                <label class="arka-checkbox">
+                  <div class="arka-checkbox-border">
+                    <svg class="arka-checkbox-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M13.3 4.3a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6.6 9.6l5.3-5.3a1 1 0 0 1 1.4 0Z" fill="currentColor"/>
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </td>
+            <td>Берёзка 2456</td>
+            <td>Новотел</td>
+            <td class="text-right">32.1</td>
+            <td><span class="badge medium20 theme-light color-accent">В охоте</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       TEST 6: TABLE without checkboxes (simple read-only)
+       ========================================= -->
+  <div class="test-section">
+    <h2>6. Simple table without checkboxes (read-only)</h2>
+
+    <div class="table-panel">
+      <table class="arka-table" style="grid-template-columns: 1fr 120px 100px 120px 100px;">
+        <thead>
+          <tr>
+            <th>Кличка</th>
+            <th>Группа</th>
+            <th class="text-right">Удой, кг</th>
+            <th>Статус</th>
+            <th class="text-right">Дн. лактации</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Зорька 1234</td>
+            <td>Группа 1</td>
+            <td class="text-right">28.5</td>
+            <td><span class="badge medium20 theme-light color-success">Стельная</span></td>
+            <td class="text-right">145</td>
+          </tr>
+          <tr>
+            <td>Берёзка 2456</td>
+            <td>Новотел</td>
+            <td class="text-right">32.1</td>
+            <td><span class="badge medium20 theme-light color-accent">В охоте</span></td>
+            <td class="text-right">67</td>
+          </tr>
+          <tr>
+            <td>Ласточка 3789</td>
+            <td>Сухостой</td>
+            <td class="text-right">15.8</td>
+            <td><span class="badge medium20 theme-light color-error">Больна</span></td>
+            <td class="text-right">312</td>
+          </tr>
+          <tr>
+            <td>Звёздочка 4012</td>
+            <td>Нетели</td>
+            <td class="text-right">22.4</td>
+            <td><span class="badge medium20 theme-light color-info">Осеменена</span></td>
+            <td class="text-right">89</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</body>
+</html>

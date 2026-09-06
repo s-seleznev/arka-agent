@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Pattern: Table Toolbar</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0; height: auto; min-height: 100vh; overflow: auto;
+    background: var(--bg-page); font-family: var(--font);
+    padding: 32px 48px; display: flex; flex-direction: column; gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section { background: var(--bg-surface-1); border-radius: var(--radius-12); padding: 24px; width: 100%; box-sizing: border-box; }
+  .block-section-label { margin: 0 0 4px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--fg-soft); letter-spacing: 0.2px; text-transform: uppercase; }
+  .block-section-note { margin: 0 0 16px; font-size: 14px; line-height: 20px; color: var(--fg-soft); }
+  .block-section-note code { font-family: ui-monospace, monospace; font-size: 12px; padding: 0 3px; background: var(--neutral-opaque-container-soft); border-radius: 3px; }
+  .block-section-source { margin: 0 0 20px; padding: 8px 12px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-soft); }
+  .variant-caption { margin: 0 0 8px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+  .dom-tree { margin: 0 0 16px; padding: 12px 16px; background: var(--neutral-opaque-container-soft); border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; line-height: 18px; color: var(--fg-default); white-space: pre; overflow-x: auto; }
+  .stage {
+    background: var(--bg-page);
+    border-radius: var(--radius-8);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .stage .panel-stage-label {
+    font-size: 11px; font-weight: 500; line-height: 16px;
+    color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase;
+  }
+
+  /* Icon DOM wrapper (Icon/index.tsx:140-170): span.root > span.innerRoot > svg */
+
+  /* ╔════════════════════════════════════════════════════════════════╗
+     ║  TABLE TOOLBAR — header row of a table
+     ║
+     ║  Source: src/shared/components/Table/components/TableHeader/index.tsx
+     ║          src/shared/components/Table/index.module.scss
+     ║
+     ║  В product-src toolbar = thead > tr.headerRow. Bg: --color-neutral-
+     ║  opaque-container-muted. Включает колонки с заголовками + right-
+     ║  sticky cell для TableSettingsPopoverButton. При selected rows —
+     ║  поверх колонок абсолютно-позиционируется .actionBarCell с bulk-
+     ║  actions (рендерится через tableProps.renderActionBar).
+     ║
+     ║  ⚠ resetSelection — это callback (() => onSelectAll(false)),
+     ║  передаётся в renderActionBar и вызывается ПРОГРАММНО после
+     ║  успешного action (delete/save). НЕ рендерится как отдельная
+     ║  UI-кнопка. Пример в routes/.../reasons.tsx:391, 419, 440.
+     ║
+     ║  Ключевые классы:
+     ║    .headerRow            bg muted, min-height 36 (--table-row-height)
+     ║    .headerCell           padding 8/12, bg muted
+     ║    .actionBarCell        position absolute inset 0 (поверх cells)
+     ║    .selectedItemsCount   width 100px (при !hasStickyColumns)
+     ║    .tableSettingsButton  z-index +10, sticky right
+     ║    .headerIcon           flex none — settings icon в ячейке
+     ║    .headerIconWithOpacity opacity 0, visible on hover / expanded
+     ╚════════════════════════════════════════════════════════════════╝ */
+
+  /* ─── Table shell (упрощённая — для демо toolbar'а) ─── */
+  .tbl-shell {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+    box-shadow: 0 0 0 1px var(--neutral-75);
+    overflow: hidden;
+  }
+
+  /* Table header row — 1:1 с thead.headerRow из index.module.scss */
+  .tbl-header {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr 1fr 40px;
+    min-height: 36px;
+    background: var(--color-neutral-opaque-container-muted, var(--neutral-opaque-container-muted));
+  }
+  .tbl-header-cell {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    text-align: left;
+    color: var(--fg-default);
+    background: var(--color-neutral-opaque-container-muted, var(--neutral-opaque-container-muted));
+  }
+
+  /* Typography .descriptionLargeStrong 12/500/16 — для headerTypographyVariant primary */
+  .typography-desc-large-strong {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-default);
+  }
+
+  /* Header cell content: flex row gap-8, py-2 для title */
+  .tbl-header-cell-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+  .tbl-header-cell-content .py-2 {
+    padding-block: 2px;
+  }
+
+  /* Header icon — flex none + opacity 0, visible on hover */
+  .tbl-header-icon-opacity {
+    flex: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .tbl-header-cell:hover .tbl-header-icon-opacity,
+  .tbl-header-icon-opacity[aria-expanded="true"] {
+    opacity: 1;
+  }
+  .tbl-header-icon-pressed {
+    flex: none;
+    opacity: 1;
+  }
+
+  /* Settings button wrapper — sticky right, grid-column -1/-2 */
+  .tbl-settings-wrapper {
+    position: sticky;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    grid-column: -1 / -2;
+    grid-row: 1;
+  }
+  .tbl-settings-inner {
+    z-index: 10;
+    display: grid;
+    height: calc(100% - 2px);
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8px 4px;
+    border-radius: var(--radius-8);
+    background: var(--color-neutral-opaque-container-muted, var(--neutral-opaque-container-muted));
+  }
+
+  /* Action bar cell — абсолютно поверх всех колонок, inset 0 */
+  .tbl-action-bar-cell {
+    position: absolute;
+    inset: 0;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    background: var(--color-neutral-opaque-container-muted, var(--neutral-opaque-container-muted));
+  }
+  .tbl-action-bar-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .tbl-selected-count {
+    width: 100px;
+    padding-block: 2px;
+    flex-shrink: 0;
+  }
+  .tbl-action-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* FunctionButton medium20 — size 20 icon, tertiary by default
+     Source: FunctionButton/index.module.scss — padding 0, icon 20 */
+  .fn-btn-icon-only {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-6);
+    cursor: pointer;
+    color: var(--fg-muted);
+    transition: color 0.1s;
+    width: 24px;
+    height: 24px;
+  }
+  .fn-btn-icon-only:hover { color: var(--fg-soft); }
+  .fn-btn-icon-only.pressed { color: var(--accent-default); }
+  .fn-btn-icon-only[aria-expanded="true"] { color: var(--accent-default); }
+
+  /* FunctionButton tertiary с текстом — for bulk actions (medium20).
+     DOM: button > icon(20) + text; text styled как bodySmall 14/400/20 */
+  .fn-btn-with-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-6);
+    cursor: pointer;
+    color: var(--fg-soft);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    height: max-content;
+    transition: color 0.1s;
+  }
+  .fn-btn-with-text:hover { color: var(--accent-hover); }
+  .fn-btn-with-text.failure { color: var(--error-default); }
+  .fn-btn-with-text.failure:hover { color: #C41818; }
+  .fn-btn-with-text .fn-btn-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 0;
+  }
+
+  /* Cells-preview (фейковые заголовки столбцов для демо) */
+  .demo-col-title { color: var(--fg-default); }
+
+  /* Checkbox — canonical из shared/components.css (см. components/checkbox.html) */
+
+  /* ─── ViewModeRadioGroup (segmented S/M/L-like, но icon-only).
+     Source: общий RadioGroup/index.module.scss .segmented + RadioSegmentedTab .medium24
+     В product-src используется как ViewMode-switcher «Таблица/Карточки» — icon-only. */
+  .segmented {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    border-radius: var(--radius-8);
+    background: var(--neutral-container-soft);
+    gap: 2px;
+  }
+  .segmented-tab {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    color: var(--fg-soft);
+  }
+  .segmented-tab-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 5px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-6);
+    background: transparent;
+    gap: 6px;
+    transition: background 0.1s, border-color 0.1s;
+    min-width: 24px;
+    min-height: 20px;
+  }
+  .segmented-tab:hover .segmented-tab-button {
+    background: var(--neutral-on-color, #fff);
+    border-color: var(--border-muted);
+  }
+  .segmented-tab.active { color: var(--fg-default); }
+  .segmented-tab.active .segmented-tab-button {
+    background: var(--bg-surface-1);
+    border-color: var(--border-muted);
+  }
+  .segmented-tab-icon { width: 16px; height: 16px; display: block; }
+
+  /* Demo wrapper row: toolbar outside table — для view switcher variant */
+  .toolbar-external {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 12px;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8) var(--radius-8) 0 0;
+    background: var(--bg-surface-1);
+  }
+  .toolbar-external-left,
+  .toolbar-external-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       1. STRUCTURE REFERENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Table Toolbar · структура thead + action bar</p>
+    <p class="block-section-note">В product-src «toolbar таблицы» — это <code>thead &gt; tr.headerRow</code>. Он состоит из колонок с заголовками, sticky-ячейки с <code>TableSettingsPopoverButton</code> справа и опционального <code>.actionBarCell</code>, который появляется при выделенных строках (<code>selectedItems.length &gt; 0</code>) и абсолютно позиционируется поверх всех ячеек через <code>position: absolute; inset: 0;</code>. Bulk-actions рендерятся через проп <code>tableProps.renderActionBar(selectedItems)</code>.</p>
+    <p class="block-section-source">Source: src/shared/components/Table/components/TableHeader/index.tsx:402-481 + index.module.scss (.headerRow .actionBarCell .tableSettingsButtonWrapper .headerIcon)</p>
+
+    <pre class="dom-tree">&lt;thead .thead&gt;                                  ← z-index-sticky-content + 10
+  &lt;tr .headerRow [.position-relative]&gt;           ← .position-relative при renderActionBar
+    &lt;th .headerCell&gt;                             ← per-column header
+      &lt;Typography variant="descriptionLargeStrong"
+                  .headerCellContent&gt;            ← flex, items-start, gap 8
+        &lt;div.py-2.wrap-anywhere&gt;{columnTitle}&lt;/div&gt;
+        {buttons: [TableColumnSettingsPopoverButton, FunctionButton (custom)]}
+      &lt;/Typography&gt;
+    &lt;/th&gt;
+    ...
+    {shouldRenderActionBar &amp;&amp; (                  ← shown when selectedItems.length &gt; 0
+      &lt;th .actionBarCell&gt;                        ← position absolute inset 0
+        &lt;div.flex.gap-12&gt;
+          &lt;Typography.selectedItemsCount
+                    variant="descriptionLargeStrong"&gt;
+            Выбрано: {count}                     ← width 100px (если нет sticky columns)
+          &lt;/Typography&gt;
+          &lt;div.flex.gap-20&gt;                    ← actions gap 20
+            {renderActionBar(selectedItems, {…})}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/th&gt;
+    )}
+    {!shouldRenderActionBar &amp;&amp; tableSettingsKey &amp;&amp; (
+      &lt;th .tableSettingsButtonWrapper&gt;           ← sticky right 0, grid-column -1/-2
+        &lt;div .tableSettingsButton&gt;               ← z-index base + 10, bg muted
+          &lt;TableSettingsPopoverButton /&gt;         ← FunctionButton medium20 settings-icon
+        &lt;/div&gt;
+      &lt;/th&gt;
+    )}
+  &lt;/tr&gt;
+&lt;/thead&gt;</pre>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. DEFAULT TOOLBAR (no selection)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Toolbar · дефолтный (без selected rows)</p>
+    <p class="block-section-note">Базовый thead: ячейки с заголовками + sticky-cell справа с <code>TableSettingsPopoverButton</code> (иконка шестерёнки). В per-column header внутри Typography рендерится <code>TableColumnSettingsPopoverButton</code> (fn-btn tertiary medium20 иконка filter/sort) — <strong>opacity 0 по умолчанию</strong>, появляется на hover ячейки или при <code>aria-expanded="true"</code>. На «Удой, кг» ниже показано состояние hover.</p>
+    <p class="block-section-source">Source: TableHeader/index.tsx:402-460 (thead root, headerCell rendering) + TableSettingsPopoverButton/index.tsx (settings icon button)</p>
+
+    <div class="stage">
+      <div class="panel-stage-label">thead.headerRow · без selection</div>
+      <div class="tbl-shell">
+        <div class="tbl-header" role="rowgroup">
+
+          <!-- Selection checkbox column -->
+          <div class="tbl-header-cell" role="columnheader">
+            <div class="tbl-header-cell-content">
+              <div class="py-2">
+                <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Regular header cells -->
+          <div class="tbl-header-cell" role="columnheader">
+            <div class="tbl-header-cell-content">
+              <div class="py-2 typography-desc-large-strong demo-col-title">Инв. №</div>
+              <!-- TableColumnSettingsPopoverButton — opacity 0, visible on hover -->
+              <button class="fn-btn-icon-only tbl-header-icon-opacity" type="button" aria-label="Фильтры и сортировка">
+                <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#filter"/></svg></span></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="tbl-header-cell" role="columnheader">
+            <div class="tbl-header-cell-content">
+              <div class="py-2 typography-desc-large-strong demo-col-title">Кличка</div>
+              <button class="fn-btn-icon-only tbl-header-icon-opacity" type="button" aria-label="Фильтры и сортировка">
+                <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#filter"/></svg></span></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Column with sorting active — iconVariants.sortDesc, не opacity 0 -->
+          <div class="tbl-header-cell" role="columnheader">
+            <div class="tbl-header-cell-content">
+              <div class="py-2 typography-desc-large-strong demo-col-title">Удой, кг</div>
+              <button class="fn-btn-icon-only tbl-header-icon-pressed" type="button" aria-label="Фильтры и сортировка" aria-pressed="true">
+                <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#sort-desc"/></svg></span></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Column with custom FunctionButton (напр. help-circle, column.functionButtonProps) -->
+          <div class="tbl-header-cell" role="columnheader">
+            <div class="tbl-header-cell-content">
+              <div class="py-2 typography-desc-large-strong demo-col-title">Группа</div>
+              <button class="fn-btn-icon-only tbl-header-icon-opacity" type="button" aria-label="Фильтры и сортировка">
+                <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#filter"/></svg></span></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- tableSettingsButtonWrapper — sticky right -->
+          <div class="tbl-settings-wrapper">
+            <div class="tbl-settings-inner">
+              <button class="fn-btn-icon-only" type="button" aria-label="Настройки отображения столбцов">
+                <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#settings"/></svg></span></span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. TOOLBAR WITH SELECTION (bulk actions)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Toolbar · selected rows + bulk actions</p>
+    <p class="block-section-note">При <code>selectedItems.length &gt; 0</code> появляется <code>.actionBarCell</code> — абсолютно позиционированный <code>th</code> поверх всех ячеек (<code>inset: 0</code>). Слева — <code>Typography.selectedItemsCount</code> с <code>«Выбрано: N»</code> (width 100px), справа — flex row gap-20 с actions из <code>renderActionBar</code>. Кнопки — <code>FunctionButton medium20</code> (иконка + текст). <strong>Settings-button не рендерится</strong> когда action-bar активен (см. <code>!shouldRenderActionBar</code>).</p>
+    <p class="block-section-source">Source: TableHeader/index.tsx:417-450 (actionBarCell, selectedItemsMessage, renderActionBar) + index.module.scss:369-378 (.actionBarCell, .selectedItemsCount)</p>
+
+    <div class="stage">
+      <div class="panel-stage-label">thead.headerRow · action bar поверх ячеек</div>
+      <div class="tbl-shell">
+        <div class="tbl-header" role="rowgroup">
+          <!-- Колонки-«подложка» остаются на месте — action bar поверх них -->
+          <div class="tbl-header-cell" role="columnheader">
+            <div class="tbl-header-cell-content">
+              <div class="py-2">
+                <label class="checkbox normal size-16" aria-checked="mixed"><div class="border"><span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span></div></label>
+              </div>
+            </div>
+          </div>
+          <div class="tbl-header-cell" role="columnheader"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Инв. №</div></div></div>
+          <div class="tbl-header-cell" role="columnheader"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Кличка</div></div></div>
+          <div class="tbl-header-cell" role="columnheader"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Удой, кг</div></div></div>
+          <div class="tbl-header-cell" role="columnheader"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Группа</div></div></div>
+          <div></div>
+
+          <!-- actionBarCell — absolute inset 0, начинается после чекбокса (actionBarStartColumn) -->
+          <div class="tbl-action-bar-cell" style="left: 40px;">
+            <div class="tbl-action-bar-inner">
+              <div class="typography-desc-large-strong tbl-selected-count">Выбрано: 3</div>
+              <div class="tbl-action-bar-actions">
+                <!-- FunctionButton medium20 — иконка 20 + Trans label -->
+                <button class="fn-btn-with-text" type="button">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#edit"/></svg></span></span>
+                  <span class="fn-btn-label">Редактировать</span>
+                </button>
+                <button class="fn-btn-with-text" type="button">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#copy-to-down"/></svg></span></span>
+                  <span class="fn-btn-label">Переместить в группу</span>
+                </button>
+                <button class="fn-btn-with-text" type="button">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#download"/></svg></span></span>
+                  <span class="fn-btn-label">Экспорт</span>
+                </button>
+                <button class="fn-btn-with-text failure" type="button">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#delete"/></svg></span></span>
+                  <span class="fn-btn-label">Удалить</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="variant-caption" style="margin-top: 16px;">Action-bar · single selected (isSingleItemSelected=true)</p>
+    <p class="block-section-note" style="margin-bottom: 12px;">Признак <code>isSingleItemSelected</code> передаётся вторым аргументом в <code>renderActionBar(selectedItems, { isSingleItemSelected })</code>. Для одной строки обычно добавляется действие «Открыть», которое скрывается при bulk.</p>
+    <div class="stage">
+      <div class="tbl-shell">
+        <div class="tbl-header" role="rowgroup">
+          <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2"><label class="checkbox normal size-16" aria-checked="mixed"><div class="border"><span class="icon"><svg><use href="../../icons.svg#minus"/></svg></span></div></label></div></div></div>
+          <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Инв. №</div></div></div>
+          <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Кличка</div></div></div>
+          <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Удой, кг</div></div></div>
+          <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Группа</div></div></div>
+          <div></div>
+
+          <div class="tbl-action-bar-cell" style="left: 40px;">
+            <div class="tbl-action-bar-inner">
+              <div class="typography-desc-large-strong tbl-selected-count">Выбрано: 1</div>
+              <div class="tbl-action-bar-actions">
+                <button class="fn-btn-with-text" type="button">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#new-tab"/></svg></span></span>
+                  <span class="fn-btn-label">Открыть карточку</span>
+                </button>
+                <button class="fn-btn-with-text" type="button">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#edit"/></svg></span></span>
+                  <span class="fn-btn-label">Редактировать</span>
+                </button>
+                <button class="fn-btn-with-text failure" type="button">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#delete"/></svg></span></span>
+                  <span class="fn-btn-label">Удалить</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. TOOLBAR WITH VIEW SWITCHER (external)
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">External toolbar · view switcher (Table / Cards)</p>
+    <p class="block-section-note">В product-src нет отдельного <code>ViewModeRadioGroup</code> компонента — view-switcher «Таблица / Карточки» обычно собирается из <code>RadioGroup segmented</code> и размещается <strong>вне thead</strong>, в обёртке типа <code>StickyBorderedPanel</code> (filter-bar) или в header страницы. Здесь показан вариант, когда панель фильтров + view-switcher кладутся над таблицей.</p>
+    <p class="block-section-source">Source: RadioGroup/index.module.scss .segmented + RadioSegmentedTab/index.module.scss .medium24 + реальный usage в /analytics/custom-reports (TileSizeRadioGroup)</p>
+
+    <div class="stage">
+      <div class="panel-stage-label">StickyBorderedPanel + view switcher + thead</div>
+      <div style="display: flex; flex-direction: column;">
+        <!-- Filter-bar (StickyBorderedPanel) with view-switcher справа -->
+        <div class="toolbar-external" style="border-radius: var(--radius-8) var(--radius-8) 0 0;">
+          <div class="toolbar-external-left">
+            <!-- Search -->
+            <div style="display: flex; align-items: center; width: 240px; height: 24px; padding: 0 6px; background: var(--neutral-opaque-container-soft); border: 2px solid transparent; border-radius: var(--radius-6); color: var(--fg-muted);">
+              <span class="icon" style="margin-right: 8px;"><span class="innerRoot" style="width: 16px; height: 16px; color: currentColor;"><svg><use href="../../icons.svg#search"/></svg></span></span>
+              <span style="font-size: 12px; font-weight: 400; line-height: 16px; color: var(--fg-muted);">Поиск</span>
+            </div>
+            <!-- Filter chip placeholder -->
+            <button class="btn small24 secondary neutral" type="button">
+              <svg width="16" height="16"><use href="../../icons.svg#filter"/></svg>
+              <div class="children">Фильтры</div>
+            </button>
+          </div>
+
+          <div class="toolbar-external-right">
+            <!-- ViewModeRadioGroup — segmented medium24 icon-only -->
+            <div class="segmented" role="radiogroup" aria-label="Режим отображения">
+              <label class="segmented-tab active" aria-checked="true">
+                <div class="segmented-tab-button">
+                  <span class="icon"><span class="innerRoot" style="width: 16px; height: 16px; color: currentColor;"><svg><use href="../../icons.svg#list"/></svg></span></span>
+                </div>
+              </label>
+              <label class="segmented-tab" aria-checked="false">
+                <div class="segmented-tab-button">
+                  <span class="icon"><span class="innerRoot" style="width: 16px; height: 16px; color: currentColor;"><svg><use href="../../icons.svg#layout-grid"/></svg></span></span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table thead под filter-bar'ом (bottom radius 8) -->
+        <div class="tbl-shell" style="border-radius: 0 0 var(--radius-8) var(--radius-8); border-top: none;">
+          <div class="tbl-header" role="rowgroup">
+            <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2"><label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label></div></div></div>
+            <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Инв. №</div></div></div>
+            <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Кличка</div></div></div>
+            <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Удой, кг</div></div></div>
+            <div class="tbl-header-cell"><div class="tbl-header-cell-content"><div class="py-2 typography-desc-large-strong demo-col-title">Группа</div></div></div>
+            <div class="tbl-settings-wrapper">
+              <div class="tbl-settings-inner">
+                <button class="fn-btn-icon-only" type="button" aria-label="Настройки отображения столбцов">
+                  <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#settings"/></svg></span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. POPOVER BUTTONS — anatomy reference
+       ═══════════════════════════════════════════════ -->
+  <div class="block-section">
+    <p class="block-section-label">Popover buttons · anatomy</p>
+    <p class="block-section-note">Два поповер-триггера, используемых в toolbar'е таблицы. Оба — <code>FunctionButton medium20</code>. <code>TableSettingsPopoverButton</code> — shared (одна кнопка на всю таблицу), открывает drawer с сортируемыми чипами столбцов. <code>TableColumnSettingsPopoverButton</code> — per-column, с <strong>opacity 0 по умолчанию</strong> (<code>.headerIconWithOpacity</code>), появляется на hover ячейки. Иконка меняется в зависимости от состояния сортировки: <code>filter → sortAsc / sortDesc</code>.</p>
+    <p class="block-section-source">Source: TableSettingsPopoverButton/index.tsx:293-320 + TableColumnSettingsPopoverButton/index.tsx:577-607</p>
+
+    <div class="stage">
+      <div style="display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap;">
+        <div>
+          <p class="variant-caption">TableSettingsPopoverButton (idle)</p>
+          <button class="fn-btn-icon-only" type="button" aria-label="Настройки отображения столбцов">
+            <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#settings"/></svg></span></span>
+          </button>
+        </div>
+        <div>
+          <p class="variant-caption">TableSettingsPopoverButton (open)</p>
+          <button class="fn-btn-icon-only" type="button" aria-label="Настройки отображения столбцов" aria-expanded="true">
+            <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#settings"/></svg></span></span>
+          </button>
+        </div>
+        <div>
+          <p class="variant-caption">ColumnSettings — no sort, no filter (opacity 0)</p>
+          <div style="background: var(--color-neutral-opaque-container-muted, var(--neutral-opaque-container-muted)); padding: 4px 8px; border-radius: 6px;">
+            <button class="fn-btn-icon-only tbl-header-icon-opacity" type="button" aria-label="Фильтры и сортировка">
+              <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#filter"/></svg></span></span>
+            </button>
+            <span style="font-size: 11px; color: var(--fg-muted); margin-left: 8px;">наведи курсор →</span>
+          </div>
+        </div>
+        <div>
+          <p class="variant-caption">ColumnSettings — sort asc (pressed)</p>
+          <button class="fn-btn-icon-only tbl-header-icon-pressed" type="button" aria-label="Фильтры и сортировка" aria-pressed="true">
+            <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#sort-asc"/></svg></span></span>
+          </button>
+        </div>
+        <div>
+          <p class="variant-caption">ColumnSettings — sort desc</p>
+          <button class="fn-btn-icon-only tbl-header-icon-pressed" type="button" aria-label="Фильтры и сортировка" aria-pressed="true">
+            <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#sort-desc"/></svg></span></span>
+          </button>
+        </div>
+        <div>
+          <p class="variant-caption">ColumnSettings — filter active (variant=primary)</p>
+          <button class="fn-btn-icon-only pressed" type="button" aria-label="Фильтры и сортировка" aria-pressed="true">
+            <span class="icon"><span class="innerRoot" style="width: 20px; height: 20px; color: currentColor;"><svg><use href="../../icons.svg#filter"/></svg></span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

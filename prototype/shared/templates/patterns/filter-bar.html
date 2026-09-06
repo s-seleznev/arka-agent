@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Block: Filter Bar</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  body {
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    background: var(--bg-page);
+    font-family: var(--font);
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+  }
+  .block-section {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-12);
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .block-section-label {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: var(--fg-soft);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .block-section-note {
+    margin: 0 0 20px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    color: var(--fg-soft);
+  }
+  .block-section-note code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 0 3px;
+    background: var(--neutral-opaque-container-soft);
+    border-radius: 3px;
+  }
+
+
+  /* ============================================
+     StickyBorderedPanel — обёртка filter-bar для table-страниц
+     Source: src/shared/components/StickyBorderedPanel/index.module.scss
+       .inner: padding 14px 12px (calc(spacing-8 + spacing-6)),
+               border: 1px solid var(--table-color-border),
+               radius: 8 8 0 0, gap: 16px
+     Left/right блоки: flex align-items:center gap 12px
+     ============================================ */
+  .table-filter-bar {
+    display: flex;
+    align-items: center;
+    padding: 14px 12px;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8) var(--radius-8) 0 0;
+    gap: 16px;
+    background: var(--bg-surface-1);
+  }
+  .table-filter-bar-left {
+    display: flex;
+    align-items: center;
+    /* filtersWrapper gap: --filters-gap + spacing-4 = 10px */
+    gap: 10px;
+    flex: 1 1;
+    min-width: 80px;
+  }
+  .table-filter-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 1;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+
+  /* ============================================
+     Inner group of filter chips
+     Source: Filters/index.module.scss .filters — gap: --filters-gap = 6px
+     ============================================ */
+  .filters-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+
+  /* ============================================
+     Search input — Input small24, theme=dark (для table-страниц)
+     Source: Input/index.module.scss + Filters.searchInputProps=InputThemes.dark
+       Grey bg (neutral-opaque-container-soft), 24px height, radius 6
+     ============================================ */
+  .filter-search {
+    display: flex;
+    align-items: center;
+    width: 240px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--neutral-opaque-container-soft);
+    border: 2px solid transparent;
+    border-radius: var(--radius-6);
+    flex-shrink: 0;
+    color: var(--fg-muted);
+    cursor: text;
+  }
+  .filter-search > svg {
+    margin-right: 8px;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .filter-search-placeholder {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-muted);
+  }
+  /* Search light (для tiles-страниц — нет override searchInputProps) */
+  .filter-search-light {
+    background: var(--bg-surface-1);
+  }
+  .filter-search-light:hover {
+    border-color: var(--neutral-opaque-container-hover, rgba(73,86,112,0.12));
+  }
+
+
+  /* ============================================
+     Filter chip — medium24 Chip
+     Source: src/shared/components/Chip/index.module.scss .medium24
+       padding 3px 7px (block 4 - 1border, inline 8 - 1border),
+       border 1px solid --color-border-soft,
+       radius full, bg surface-1, color fg-soft
+     Active: bg accent-opaque-container-default, border accent-muted, color accent-active
+     ============================================ */
+  .filter-select {
+    display: flex;
+    align-items: center;
+    padding: 3px 7px;
+    gap: 4px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-full, 9999px);
+    background: var(--bg-surface-1);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-soft);
+    white-space: nowrap;
+    user-select: none;
+  }
+  .filter-select:hover { background: var(--bg-surface-3); }
+  .filter-select svg { color: var(--fg-muted); flex-shrink: 0; }
+  .filter-select-active {
+    background: var(--accent-opaque-container-default);
+    border-color: var(--accent-muted);
+    color: var(--accent-active);
+  }
+  .filter-select-active:hover { background: var(--accent-opaque-container-hover); }
+  .filter-select-active svg { color: var(--accent-active); }
+  .filter-select-active b { font-weight: 500; }
+
+
+  /* ============================================
+     Tiles filter bar — БЕЗ StickyBorderedPanel обёртки.
+     Source: custom-reports/+index.tsx — useFilters({ className: 'mb-24' })
+     Filters .root просто flex без border/background.
+     ============================================ */
+  .tiles-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 0;
+  }
+  .tiles-filter-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1;
+    min-width: 80px;
+  }
+  .tiles-filter-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+
+  /* ============================================
+     SegmentedTab (S/M/L) — RadioGroup segmented medium24
+     ============================================ */
+  .segmented {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    border-radius: var(--radius-8);
+    background: var(--neutral-container-soft);
+    gap: 2px;
+  }
+  .segmented-tab {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    color: var(--fg-soft);
+  }
+  .segmented-tab-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 5px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-6);
+    background: transparent;
+    gap: 6px;
+  }
+  .segmented-tab:hover .segmented-tab-button {
+    background: var(--neutral-on-color, #fff);
+    border-color: var(--border-muted);
+  }
+  .segmented-tab.active { color: var(--fg-default); }
+  .segmented-tab.active .segmented-tab-button {
+    background: var(--bg-surface-1);
+    border-color: var(--border-muted);
+  }
+  .segmented-tab-text {
+    padding-inline: 4px;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: inherit;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  BLOCK: Filter Bar                                ║
+       ║  Варианты filter-bar для table и tiles страниц.   ║
+       ║  Table: StickyBorderedPanel (radius 8 8 0 0)      ║
+       ║  Tiles: plain flex, без обёртки                   ║
+       ╚══════════════════════════════════════════════════╝ -->
+
+
+  <!-- ======== 1. Table filter: search + 1 chip (penGroups) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 1 · table · search + 1 chip</p>
+    <p class="block-section-note">Route: <code>/herd/penGroups</code>. StickyBorderedPanel. Search (theme=dark). 1 select-chip «Признак».</p>
+
+    <div class="table-filter-bar">
+      <div class="table-filter-bar-left">
+        <div class="filter-search">
+          <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+          <span class="filter-search-placeholder">Поиск</span>
+        </div>
+        <div class="filters-group">
+          <div class="filter-select">
+            <span>Признак</span>
+            <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 2. Table filter: search + multiple chips + active ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 2 · table · search + несколько chips + 1 активный + «Очистить всё»</p>
+    <p class="block-section-note">Активный фильтр показан в accent-стиле с закрывающим крестиком. Справа появляется ghost-кнопка «Очистить всё» (Button variant=ghost, size=small24, iconVariant=xClose, shouldHideLabelOnMobile) — рендерится только когда есть <code>clearableFilters.length &gt; 0</code>.<br>Source: <code>src/features/filters/components/Filters/index.tsx:180-191</code></p>
+
+    <div class="table-filter-bar">
+      <div class="table-filter-bar-left">
+        <div class="filter-search">
+          <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+          <span class="filter-search-placeholder">Поиск</span>
+        </div>
+        <div class="filters-group">
+          <div class="filter-select">
+            <span>Период ввода</span>
+            <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+          </div>
+          <div class="filter-select">
+            <span>Команда</span>
+            <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+          </div>
+          <div class="filter-select filter-select-active">
+            <span><b>Ввёл:</b> А. Михайлов</span>
+            <svg width="16" height="16"><use href="../../icons.svg#x-close"/></svg>
+          </div>
+          <div class="filter-select">
+            <span>Ещё</span>
+            <svg width="16" height="16"><use href="../../icons.svg#chevron-down"/></svg>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn small24 ghost neutral" style="margin-left: auto;">
+        <svg width="16" height="16"><use href="../../icons.svg#x-close"/></svg>
+        <span class="children">Очистить всё</span>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- ======== 3. Table filter: search + «Фильтры» button ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 3 · table · search + «Фильтры» button</p>
+    <p class="block-section-note">Когда фильтров много — вместо chips одна кнопка «Фильтры», по клику открывается модалка/popover.</p>
+
+    <div class="table-filter-bar">
+      <div class="table-filter-bar-left">
+        <div class="filter-search">
+          <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+          <span class="filter-search-placeholder">Поиск</span>
+        </div>
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../../icons.svg#filter"/></svg>
+          <span class="children">Фильтры</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 4. Tiles filter: search + «Фильтры» (БЕЗ обёртки) ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 4 · tiles · search + «Фильтры» (БЕЗ StickyBorderedPanel)</p>
+    <p class="block-section-note">Route: <code>/analytics/custom-reports</code>. Filters без обёртки — просто flex. Search — theme=light (белый bg, default).</p>
+
+    <div class="tiles-filter-bar">
+      <div class="tiles-filter-bar-left">
+        <div class="filter-search filter-search-light">
+          <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+          <span class="filter-search-placeholder">Поиск</span>
+        </div>
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../../icons.svg#filter"/></svg>
+          <span class="children">Фильтры</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======== 5. Tiles filter: search + «Фильтры» + TileSize switcher ======== -->
+  <div class="block-section">
+    <p class="block-section-label">Вариант 5 · tiles · search + «Фильтры» + TileSize switcher справа</p>
+    <p class="block-section-note">Правый элемент через <code>rightElement: tileSizeSelectorElement</code> в useFilters. Segmented radio S/M/L.</p>
+
+    <div class="tiles-filter-bar">
+      <div class="tiles-filter-bar-left">
+        <div class="filter-search filter-search-light">
+          <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+          <span class="filter-search-placeholder">Поиск</span>
+        </div>
+        <button class="btn small24 secondary neutral">
+          <svg width="16" height="16"><use href="../../icons.svg#filter"/></svg>
+          <span class="children">Фильтры</span>
+        </button>
+      </div>
+      <div class="tiles-filter-bar-right">
+        <div class="segmented" role="radiogroup" aria-label="Размер карточек">
+          <label class="segmented-tab">
+            <div class="segmented-tab-button"><span class="segmented-tab-text">S</span></div>
+          </label>
+          <label class="segmented-tab active">
+            <div class="segmented-tab-button"><span class="segmented-tab-text">M</span></div>
+          </label>
+          <label class="segmented-tab">
+            <div class="segmented-tab-button"><span class="segmented-tab-text">L</span></div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- FIGMA HANDOFF
+    Filter bar: два варианта-обёртки.
+
+    1. TABLE FILTER BAR (StickyBorderedPanel):
+       Source: src/shared/components/StickyBorderedPanel/index.module.scss
+       - padding: 14px 12px, border: 1px solid rgba(73,86,112,0.15)
+       - border-radius: 8 8 0 0 (прилегает к таблице снизу)
+       - gap: 16px (между .left и .right)
+       - bg: surface-1
+       Внутри .left: gap 10px (spacing-6 + spacing-4)
+       Filters группа: gap 6px (--filters-gap)
+
+    2. TILES FILTER BAR (без обёртки):
+       Source: src/features/filters/components/Filters/index.module.scss .root
+       - просто flex с gap 16px
+       - padding: 4px (для overflow indicator)
+       - bg: transparent
+       Не имеет border/radius/bg — сливается с content.
+
+    Search input:
+       - Input small24 — height 24, padding 0 6, radius 6, font 12/400/16
+       - theme=dark: bg neutral-opaque-container-soft (серый) — для table
+       - theme=light: bg static-white (белый) — для tiles (default)
+       - border: 2px solid transparent → hover neutral-opaque-container-hover
+
+    Filter chip (Chip.medium24):
+       - padding: 3px 7px, radius full, border 1px solid border-soft
+       - bg surface-1, color fg-soft
+       - Active: bg accent-opaque-container-default, border accent-muted, color accent-active
+
+    «Фильтры» button: btn-sm btn-secondary-neutral (height 24, radius 6)
+
+    TileSize switcher (S/M/L):
+       - RadioGroup segmented medium24
+       - wrapper: padding 2, radius 8, bg neutral-container-soft
+       - button: padding 1px 5px, radius 6, border 1px transparent → border-muted active
+       - text: descriptionLargeStrong 12/500/16 + px-4
+
+    Источник:
+      - src/shared/components/Chip/index.module.scss (.medium24)
+      - src/shared/components/Input/index.module.scss (.small24, .light, .dark)
+      - src/shared/components/StickyBorderedPanel/index.module.scss
+      - src/features/filters/components/Filters/index.module.scss
+      - src/features/filters/components/Filters/index.tsx (searchInputProps: theme)
+      - src/features/layouts/hooks/useTileSize.tsx (segmented radio)
+      - src/routes/.../+herd/+penGroups/+index.tsx (theme=dark, 1 chip)
+      - src/routes/.../+analytics/+custom-reports/+index.tsx (light, TileSize)
+  -->
+
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKA — Page Table Grouped Template</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components.css">
+<link rel="stylesheet" href="../../layout.css">
+<style>
+  /* ============================================
+     TARGETED OVERRIDES (shared with other templates)
+     ============================================ */
+  .data-grid-header-cell { color: var(--fg-default); }
+  .data-grid-row:hover .data-grid-cell { background: var(--neutral-opaque-container-soft); }
+
+
+  /* ============================================
+     TABLE WRAPPER with shadow-border
+     ============================================ */
+  .table-wrapper {
+    background: var(--bg-surface-1);
+    border-radius: var(--radius-8);
+    box-shadow: 0 0 0 1px var(--neutral-75);
+    overflow: hidden;
+  }
+  .table-wrapper > .data-grid {
+    border: none;
+    border-radius: 0;
+  }
+
+
+  /* ============================================
+     TABS-ROW — line tabs + header right actions
+     Source: RouterTabs variant=line + PageHeader actions
+     ============================================ */
+  .tabs-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    min-height: 36px;
+  }
+  .tabs-row .tabs {
+    margin-bottom: 0;
+  }
+  .tabs-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+
+  /* ============================================
+     FILTER BAR (search only)
+     ============================================ */
+  .table-filter-bar {
+    display: flex;
+    align-items: center;
+    padding: 14px 12px;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-8) var(--radius-8) 0 0;
+    gap: 16px;
+    background: var(--bg-surface-1);
+  }
+  .table-filter-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1;
+    min-width: 80px;
+  }
+
+
+  /* ============================================
+     FILTER SEARCH (Input small24, light theme)
+     Source: Input/index.module.scss + constants.tsx addonBefore
+     ============================================ */
+  .filter-search {
+    display: flex;
+    align-items: center;
+    width: 240px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--neutral-opaque-container-soft);
+    border: 2px solid transparent;
+    border-radius: var(--radius-6);
+    flex-shrink: 0;
+    color: var(--fg-muted);
+    cursor: text;
+  }
+  .filter-search > svg {
+    margin-right: 8px;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+  }
+  .filter-search-placeholder {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-muted);
+  }
+
+
+  /* ============================================
+     GROUPED TABLE — category row as inline header
+     Source: retirement-reasons/+directions.tsx
+       columnHelper.group({ key: 'categoryAndDirection', ... })
+       - checkbox column (первая): чекбокс выбора группы есть и у category row
+         (по умолчанию renderCellControl, override null только для retirementDirection)
+       - categoryName column (вторая, 36px): для retirementDirectionCategory
+         getColSpan: 2 → охватывает categoryName + name колонки
+         cellTypographyProps: variant=bodySmallStrong (14/500/20)
+       - Для direction row категория-колонка содержит CHECKBOX_CONTROL
+         (renderCellControl: RENDER_TABLE_CELL_CHECKBOX_CONTROL)
+     БЕЗ серого фона на category row — обычный .data-grid-cell bg.
+     ============================================ */
+  /* Category name cell: spans 2 columns (categoryName + name), bodySmallStrong */
+  .category-name-cell {
+    grid-column: span 2;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: var(--fg-default);
+  }
+</style>
+</head>
+<body>
+
+  <!-- SIDEBAR (collapsed) — Source: GET_ARKA_NAVIGATION_MENU_CONFIG -->
+  <nav class="sidebar collapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="menu-btn">
+          <svg width="24" height="24"><use href="../../icons.svg#menu"/></svg>
+        </div>
+      </div>
+      <div class="sidebar-search">
+        <div class="nav-item-root">
+          <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#search"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-menu-items" id="navMenuItems">
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#calendar"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#warning-circle"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#analytics"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#cow"/></svg></a>
+      </div>
+      <!-- Управление — active (Причины выбытия внутри Управления) -->
+      <div class="nav-item-root active">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clipboard-list"/></svg></a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#clock"/></svg></a>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item-root">
+        <a class="nav-link with-counter" href="#">
+          <svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#megaphone"/></svg>
+          <span class="nav-counter">4</span>
+        </a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#">
+          <span class="nav-avatar nav-avatar-status03">6</span>
+        </a>
+      </div>
+      <div class="nav-item-root">
+        <a class="nav-link" href="#"><svg class="nav-icon" width="24" height="24"><use href="../../icons.svg#user"/></svg></a>
+      </div>
+    </div>
+  </nav>
+
+
+  <div class="main">
+    <div class="content">
+
+
+      <!-- ╔══════════════════════════════════════════════════╗
+           ║  PAGE TABLE GROUPED                               ║
+           ║  Pattern: single table with grouped rows —        ║
+           ║  category rows serve as inline section headers    ║
+           ║  (getColSpan: 2 on first column, bodySmallStrong) ║
+           ║  Source: /entities/retirement-reasons/directions  ║
+           ╚══════════════════════════════════════════════════╝ -->
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-header-title">Причины выбытия</h1>
+        </div>
+      </div>
+
+      <!-- Router tabs (line variant) + right action (btn-sm per RouterTabs small24) -->
+      <div class="tabs-row">
+        <div class="tabs line">
+          <div class="tab">Причины</div>
+          <div class="tab active">Направления</div>
+        </div>
+        <div class="tabs-row-actions">
+          <button class="btn small24 primary accent">
+            <svg width="16" height="16"><use href="../../icons.svg#plus"/></svg>
+            <span class="children">Создать направление</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+
+        <!-- Filter bar: only search (theme dark → muted bg) -->
+        <div class="table-filter-bar">
+          <div class="table-filter-bar-left">
+            <div class="filter-search">
+              <svg width="16" height="16"><use href="../../icons.svg#search"/></svg>
+              <span class="filter-search-placeholder">Поиск</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grouped table: category-row (group selector checkbox + category name colspan 2)
+             + direction-rows (empty first col, checkbox in second col, name in third)
+             Grid: checkbox(36) | categoryName(36) | name(268) | type(148) | filler -->
+        <div class="table-wrapper" style="border-radius: 0 0 var(--radius-8) var(--radius-8);">
+          <div class="data-grid" style="grid-template-columns: 36px 36px minmax(160px, 1fr) 148px minmax(0, 1fr);">
+            <div class="data-grid-header">
+              <!-- First checkbox column header (выбор всех) -->
+              <div class="data-grid-header-cell data-grid-fn-cell">
+                <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+              </div>
+              <!-- Merged header "Направление" (categoryName + name, shouldSkipNestedHeaderRow=true) -->
+              <div class="data-grid-header-cell" style="grid-column: span 2;">Направление</div>
+              <div class="data-grid-header-cell">Тип</div>
+              <div class="data-grid-header-cell"></div>
+            </div>
+            <div class="data-grid-body">
+
+              <!-- Category: Мясокомбинат — группу-чекбокс (col 1), название colspan 2 (col 2-3) -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell category-name-cell">Мясокомбинат</div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <!-- Direction: empty col 1, checkbox col 2, name col 3, type col 4 -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell"></div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">Мясокомбинат</div>
+                <div class="data-grid-cell">Стандартный</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Category: Продажа населению -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell category-name-cell">Продажа населению</div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell"></div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">Продажа населению</div>
+                <div class="data-grid-cell">Стандартный</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Category: Столовая -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell category-name-cell">Столовая</div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell"></div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">Столовая</div>
+                <div class="data-grid-cell">Стандартный</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Category: На откорм (с 2 directions) -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell category-name-cell">На откорм</div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell"></div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">На откорм</div>
+                <div class="data-grid-cell">Стандартный</div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell"></div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">Соседнее хозяйство</div>
+                <div class="data-grid-cell">Пользовательский</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+              <!-- Category: Продажа на племя -->
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell category-name-cell">Продажа на племя</div>
+                <div class="data-grid-cell"></div>
+                <div class="data-grid-cell"></div>
+              </div>
+              <div class="data-grid-row">
+                <div class="data-grid-cell data-grid-fn-cell"></div>
+                <div class="data-grid-cell data-grid-fn-cell">
+                  <label class="checkbox normal size-16" aria-checked="false"><div class="border"><span class="icon"><svg><use href="../../icons.svg#check"/></svg></span></div></label>
+                </div>
+                <div class="data-grid-cell">Продажа на племя</div>
+                <div class="data-grid-cell">Стандартный</div>
+                <div class="data-grid-cell"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel-card -->
+
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <script src="../../sidebar.js"></script>
+
+
+  <!-- FIGMA HANDOFF
+    Компоненты:
+      - Page Header (только title, без right content — actions в router-tabs-right)
+      - RouterTabs (line variant) — "Причины" / "Направления"
+      - Button small24 primary в tabs-right — "Создать направление"
+      - Panel Card (largePanel 24px padding, 12px radius)
+      - Filter bar (StickyBorderedPanel) с только Input search small24 (theme=dark → muted bg)
+      - Table с grouped rows:
+        • Category row (`.category-row`) — fg-default, bodySmallStrong, bg=neutral-opaque-container-muted
+        • Category cell spans 2 columns (grid-column: span 2) — per columnHelper.display getColSpan: R.always(2)
+        • Direction row (обычная строка) — checkbox + name + type
+
+    Новый паттерн (vs pages/table.html / pages/table-nested.html):
+      - `.data-grid-row.category-row` — inline section header внутри той же таблицы
+      - `.category-cell { grid-column: span 2 }` — колонка category занимает место checkbox + name
+      - Не expandable — просто группирующий заголовок в потоке строк
+
+    Источник в кодовой базе:
+      - src/routes/.../+entities/+retirement-reasons/+directions.tsx
+      - src/routes/.../+entities/+retirement-reasons.tsx (layout с PageHeader + RouterTabs)
+      - columnHelper.group + getColSpan + cellTypographyProps.variant=bodySmallStrong
+  -->
+  <!-- AiAssistantButton FAB — в продукте fixed right:32 bottom:32 на всех страницах.
+       Source: widgets/aiAssistant/components/AiAssistantButton/index.tsx -->
+  <button class="ai-assistant-btn" type="button" aria-expanded="false" data-is-floating-element="true">
+    <span class="icon"><span class="innerRoot"><svg><use href="../../icons.svg#arkasha"/></svg></span></span>
+    <span class="children">Чат с ИИ</span>
+  </button>
+
+
+</body>
+</html>

@@ -1,0 +1,5052 @@
+@scope (.arka-prototype) {
+:where([data-slot="button"], [data-slot="input"], [data-slot="badge"]) { all: revert; box-sizing: border-box; }
+/* ============================================
+   ARKA Design System Tokens
+   Source: Design/Front/product-src/
+   ============================================ */
+
+:scope {
+
+  /* ============================================
+     1. FONT
+     ============================================ */
+  --font: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ============================================
+     2. FOREGROUND
+     ============================================ */
+  --fg-default: #0f1116;
+  --fg-soft: #495670;
+  --fg-muted: #8991a2;
+  --fg-disabled: rgba(73,86,112,0.5);
+
+  /* ============================================
+     3. BACKGROUND
+     ============================================ */
+  --bg-page: #f4f4f6;
+  --bg-surface-0: rgba(255,255,255,0.35);
+  --bg-surface-1: #ffffff;
+  --bg-surface-2: #fafafb;
+  --bg-surface-3: #f4f4f6;
+  --bg-surface-4: #edeef1;
+  --bg-surface-5: #d2d5db;
+  --bg-disabled: rgba(73,86,112,0.1);
+
+  /* ============================================
+     4. BORDER
+     ============================================ */
+  --border-default: rgba(73,86,112,0.5);
+  --border-soft: rgba(73,86,112,0.25);
+  --border-muted: rgba(73,86,112,0.15);
+
+  /* ============================================
+     5. FOCUS
+     ============================================ */
+  --focus-default: rgba(247,103,7,0.25);
+
+  /* ============================================
+     6. COLOR PALETTES
+     ============================================ */
+
+  /* --- Accent (Brand Orange) --- */
+  --accent-0: #ffffff;
+  --accent-10: #fffaf8;
+  --accent-30: #fff5ef;
+  --accent-50: #fef0e6;
+  --accent-75: #fee5d4;
+  --accent-100: #fdd9c1;
+  --accent-150: #fcc6a2;
+  --accent-200: #fbb383;
+  --accent-300: #fa9c5e;
+  --accent-400: #f98539;
+  --accent-500: #f76707;
+  --accent-600: #d25706;
+  --accent-700: #ad4805;
+  --accent-800: #943e04;
+  --accent-900: #7b3403;
+  --accent-925: #6a2c03;
+  --accent-950: #562402;
+  --accent-990: #311501;
+  --accent-1000: #000000;
+
+  --accent-default: #f76707;
+  --accent-soft: #f98539;
+  --accent-muted: #fbb383;
+  --accent-hover: #d25706;
+  --accent-active: #ad4805;
+  --accent-on-color: #ffffff;
+  --accent-on-container: #f76707;
+  --accent-container-default: rgba(247,103,7,0.1);
+  --accent-container-soft: rgba(247,103,7,0.05);
+  --accent-container-muted: rgba(247,103,7,0.03);
+  --accent-container-hover: rgba(247,103,7,0.2);
+  --accent-container-active: rgba(247,103,7,0.3);
+  --accent-opaque-container-default: #fef0e6;
+  --accent-opaque-container-soft: #fff5ef;
+  --accent-opaque-container-muted: #fffaf8;
+  --accent-opaque-container-hover: #fee5d4;
+  --accent-opaque-container-active: #fcc6a2;
+
+  /* --- Neutral (Blue-Gray) --- */
+  --neutral-0: #ffffff;
+  --neutral-10: #fafafb;
+  --neutral-30: #f4f4f6;
+  --neutral-50: #edeef1;
+  --neutral-75: #e0e2e6;
+  --neutral-100: #d2d5db;
+  --neutral-150: #bbc0ca;
+  --neutral-200: #a4abb8;
+  --neutral-300: #8991a2;
+  --neutral-400: #6d788d;
+  --neutral-500: #495670;
+  --neutral-600: #3e495f;
+  --neutral-700: #333c4e;
+  --neutral-800: #2c3443;
+  --neutral-900: #242b38;
+  --neutral-925: #1f2530;
+  --neutral-950: #1a1e27;
+  --neutral-990: #0f1116;
+  --neutral-1000: #000000;
+
+  --neutral-default: #495670;
+  --neutral-soft: #6d788d;
+  --neutral-muted: #a4abb8;
+  --neutral-hover: #3e495f;
+  --neutral-active: #333c4e;
+  --neutral-on-color: #ffffff;
+  --neutral-on-container: #495670;
+  --neutral-container-default: rgba(73,86,112,0.12);
+  --neutral-container-soft: rgba(73,86,112,0.07);
+  --neutral-container-muted: rgba(73,86,112,0.05);
+  --neutral-container-hover: rgba(73,86,112,0.22);
+  --neutral-container-active: rgba(73,86,112,0.32);
+  --neutral-opaque-container-default: #edeef1;
+  --neutral-opaque-container-soft: #f4f4f6;
+  --neutral-opaque-container-muted: #fafafb;
+  --neutral-opaque-container-hover: #e0e2e6;
+  --neutral-opaque-container-active: #bbc0ca;
+
+  /* --- Success (Green) --- */
+  --success-0: #ffffff;
+  --success-10: #f8fcf9;
+  --success-30: #f0f9f3;
+  --success-50: #e7f6ed;
+  --success-75: #d5f0df;
+  --success-100: #c2e9d1;
+  --success-150: #a4deba;
+  --success-200: #85d2a3;
+  --success-300: #60c588;
+  --success-400: #3bb86d;
+  --success-500: #0aa648;
+  --success-600: #088d3d;
+  --success-700: #077432;
+  --success-800: #06642b;
+  --success-900: #055324;
+  --success-925: #04471f;
+  --success-950: #033a19;
+  --success-990: #02210e;
+  --success-1000: #000000;
+
+  --success-default: #0aa648;
+  --success-soft: #3bb86d;
+  --success-muted: #85d2a3;
+  --success-hover: #088d3d;
+  --success-active: #077432;
+  --success-on-color: #ffffff;
+  --success-on-container: #0aa648;
+  --success-container-default: rgba(10,166,72,0.1);
+  --success-container-soft: rgba(10,166,72,0.05);
+  --success-container-muted: rgba(10,166,72,0.03);
+  --success-container-hover: rgba(10,166,72,0.2);
+  --success-container-active: rgba(10,166,72,0.3);
+  --success-opaque-container-default: #e7f6ed;
+  --success-opaque-container-soft: #f0f9f3;
+  --success-opaque-container-muted: #f8fcf9;
+  --success-opaque-container-hover: #d5f0df;
+  --success-opaque-container-active: #a4deba;
+
+  /* --- Error (Red) --- */
+  --error-0: #ffffff;
+  --error-10: #fef8f8;
+  --error-30: #fdf0f0;
+  --error-50: #fce8e8;
+  --error-75: #fad7d7;
+  --error-100: #f7c6c6;
+  --error-150: #f3aaaa;
+  --error-200: #ee8d8d;
+  --error-300: #ea6b6b;
+  --error-400: #e44949;
+  --error-500: #de1b1b;
+  --error-600: #bd1717;
+  --error-700: #9b1313;
+  --error-800: #851010;
+  --error-900: #6f0d0d;
+  --error-925: #5f0c0c;
+  --error-950: #4e0909;
+  --error-990: #2c0505;
+  --error-1000: #000000;
+
+  --error-default: #de1b1b;
+  --error-soft: #e44949;
+  --error-muted: #ee8d8d;
+  --error-hover: #bd1717;
+  --error-active: #9b1313;
+  --error-on-color: #ffffff;
+  --error-on-container: #de1b1b;
+  --error-container-default: rgba(222,27,27,0.1);
+  --error-container-soft: rgba(222,27,27,0.05);
+  --error-container-muted: rgba(222,27,27,0.03);
+  --error-container-hover: rgba(222,27,27,0.2);
+  --error-container-active: rgba(222,27,27,0.3);
+  --error-opaque-container-default: #fce8e8;
+  --error-opaque-container-soft: #fdf0f0;
+  --error-opaque-container-muted: #fef8f8;
+  --error-opaque-container-hover: #fad7d7;
+  --error-opaque-container-active: #f3aaaa;
+
+  /* --- Warning (Amber) --- */
+  --warning-0: #ffffff;
+  --warning-10: #fefcf7;
+  --warning-30: #fef8ef;
+  --warning-50: #fef4e6;
+  --warning-75: #fdecd3;
+  --warning-100: #fce3bf;
+  --warning-150: #fbd6a0;
+  --warning-200: #f9c880;
+  --warning-300: #f7b859;
+  --warning-400: #f5a733;
+  --warning-500: #f29100;
+  --warning-600: #ce7b00;
+  --warning-700: #a96500;
+  --warning-800: #915700;
+  --warning-900: #794800;
+  --warning-925: #683e00;
+  --warning-950: #553300;
+  --warning-990: #301d00;
+  --warning-1000: #000000;
+
+  --warning-default: #f29100;
+  --warning-soft: #f5a733;
+  --warning-muted: #f9c880;
+  --warning-hover: #ce7b00;
+  --warning-active: #a96500;
+  --warning-on-color: #ffffff;
+  --warning-on-container: #f29100;
+  --warning-container-default: rgba(242,145,0,0.1);
+  --warning-container-soft: rgba(242,145,0,0.05);
+  --warning-container-muted: rgba(242,145,0,0.03);
+  --warning-container-hover: rgba(242,145,0,0.2);
+  --warning-container-active: rgba(242,145,0,0.3);
+  --warning-opaque-container-default: #fef4e6;
+  --warning-opaque-container-soft: #fef8ef;
+  --warning-opaque-container-muted: #fefcf7;
+  --warning-opaque-container-hover: #fdecd3;
+  --warning-opaque-container-active: #fbd6a0;
+
+  /* --- Info (Blue) --- */
+  --info-0: #ffffff;
+  --info-10: #f8fbfe;
+  --info-30: #f0f7fe;
+  --info-50: #e7f3fd;
+  --info-75: #d5eafc;
+  --info-100: #c2e1fa;
+  --info-150: #a3d2f8;
+  --info-200: #84c3f6;
+  --info-300: #5fb1f3;
+  --info-400: #3a9ff1;
+  --info-500: #0987ed;
+  --info-600: #0873c9;
+  --info-700: #065fa6;
+  --info-800: #05518e;
+  --info-900: #044477;
+  --info-925: #043a66;
+  --info-950: #032f53;
+  --info-990: #021b2f;
+  --info-1000: #000000;
+
+  --info-default: #0987ed;
+  --info-soft: #3a9ff1;
+  --info-muted: #84c3f6;
+  --info-hover: #0873c9;
+  --info-active: #065fa6;
+  --info-on-color: #ffffff;
+  --info-on-container: #0987ed;
+  --info-container-default: rgba(9,135,237,0.1);
+  --info-container-soft: rgba(9,135,237,0.05);
+  --info-container-muted: rgba(9,135,237,0.03);
+  --info-container-hover: rgba(9,135,237,0.2);
+  --info-container-active: rgba(9,135,237,0.3);
+  --info-opaque-container-default: #e7f3fd;
+  --info-opaque-container-soft: #f0f7fe;
+  --info-opaque-container-muted: #f8fbfe;
+  --info-opaque-container-hover: #d5eafc;
+  --info-opaque-container-active: #a3d2f8;
+
+  /* --- Status01 (Teal) --- */
+  --status01-0: #ffffff;
+  --status01-10: #f8fbfb;
+  --status01-30: #f0f7f7;
+  --status01-50: #e7f3f2;
+  --status01-75: #d5eae9;
+  --status01-100: #c2e1df;
+  --status01-150: #a4d2cf;
+  --status01-200: #85c3bf;
+  --status01-300: #60b1ac;
+  --status01-400: #3c9f98;
+  --status01-500: #0b877f;
+  --status01-600: #09736c;
+  --status01-700: #085f59;
+  --status01-800: #07514c;
+  --status01-900: #06443f;
+  --status01-925: #053a37;
+  --status01-950: #042f2c;
+  --status01-990: #021b19;
+  --status01-1000: #000000;
+
+  --status01-default: #0b877f;
+  --status01-soft: #3c9f98;
+  --status01-muted: #85c3bf;
+  --status01-hover: #09736c;
+  --status01-active: #085f59;
+  --status01-on-color: #ffffff;
+  --status01-on-container: #0b877f;
+  --status01-container-default: rgba(11,135,127,0.1);
+  --status01-container-soft: rgba(11,135,127,0.05);
+  --status01-container-muted: rgba(11,135,127,0.03);
+  --status01-container-hover: rgba(11,135,127,0.2);
+  --status01-container-active: rgba(11,135,127,0.3);
+  --status01-opaque-container-default: #e7f3f2;
+  --status01-opaque-container-soft: #f0f7f7;
+  --status01-opaque-container-muted: #f8fbfb;
+  --status01-opaque-container-hover: #d5eae9;
+  --status01-opaque-container-active: #a4d2cf;
+
+  /* --- Status02 (Steel Blue) --- */
+  --status02-0: #ffffff;
+  --status02-10: #f8fbfd;
+  --status02-30: #f0f7fb;
+  --status02-50: #e7f2f8;
+  --status02-75: #d5e9f2;
+  --status02-100: #c3dfec;
+  --status02-150: #a5cfe3;
+  --status02-200: #87beda;
+  --status02-300: #64abcf;
+  --status02-400: #4098c4;
+  --status02-500: #107eb5;
+  --status02-600: #0e6b9a;
+  --status02-700: #0b587f;
+  --status02-800: #0a4b6d;
+  --status02-900: #083f5b;
+  --status02-925: #062c3f;
+  --status02-950: #052332;
+  --status02-990: #031924;
+  --status02-1000: #000000;
+
+  --status02-default: #107eb5;
+  --status02-soft: #4098c4;
+  --status02-muted: #87beda;
+  --status02-hover: #0e6b9a;
+  --status02-active: #0b587f;
+  --status02-on-color: #ffffff;
+  --status02-on-container: #107eb5;
+  --status02-container-default: rgba(16,126,181,0.1);
+  --status02-container-soft: rgba(16,126,181,0.05);
+  --status02-container-muted: rgba(16,126,181,0.03);
+  --status02-container-hover: rgba(16,126,181,0.2);
+  --status02-container-active: rgba(16,126,181,0.3);
+  --status02-opaque-container-default: #e7f2f8;
+  --status02-opaque-container-soft: #f0f7fb;
+  --status02-opaque-container-muted: #f8fbfd;
+  --status02-opaque-container-hover: #d5e9f2;
+  --status02-opaque-container-active: #a5cfe3;
+
+  /* --- Status03 (Purple) --- */
+  --status03-0: #ffffff;
+  --status03-10: #fbfbfe;
+  --status03-30: #f6f6fe;
+  --status03-50: #f0f0fd;
+  --status03-75: #e5e5fb;
+  --status03-100: #dadaf9;
+  --status03-150: #c8c8f7;
+  --status03-200: #b5b5f4;
+  --status03-300: #9f9ff0;
+  --status03-400: #8989ed;
+  --status03-500: #6b6be8;
+  --status03-600: #5b5bc5;
+  --status03-700: #4b4ba2;
+  --status03-800: #40408b;
+  --status03-900: #363674;
+  --status03-925: #252551;
+  --status03-950: #1d1d40;
+  --status03-990: #15152e;
+  --status03-1000: #000000;
+
+  --status03-default: #6b6be8;
+  --status03-soft: #8989ed;
+  --status03-muted: #b5b5f4;
+  --status03-hover: #5b5bc5;
+  --status03-active: #4b4ba2;
+  --status03-on-color: #ffffff;
+  --status03-on-container: #6b6be8;
+  --status03-container-default: rgba(107,107,232,0.1);
+  --status03-container-soft: rgba(107,107,232,0.05);
+  --status03-container-muted: rgba(107,107,232,0.03);
+  --status03-container-hover: rgba(107,107,232,0.2);
+  --status03-container-active: rgba(107,107,232,0.3);
+  --status03-opaque-container-default: #f0f0fd;
+  --status03-opaque-container-soft: #f6f6fe;
+  --status03-opaque-container-muted: #fbfbfe;
+  --status03-opaque-container-hover: #e5e5fb;
+  --status03-opaque-container-active: #c8c8f7;
+
+  /* --- Status04 (Violet) --- */
+  --status04-0: #ffffff;
+  --status04-10: #fcfafe;
+  --status04-30: #f8f4fd;
+  --status04-50: #f4edfb;
+  --status04-75: #ece0f8;
+  --status04-100: #e4d3f4;
+  --status04-150: #d6beef;
+  --status04-200: #c8a8ea;
+  --status04-300: #b88de3;
+  --status04-400: #a873dd;
+  --status04-500: #9250d4;
+  --status04-600: #7c44b4;
+  --status04-700: #663894;
+  --status04-800: #58307f;
+  --status04-900: #49286a;
+  --status04-925: #3f225b;
+  --status04-950: #331c4a;
+  --status04-990: #1d102a;
+  --status04-1000: #000000;
+
+  --status04-default: #9250d4;
+  --status04-soft: #a873dd;
+  --status04-muted: #c8a8ea;
+  --status04-hover: #7c44b4;
+  --status04-active: #663894;
+  --status04-on-color: #ffffff;
+  --status04-on-container: #9250d4;
+  --status04-container-default: rgba(146,80,212,0.1);
+  --status04-container-soft: rgba(146,80,212,0.05);
+  --status04-container-muted: rgba(146,80,212,0.03);
+  --status04-container-hover: rgba(146,80,212,0.2);
+  --status04-container-active: rgba(146,80,212,0.3);
+  --status04-opaque-container-default: #f4edfb;
+  --status04-opaque-container-soft: #f8f4fd;
+  --status04-opaque-container-muted: #fcfafe;
+  --status04-opaque-container-hover: #ece0f8;
+  --status04-opaque-container-active: #d6beef;
+
+  /* --- Status05 (Pink) --- */
+  --status05-0: #ffffff;
+  --status05-10: #fef8fb;
+  --status05-30: #fdf1f6;
+  --status05-50: #fbe9f0;
+  --status05-75: #f8d9e5;
+  --status05-100: #f4c8da;
+  --status05-150: #efadc8;
+  --status05-200: #ea91b6;
+  --status05-300: #e36f9f;
+  --status05-400: #dd4e89;
+  --status05-500: #d4226c;
+  --status05-600: #b41d5c;
+  --status05-700: #94184b;
+  --status05-800: #7f1441;
+  --status05-900: #6a1136;
+  --status05-925: #5b0f2e;
+  --status05-950: #4a0c26;
+  --status05-990: #2a0716;
+  --status05-1000: #000000;
+
+  --status05-default: #d4226c;
+  --status05-soft: #dd4e89;
+  --status05-muted: #ea91b6;
+  --status05-hover: #b41d5c;
+  --status05-active: #94184b;
+  --status05-on-color: #ffffff;
+  --status05-on-container: #d4226c;
+  --status05-container-default: rgba(212,34,108,0.1);
+  --status05-container-soft: rgba(212,34,108,0.05);
+  --status05-container-muted: rgba(212,34,108,0.03);
+  --status05-container-hover: rgba(212,34,108,0.2);
+  --status05-container-active: rgba(212,34,108,0.3);
+  --status05-opaque-container-default: #fbe9f0;
+  --status05-opaque-container-soft: #fdf1f6;
+  --status05-opaque-container-muted: #fef8fb;
+  --status05-opaque-container-hover: #f8d9e5;
+  --status05-opaque-container-active: #efadc8;
+
+  /* --- Status06 (Brown) --- */
+  --status06-0: #ffffff;
+  --status06-10: #fcfaf7;
+  --status06-30: #faf5ef;
+  --status06-50: #f7efe6;
+  --status06-75: #f1e3d3;
+  --status06-100: #ead7c0;
+  --status06-150: #e0c3a1;
+  --status06-200: #d5af81;
+  --status06-300: #c8975b;
+  --status06-400: #bc7f35;
+  --status06-500: #ab5f02;
+  --status06-600: #915102;
+  --status06-700: #784301;
+  --status06-800: #673901;
+  --status06-900: #552f01;
+  --status06-925: #492901;
+  --status06-950: #3c2101;
+  --status06-990: #221300;
+  --status06-1000: #000000;
+
+  --status06-default: #ab5f02;
+  --status06-soft: #bc7f35;
+  --status06-muted: #d5af81;
+  --status06-hover: #915102;
+  --status06-active: #784301;
+  --status06-on-color: #ffffff;
+  --status06-on-container: #ab5f02;
+  --status06-container-default: rgba(171,95,2,0.1);
+  --status06-container-soft: rgba(171,95,2,0.05);
+  --status06-container-muted: rgba(171,95,2,0.03);
+  --status06-container-hover: rgba(171,95,2,0.2);
+  --status06-container-active: rgba(171,95,2,0.3);
+  --status06-opaque-container-default: #f7efe6;
+  --status06-opaque-container-soft: #faf5ef;
+  --status06-opaque-container-muted: #fcfaf7;
+  --status06-opaque-container-hover: #f1e3d3;
+  --status06-opaque-container-active: #e0c3a1;
+
+  /* ============================================
+     7. STATIC COLORS
+     ============================================ */
+  --color-white: #ffffff;
+  --color-black: #0f1116;
+
+  /* ============================================
+     8. BORDER RADIUS
+     ============================================ */
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-24: 24px;
+  --radius-full: 9999px;
+  --radius-inputs: 8px;
+  --radius-buttons: 8px;
+  --radius-controls: 4px;
+
+  /* ============================================
+     9. BORDER WIDTH
+     ============================================ */
+  --border-width-1: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+  --border-width-inputs: 2px;
+  --border-width-focus: 2px;
+  --border-width-controls: 2px;
+  --border-width-dividers: 1px;
+
+  /* ============================================
+     10. SHADOWS
+     ============================================ */
+  --shadow-sm: 0px 0px 6px 0px rgba(73,86,112,0.02), 0px 2px 4px 0px rgba(73,86,112,0.12);
+  --shadow-md: 0px 0px 4px 0px rgba(73,86,112,0.04), 0px 4px 8px 0px rgba(73,86,112,0.12);
+  --shadow-lg: 0px 0px 4px 0px rgba(73,86,112,0.04), 0px 8px 16px 0px rgba(73,86,112,0.12);
+
+  /* ============================================
+     11. SPACING (base 4px)
+     ============================================ */
+  --spacing-1: 1px;
+  --spacing-2: 2px;
+  --spacing-4: 4px;
+  --spacing-6: 6px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+  --spacing-80: 80px;
+  --spacing-96: 96px;
+  --spacing-128: 128px;
+  --spacing-192: 192px;
+
+  /* ============================================
+     12. SIZE
+     ============================================ */
+  --size-4: 4px;
+  --size-8: 8px;
+  --size-12: 12px;
+  --size-16: 16px;
+  --size-20: 20px;
+  --size-24: 24px;
+  --size-28: 28px;
+  --size-32: 32px;
+  --size-36: 36px;
+  --size-48: 48px;
+  --size-56: 56px;
+  --size-64: 64px;
+
+  /* ============================================
+     13. Z-INDEX
+     ============================================ */
+  --z-always-below: -1;
+  --z-base: 1;
+  --z-old-menu: 10;
+  --z-sticky-content: 2000;
+  --z-sticky-tabs: 3000;
+  --z-menu: 5000;
+  --z-modal: 8000;
+  --z-notifications: 9000;
+  --z-popover: 11000;
+  --z-tooltip: 12000;
+  --z-drag-overlay: 13000;
+
+  /* ============================================
+     14. ANIMATION
+     ============================================ */
+  --duration-fast: 0.1s;
+  --duration-medium: 0.2s;
+  --duration-slow: 0.3s;
+  --duration-pulse: 2s;
+  --easing-pulse: cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* ============================================
+     17. COMPONENT TOKENS
+     ============================================ */
+
+  /* Navigation */
+  --nav-width: 248px;
+  --nav-width-collapsed: 72px;
+
+  /* Mobile Header */
+  --mobile-header-sm: 64px;
+  --mobile-header-md: 80px;
+
+  /* Button */
+  --btn-sm: 24px;
+  --btn-md: 36px;
+  --btn-lg: 48px;
+  --btn-icon-sm: 16px;
+  --btn-icon-md: 20px;
+  --btn-icon-lg: 24px;
+
+  /* Close Button */
+  --close-btn-lg: 24px;
+  --close-btn-md: 20px;
+  --close-btn-sm: 16px;
+  --close-btn-xs: 12px;
+
+  /* Input */
+  --input-width-default: 240px;
+
+  /* Avatar */
+  --avatar-size: 24px;
+
+  /* Popover */
+  --popover-max-height: 300px;
+
+  /* Scrollbar */
+  --scrollbar-size: 8px;
+
+  /* Table */
+  --table-fn-cell-w: 36px;
+  --table-nested-pad: 16px;
+  --table-border-w: 1px;
+  --table-border-r: 8px;
+  --table-border-color: rgba(73,86,112,0.15);
+
+  /* Tabs */
+  --tabs-height: 38px;
+  --tabs-scroll-height: 12px;
+
+  /* Tile */
+  --tile-min-w-sm: 244px;
+  --tile-min-w-md: 296px;
+  --tile-min-w-lg: 428px;
+
+  /* ============================================
+     Content Grid (defaults — overridden per BP)
+     ============================================ */
+  --content-max-width: 1576px;
+  --content-grid-gap: 24px;
+  --content-grid-padding: 48px;
+  --content-grid-columns: 8;
+}
+
+/* ============================================
+   15. TYPOGRAPHY
+   Typography utility classes перенесены в layout.css с product-src 1:1 naming
+   (bodyMediumStrong, descriptionLarge, displaySmall, heading2 и т.д.).
+   Source: src/styles/__generated__/typography-mixins.scss
+   tokens.css должен содержать ТОЛЬКО CSS-переменные, не utility-классы.
+   ============================================ */
+
+
+/* ============================================
+   16. BREAKPOINTS & Content Grid
+   ============================================ */
+
+@custom-media --bp-sm (min-width: 320px) and (max-width: 767px);
+@custom-media --bp-sm-up (min-width: 320px);
+@custom-media --bp-sm-down (max-width: 319px);
+@custom-media --bp-md (min-width: 768px) and (max-width: 1279px);
+@custom-media --bp-md-up (min-width: 768px);
+@custom-media --bp-md-down (max-width: 767px);
+@custom-media --bp-lg (min-width: 1280px) and (max-width: 1919px);
+@custom-media --bp-lg-up (min-width: 1280px);
+@custom-media --bp-lg-down (max-width: 1279px);
+@custom-media --bp-xl-up (min-width: 1920px);
+@custom-media --bp-xl-down (max-width: 1919px);
+
+/* SM: 320-767 */
+@media (min-width: 320px) and (max-width: 767px) {
+  :scope {
+    --content-grid-gap: 16px;
+    --content-grid-padding: 16px;
+    --content-grid-columns: 4;
+  }
+}
+
+/* MD: 768-1279 */
+@media (min-width: 768px) and (max-width: 1279px) {
+  :scope {
+    --content-grid-gap: 24px;
+    --content-grid-padding: 24px;
+    --content-grid-columns: 6;
+  }
+}
+
+/* LG: 1280-1919 */
+@media (min-width: 1280px) and (max-width: 1919px) {
+  :scope {
+    --content-grid-gap: 24px;
+    --content-grid-padding: 48px;
+    --content-grid-columns: 8;
+  }
+}
+
+/* XL: 1920+ */
+@media (min-width: 1920px) {
+  :scope {
+    --content-grid-gap: 24px;
+    --content-grid-padding: 48px;
+    --content-grid-columns: 8;
+  }
+}
+
+/* ============================================
+   Reset & Base
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 14px; }
+:scope {
+  font-family: var(--font);
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--fg-default);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* `.hidden` utility перенесён в layout.css (tokens.css должен быть только :scope vars) */
+
+/* ============================================
+   ARKA Shared Components
+   Библиотека компонентов продукта АРКА.
+   Naming: 1:1 с product-src CSS Modules (root-class = имя компонента,
+           модификаторы и inner-классы из SCSS используются дословно).
+
+   ╔══════════════════════════════════════════════════════════════════╗
+   ║  🔴 ПРАВИЛО №0 — СТРОГИЙ 1:1 С ПРОДУКТОМ                          ║
+   ║                                                                    ║
+   ║  Shared library и templates/ — это "документация product-src в     ║
+   ║  коде". Любое отклонение от исходного кода продукта — ВЫДУМКА,         ║
+   ║  независимо от причины (shorthand, упрощение, "так уже было").   ║
+   ║                                                                    ║
+   ║  Выдумки допустимы ТОЛЬКО в продуктовых прототипах в              ║
+   ║  ваших экранах (screens/), не в shared/ и не в templates/.     ║
+   ║                                                                    ║
+   ║  При обнаружении выдумки — мигрировать, не защищать. Аргументы   ║
+   ║  "так уже было"/"короче"/"визуально эквивалентно" ЗАПРЕЩЕНЫ.      ║
+   ║                                                                    ║
+   ╚══════════════════════════════════════════════════════════════════╝
+
+
+   ╔══════════════════════════════════════════════════════════════════╗
+   ║  ПРАВИЛО COMBO-ONLY — ЧИТАЙ ПЕРЕД ЛЮБОЙ ПРАВКОЙ                    ║
+   ║                                                                    ║
+   ║  МОДИФИКАТОРЫ (.large24, .medium36, .primary, .accent, .active,   ║
+   ║  .line, .table, .counter, .pressed, .focused, .disabled,          ║
+   ║  .loading, .light, .dark, .on-light, .on-dark, .secondary,        ║
+   ║  .ghost, .destructive, .tertiary, .failure, .neutral, .success,   ║
+   ║  .warning, .error, .info, .info, .theme-*, .color-*, .inactive,   ║
+   ║  .interactiveContainer, .withOnlyIcon) определяются ТОЛЬКО в      ║
+   ║  combo с root-классом компонента.                                  ║
+   ║                                                                    ║
+   ║    .btn.medium36.primary.accent { ... }   ✓                       ║
+   ║    .tabs.line .tab.active { ... }         ✓                       ║
+   ║    .badge.theme-default.color-neutral { ... }  ✓                  ║
+   ║    .chip.active { ... }                   ✓                       ║
+   ║                                                                    ║
+   ║    .large24 { ... }                       ✗ НИКОГДА               ║
+   ║    .active { ... }                        ✗ НИКОГДА               ║
+   ║    .primary { ... }                       ✗ НИКОГДА               ║
+   ║                                                                    ║
+   ║  ЗАЧЕМ: product-src использует CSS Modules (scope через hash). У    ║
+   ║  нас flat CSS без scoping — combo-селектор это единственный       ║
+   ║  способ scope'а. Голый модификатор сделает global definition     ║
+   ║  и сломает все компоненты где этот класс встречается.              ║
+   ║                                                                    ║
+   ║  INNER-ЭЛЕМЕНТЫ (.text, .children, .icon, .innerRoot, .loader,    ║
+   ║  .right-slot, .contentWrapper, .content, .textWrapper,            ║
+   ║  .functionButtons, .functionButtonItem, .tab, .wrapper,           ║
+   ║  .tabsWrapper, .tabsScrollContainer, .rightContent) — через        ║
+   ║  nested descendant селектор:                                        ║
+   ║                                                                    ║
+   ║    .btn .children { ... }     ✓                                    ║
+   ║    .badge .text { ... }       ✓                                    ║
+   ║    .tabs .tab { ... }         ✓                                    ║
+   ║                                                                    ║
+   ║    .text { ... }              ✗ глобально сломает всё              ║
+   ║                                                                    ║
+   ║  GREP-ТЕСТЫ перед commit:                                           ║
+   ║                                                                    ║
+   ║  1) Модификаторы / inner-classes без root-combo:                   ║
+   ║    grep -E '^\.(large|medium|small|primary|secondary|ghost|active  ║
+   ║              |pressed|focused|disabled|loading|line|table|counter  ║
+   ║              |text|children|icon|innerRoot|accent|neutral|destru   ║
+   ║              |tertiary|failure|light|dark|asterisk|ellipsis        ║
+   ║              |interactiveContainer|withOnlyIcon|withLabel          ║
+   ║              |segmentedTabButton)[ ,\{]' components.css             ║
+   ║    ДОЛЖЕН быть пустой.                                              ║
+   ║                                                                    ║
+   ║  2) Variant-names которые product-src использует на wrapper'ах       ║
+   ║     (например RadioGroupVariants.chip на .radio-group wrapper'е):  ║
+   ║    grep -E '^\.(chip|segmented|verticalRadio|icons|normal)[ ,\{]'  ║
+   ║            components.css                                           ║
+   ║    ДОЛЖЕН быть пустой (см. §11.4 «Variant-name collision audit»).   ║
+   ║    Если есть — правило применится к wrapper'у и создаст фантом.    ║
+   ║    Fix: переписать в combo с obligate indicator (.chip.medium24).  ║
+   ╚══════════════════════════════════════════════════════════════════╝
+   ============================================ */
+
+
+/* ============================================
+   0. ICON (base)
+   Source: shared/components/Icon/index.module.scss + index.tsx
+   DOM: <span class="icon"><span class="innerRoot"><svg><use href="#id"/></svg></span></span>
+   Applied to ALL Icon usages: standalone (in Avatar, metric-card delta, etc.)
+   and nested inside Button/FunctionButton/CloseButton/etc.
+   Per-size sizing — через combo с parent (`.btn.large48 .icon > .innerRoot { 24x24 }`).
+   ============================================ */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.icon > .innerRoot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Default size24 (product-src Icon default per SizeVariants.size24).
+     Per-component overrides — в combo .btn.medium36 .icon > .innerRoot { 20px } etc. */
+  width: 24px;
+  height: 24px;
+}
+.icon > .innerRoot > svg { display: block; width: 100%; height: 100%; }
+
+
+/* ============================================
+   1. BUTTON
+   Source: shared/components/Button/index.module.scss
+   DOM (Button/index.tsx:183-253):
+     <button type="button" class="btn {variant} {theme} {size}
+             [withOnlyIcon] [loading] [pressed] [focused] [disabled]">
+       <Icon class="icon">          — left icon
+       <Typography tag='div' class="children">   — ВСЕГДА <div>
+       <Icon class="icon">          — right icon
+       <Loader class="loader">      — абс, inset 0 (поверх)
+     </button>
+   Typography по размеру:
+     large48  → bodyMediumStrong        (16/500/24)
+     medium36 → bodySmallStrong         (14/500/20)
+     small24  → descriptionLargeStrong  (12/500/16)
+   ============================================ */
+.btn {
+  --button-bg-actual: var(--button-bg);
+  --button-fg-actual: var(--button-fg);
+  position: relative;
+  display: inline-flex;
+  height: var(--button-height);
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--button-horizontal-padding);
+  border: 0;
+  border-radius: var(--button-border-radius);
+  background: var(--button-bg-actual);
+  color: var(--button-fg-actual);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  white-space: nowrap;
+  font-family: var(--font);
+  font-weight: 500;
+  transition:
+    background-color var(--duration-fast-01) ease-out,
+    color var(--duration-fast-01) ease-out;
+}
+.btn:hover:not(.loading):not(.disabled) {
+  --button-bg-actual: var(--button-bg-active);
+  --button-fg-actual: var(--button-fg-active);
+}
+.btn.pressed {
+  --button-bg-actual: var(--button-bg-pressed);
+}
+.btn.focused,
+.btn:focus-visible {
+  --button-bg-actual: var(--button-bg-active);
+  --button-fg-actual: var(--button-fg-active);
+  border-radius: var(--button-focus-border-radius);
+  outline: 2px solid var(--focus-default);
+  outline-offset: 2px;
+}
+.btn.disabled, .btn[disabled] {
+  --button-bg-actual: var(--button-bg-disabled);
+  --button-fg-actual: var(--button-fg-disabled);
+  cursor: not-allowed;
+}
+.btn.loading { cursor: default; }
+.btn.loading .icon,
+.btn.loading > .children { opacity: 0; }
+
+/* Sizes — Source: Button/index.module.scss:3-22 */
+.btn.large48 {
+  height: 48px;
+  --button-horizontal-padding: var(--spacing-16);
+  --button-icon-padding: var(--spacing-4);
+  --button-border-radius: var(--radius-8);
+  --button-focus-border-radius: var(--radius-10);
+  font-size: 16px; line-height: 24px;  /* bodyMediumStrong */
+}
+.btn.medium36 {
+  height: 36px;
+  --button-horizontal-padding: var(--spacing-12);
+  --button-icon-padding: var(--spacing-2);
+  --button-border-radius: var(--radius-8);
+  --button-focus-border-radius: var(--radius-10);
+  font-size: 14px; line-height: 20px;  /* bodySmallStrong */
+}
+.btn.small24 {
+  height: 24px;
+  --button-horizontal-padding: var(--spacing-8);
+  --button-icon-padding: var(--spacing-2);
+  --button-border-radius: var(--radius-6);
+  --button-focus-border-radius: var(--radius-8);
+  font-size: 12px; line-height: 16px;  /* descriptionLargeStrong */
+}
+
+/* withOnlyIcon — Source: Button/index.module.scss:180-195 */
+.btn.withOnlyIcon.large48  { --button-horizontal-padding: var(--spacing-12); --button-border-radius: var(--radius-12); }
+.btn.withOnlyIcon.medium36 { --button-horizontal-padding: var(--spacing-8);  --button-border-radius: var(--radius-10); }
+.btn.withOnlyIcon.small24  { --button-horizontal-padding: var(--spacing-4);  --button-border-radius: var(--radius-8); }
+
+/* Primary — Source: Button/index.module.scss:24-57 */
+.btn.primary.accent {
+  --button-bg: var(--accent-default);
+  --button-bg-active: var(--accent-hover);
+  --button-bg-pressed: var(--accent-active);
+  --button-bg-disabled: var(--neutral-container-soft);
+  --button-fg: var(--accent-on-color);
+  --button-fg-active: var(--accent-on-color);
+  --button-fg-disabled: var(--fg-disabled);
+}
+.btn.primary.neutral {
+  --button-bg: var(--neutral-default);
+  --button-bg-active: var(--neutral-hover);
+  --button-bg-pressed: var(--neutral-active);
+  --button-bg-disabled: var(--neutral-container-soft);
+  --button-fg: var(--neutral-on-color);
+  --button-fg-active: var(--neutral-on-color);
+  --button-fg-disabled: var(--fg-disabled);
+}
+.btn.primary.destructive {
+  --button-bg: var(--error-default);
+  --button-bg-active: var(--error-hover);
+  --button-bg-pressed: var(--error-active);
+  --button-bg-disabled: var(--error-container-soft);
+  --button-fg: var(--error-on-color);
+  --button-fg-active: var(--error-on-color);
+  --button-fg-disabled: var(--error-container-active);
+}
+
+/* Secondary — Source: Button/index.module.scss:59-92 */
+.btn.secondary.accent {
+  --button-bg: var(--accent-container-default);
+  --button-bg-active: var(--accent-container-hover);
+  --button-bg-pressed: var(--accent-container-active);
+  --button-bg-disabled: var(--neutral-container-soft);
+  --button-fg: var(--accent-on-container);
+  --button-fg-active: var(--accent-hover);
+  --button-fg-disabled: var(--fg-disabled);
+}
+.btn.secondary.neutral {
+  --button-bg: var(--neutral-container-default);
+  --button-bg-active: var(--neutral-container-hover);
+  --button-bg-pressed: var(--neutral-container-active);
+  --button-bg-disabled: var(--neutral-container-soft);
+  --button-fg: var(--neutral-on-container);
+  --button-fg-active: var(--neutral-hover);
+  --button-fg-disabled: var(--fg-disabled);
+}
+.btn.secondary.destructive {
+  --button-bg: var(--error-container-default);
+  --button-bg-active: var(--error-container-hover);
+  --button-bg-pressed: var(--error-container-active);
+  --button-bg-disabled: var(--error-container-soft);
+  --button-fg: var(--error-on-container);
+  --button-fg-active: var(--error-hover);
+  --button-fg-disabled: var(--error-container-active);
+}
+
+/* Ghost — Source: Button/index.module.scss:94-124 */
+.btn.ghost {
+  --button-bg: transparent;
+  --button-bg-disabled: transparent;
+}
+.btn.ghost.accent {
+  --button-bg-active: var(--accent-container-default);
+  --button-bg-pressed: var(--accent-container-active);
+  --button-fg: var(--accent-on-container);
+  --button-fg-active: var(--accent-hover);
+  --button-fg-disabled: var(--fg-disabled);
+}
+.btn.ghost.neutral {
+  --button-bg-active: var(--neutral-container-default);
+  --button-bg-pressed: var(--neutral-container-active);
+  --button-fg: var(--neutral-on-container);
+  --button-fg-active: var(--neutral-hover);
+  --button-fg-disabled: var(--fg-disabled);
+}
+.btn.ghost.destructive {
+  --button-bg-active: var(--error-container-default);
+  --button-bg-pressed: var(--error-container-active);
+  --button-fg: var(--error-on-container);
+  --button-fg-active: var(--error-hover);
+  --button-fg-disabled: var(--error-container-active);
+}
+
+/* Button inner: Icon (span.root>span.innerRoot>svg) + children (Typography tag='div') */
+.btn .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.btn .icon > .innerRoot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn .icon svg { display: block; }
+.btn.large48  .icon > .innerRoot, .btn.large48  .icon svg { width: 24px; height: 24px; }
+.btn.medium36 .icon > .innerRoot, .btn.medium36 .icon svg { width: 20px; height: 20px; }
+.btn.small24  .icon > .innerRoot, .btn.small24  .icon svg { width: 16px; height: 16px; }
+
+/* Icon margin (Source: Button/index.module.scss:197-199) */
+.btn:not(.withOnlyIcon) .icon:first-child { margin-right: var(--button-icon-padding); }
+.btn:not(.withOnlyIcon) .icon:last-child:not(:first-child) { margin-left: var(--button-icon-padding); }
+
+/* Children — Source: Button/index.module.scss:201-207.
+   Direct-child `>` (§11.4 double-nesting profilax): если кнопка содержит
+   вложенный компонент с `.children` (Loader, nested Button в ContextMenu etc),
+   descendant selector сломает ему padding/layout. */
+.btn > .children {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--spacing-4);
+  font-weight: inherit;
+}
+
+/* Loader (loading state) — Source: Button/index.module.scss:209-212 + index.tsx:242-252 */
+.btn .loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn .loader-spinner {
+  width: 20px; height: 20px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.8s linear infinite;
+}
+.btn.primary .loader { color: var(--accent-on-color); }
+.btn.secondary .loader, .btn.ghost .loader { color: var(--fg-soft); }
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+
+/* ============================================
+   2. FUNCTION BUTTON
+   Source: shared/components/FunctionButton/index.module.scss
+   DOM (FunctionButton/index.tsx:221-262):
+     <button class="fn-btn {variant} {light|dark} [pressed] [focused] [disabled]">
+       [Icon.icon]                     — left icon (if !isWithRightIcon)
+       [Typography.children]           — children (py-2 только для large24)
+       [Icon.icon]                     — right icon (if isWithRightIcon)
+     </button>
+   Sizes: large24 (default), medium20, small16. Icon size = button size.
+   Gap: large24 → gap-6, остальные → gap-4.
+   Themes (light/dark) меняют ТОЛЬКО color, bg всегда transparent.
+   ============================================ */
+.fn-btn {
+  --button-color: var(--button-default-color);
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  height: max-content;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-6);
+  background: transparent;
+  color: var(--button-color);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  white-space: nowrap;
+  font-family: var(--font);
+  font-weight: 500;
+  transition: color var(--duration-fast-01) ease-out;
+}
+.fn-btn:hover:not(.disabled) { --button-color: var(--button-active-color); }
+.fn-btn.pressed { --button-color: var(--button-pressed-color); }
+.fn-btn.focused,
+.fn-btn:focus-visible {
+  --button-color: var(--button-active-color);
+  outline: 2px solid var(--focus-default);
+}
+.fn-btn.disabled, .fn-btn[disabled] {
+  --button-color: var(--button-disabled-color);
+  cursor: not-allowed !important;
+}
+
+/* Sizes — Gap + Typography per size */
+.fn-btn.large24 {
+  gap: var(--spacing-6);
+  font-size: 14px; line-height: 20px;  /* bodySmallStrong */
+}
+.fn-btn.medium20, .fn-btn.small16 {
+  gap: var(--spacing-4);
+  font-size: 12px; line-height: 16px;  /* descriptionLargeStrong */
+}
+
+/* Inner: Icon + children */
+.fn-btn .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.fn-btn .icon > .innerRoot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.fn-btn .icon svg { display: block; }
+.fn-btn.large24  .icon > .innerRoot, .fn-btn.large24  .icon svg { width: 24px; height: 24px; }
+.fn-btn.medium20 .icon > .innerRoot, .fn-btn.medium20 .icon svg { width: 20px; height: 20px; }
+.fn-btn.small16  .icon > .innerRoot, .fn-btn.small16  .icon svg { width: 16px; height: 16px; }
+/* children = Typography (no tag-prop) → default <b>. font-weight:inherit сбрасывает UA 'bolder' до 500.
+   Direct-child `>` — §11.4 double-nesting profilax. */
+.fn-btn > .children { font-weight: inherit; margin: 0; }
+.fn-btn.large24 > .children { padding: var(--spacing-2) 0; }  /* py-2 only for large24 */
+
+/* Light theme — Source: FunctionButton/index.module.scss:3-7,15-43 */
+.fn-btn.light {
+  --button-active-color: var(--accent-hover);
+  --button-pressed-color: var(--accent-active);
+  --button-disabled-color: var(--fg-disabled);
+}
+.fn-btn.light.primary   { --button-default-color: var(--accent-default); }
+.fn-btn.light.secondary { --button-default-color: var(--fg-default); }
+.fn-btn.light.tertiary  { --button-default-color: var(--fg-soft); }
+.fn-btn.light.failure {
+  --button-default-color: var(--error-default);
+  --button-active-color: var(--error-hover);
+  --button-pressed-color: var(--error-active);
+}
+
+/* Dark theme — Source: FunctionButton/index.module.scss:9-13,20-42,52-56 */
+.fn-btn.dark {
+  --button-active-color: var(--accent-100);
+  --button-pressed-color: var(--accent-50);
+  --button-disabled-color: var(--neutral-150);
+}
+.fn-btn.dark.primary   { --button-default-color: var(--accent-200); }
+.fn-btn.dark.secondary { --button-default-color: var(--neutral-50); }
+.fn-btn.dark.tertiary  { --button-default-color: var(--neutral-200); }
+.fn-btn.dark.failure {
+  --button-default-color: var(--error-200);
+  --button-active-color: var(--error-100);
+  --button-pressed-color: var(--error-50);
+}
+
+
+/* ============================================
+   3. CLOSE BUTTON
+   Source: shared/components/CloseButton/index.module.scss
+   DOM (CloseButton/index.tsx:77-97):
+     <button class="close-btn {theme} {size}">
+       <Icon class="icon" variant="xClose">  — span.root.icon>span.innerRoot>svg
+     </button>
+   Sizes: large24 (default), medium20, small16, small12.
+   Themes: on-light (default), on-dark. Hover меняет BG, не color.
+   ============================================ */
+.close-btn {
+  --button-bg-actual: var(--button-bg);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--button-border-radius);
+  background: var(--button-bg-actual);
+  color: var(--button-fg);
+  cursor: pointer;
+  outline: none;
+  flex: none;
+  transition: background-color var(--duration-fast-01) ease-out;
+}
+.close-btn:hover:not(.disabled) { --button-bg-actual: var(--button-bg-hover); }
+.close-btn.pressed,
+.close-btn[data-is-pressed='true'] { --button-bg-actual: var(--button-bg-pressed); }
+.close-btn.focused,
+.close-btn[data-is-focus-visible='true'],
+.close-btn:focus-visible {
+  --button-bg-actual: var(--button-bg-focused);
+  border-radius: var(--button-focus-border-radius);
+  outline: 2px solid var(--focus-default);
+  outline-offset: 2px;
+}
+.close-btn.disabled, .close-btn[disabled] { cursor: not-allowed; }
+
+/* Sizes — Source: CloseButton/index.module.scss:3-21 */
+.close-btn.large24  { width: 24px; height: 24px; --button-border-radius: var(--radius-6); --button-focus-border-radius: var(--radius-8); }
+.close-btn.medium20 { width: 20px; height: 20px; --button-border-radius: var(--radius-4); --button-focus-border-radius: var(--radius-6); }
+.close-btn.small16  { width: 16px; height: 16px; --button-border-radius: var(--radius-4); --button-focus-border-radius: var(--radius-6); }
+.close-btn.small12  { width: 12px; height: 12px; --button-border-radius: var(--radius-4); --button-focus-border-radius: var(--radius-6); }
+
+/* Inner Icon */
+.close-btn .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.close-btn .icon > .innerRoot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.close-btn .icon svg { display: block; }
+.close-btn.large24  .icon > .innerRoot, .close-btn.large24  .icon svg { width: 24px; height: 24px; }
+.close-btn.medium20 .icon > .innerRoot, .close-btn.medium20 .icon svg { width: 20px; height: 20px; }
+.close-btn.small16  .icon > .innerRoot, .close-btn.small16  .icon svg { width: 16px; height: 16px; }
+.close-btn.small12  .icon > .innerRoot, .close-btn.small12  .icon svg { width: 12px; height: 12px; }
+
+/* Themes — Source: CloseButton/index.module.scss:23-39 */
+.close-btn.on-light {
+  --button-bg: transparent;
+  --button-bg-hover: var(--neutral-container-hover);
+  --button-bg-focused: var(--neutral-container-active);
+  --button-bg-pressed: var(--neutral-container-active);
+  --button-fg: var(--fg-soft);
+}
+.close-btn.on-dark {
+  --button-bg: transparent;
+  --button-bg-hover: var(--neutral-700);
+  --button-bg-focused: var(--neutral-400);
+  --button-bg-pressed: var(--neutral-800);
+  --button-fg: var(--neutral-50);
+}
+
+
+/* ============================================
+   4. BADGE
+   Source: shared/components/Badge/index.module.scss + index.tsx
+   DOM (Badge/index.tsx:131-209):
+     <span class="badge {size} [counter] [ellipsis]"
+           style="color:...; background-color:...">   ← inline style (1:1 product-src)
+       [Icon × N]              iconVariant опционально
+       <b|span class="text [ellipsis]">                Typography:
+         default + (large24|medium20) → bodySmallStrong   → <b>
+         default + small16            → descriptionLargeStrong → <b>
+         tag                          → descriptionLarge → <span>
+         counter (все размеры)        → bodySmallStrong / descLargeStrong → <b>
+       <div class="right-slot">                        ВСЕГДА рендерится
+         [Badge.counter] [Tooltip] [CloseButton.small12|small16]
+     </span>
+   Theme + color → inline style (product-src JS):
+     light       bg containerSoft       fg soft
+     default     bg containerDefault    fg hover
+     saturated   bg soft                fg onColor
+   ============================================ */
+.badge {
+  display: inline-flex;
+  max-width: min-content;
+  align-items: center;
+  padding: var(--badge-block-spacing) var(--badge-inline-spacing);
+  border-radius: var(--badge-border-radius);
+  white-space: nowrap;
+  cursor: revert;
+  font-family: var(--font);
+  font-weight: 500;
+}
+.badge.large24 {
+  --badge-block-spacing: var(--spacing-2);
+  --badge-inline-spacing: var(--spacing-4);
+  --badge-border-radius: var(--radius-6);
+  font-size: 14px; line-height: 20px;  /* bodySmallStrong */
+}
+.badge.medium20 {
+  --badge-block-spacing: 0;
+  --badge-inline-spacing: var(--spacing-4);
+  --badge-border-radius: var(--radius-4);
+  font-size: 14px; line-height: 20px;  /* bodySmallStrong */
+}
+.badge.small16 {
+  --badge-block-spacing: 0;
+  --badge-inline-spacing: var(--spacing-2);
+  --badge-border-radius: var(--radius-4);
+  font-size: 12px; line-height: 16px;  /* descriptionLargeStrong */
+}
+/* Variant counter — pill — Source: Badge/index.module.scss:35-37 */
+.badge.counter { --badge-border-radius: var(--radius-full); }
+/* Variant tag — descriptionLarge (без Strong) → <span> */
+.badge.tag { font-weight: 400; }
+
+/* Inner text — Source: Badge/index.module.scss:31-33. font-weight:inherit сбрасывает UA 'bolder' */
+.badge .text {
+  padding-inline: var(--badge-inline-spacing);
+  font-weight: inherit;
+}
+/* Right slot — ВСЕГДА рендерится (Badge/index.tsx:186) */
+.badge .right-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+.badge .right-slot:empty { display: none; }
+
+/* Inner Icon — Icon size dict ICON_SIZES_BY_BADGE_SIZE */
+.badge .icon {
+  display: inline-flex; align-items: center; flex: none;
+}
+.badge .icon > .innerRoot {
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.badge .icon svg { display: block; }
+.badge.large24  .icon > .innerRoot, .badge.large24  .icon svg { width: 16px; height: 16px; }
+.badge.medium20 .icon > .innerRoot, .badge.medium20 .icon svg { width: 12px; height: 12px; }
+.badge.small16  .icon > .innerRoot, .badge.small16  .icon svg { width: 12px; height: 12px; }
+
+/* Theme × color — Source: Badge/index.tsx:104-153 (getColorTokenValue)
+   В product-src значения подставляются inline через JSX style={{color, bg}};
+   здесь — CSS классы с теми же значениями (equivalent results).
+   light     → bg containerSoft,    fg soft
+   default   → bg containerDefault, fg hover
+   saturated → bg soft,             fg onColor */
+.badge.theme-light.color-neutral     { background: var(--neutral-container-soft);    color: var(--neutral-soft); }
+.badge.theme-default.color-neutral   { background: var(--neutral-container-default); color: var(--neutral-hover); }
+.badge.theme-saturated.color-neutral { background: var(--neutral-soft);              color: var(--neutral-on-color); }
+
+.badge.theme-light.color-accent      { background: var(--accent-container-soft);     color: var(--accent-soft); }
+.badge.theme-default.color-accent    { background: var(--accent-container-default);  color: var(--accent-hover); }
+.badge.theme-saturated.color-accent  { background: var(--accent-soft);               color: var(--accent-on-color); }
+
+.badge.theme-light.color-success     { background: var(--success-container-soft);    color: var(--success-soft); }
+.badge.theme-default.color-success   { background: var(--success-container-default); color: var(--success-hover); }
+.badge.theme-saturated.color-success { background: var(--success-soft);              color: var(--success-on-color); }
+
+.badge.theme-light.color-warning     { background: var(--warning-container-soft);    color: var(--warning-soft); }
+.badge.theme-default.color-warning   { background: var(--warning-container-default); color: var(--warning-hover); }
+.badge.theme-saturated.color-warning { background: var(--warning-soft);              color: var(--warning-on-color); }
+
+.badge.theme-light.color-error       { background: var(--error-container-soft);      color: var(--error-soft); }
+.badge.theme-default.color-error     { background: var(--error-container-default);   color: var(--error-hover); }
+.badge.theme-saturated.color-error   { background: var(--error-soft);                color: var(--error-on-color); }
+
+.badge.theme-light.color-info        { background: var(--info-container-soft);       color: var(--info-soft); }
+.badge.theme-default.color-info      { background: var(--info-container-default);    color: var(--info-hover); }
+.badge.theme-saturated.color-info    { background: var(--info-soft);                 color: var(--info-on-color); }
+
+
+/* ============================================
+   5. CHIP
+   Source: shared/components/Chip/index.module.scss + index.tsx
+   DOM (Chip/index.tsx:280-316) TagToRender default = 'div':
+     <div class="chip {size} [interactiveContainer] [active|inactive]"
+          aria-checked aria-disabled>
+       [Checkbox]                    если checkboxProps и !withRightCheckbox
+       [CloseButton]                 если onRemove и isLeftRemoveButton
+       {leftElement}
+       <div class="text">            Typography tag='div':
+                                       medium24 → descriptionLarge (12/400/16)
+                                       large36  → bodySmall        (14/400/20)
+         {children}
+       [Tooltip reference]
+       {rightElement}
+       [Checkbox]                    если withRightCheckbox
+       [CloseButton]                 если onRemove и !isLeftRemoveButton
+     </div>
+   ============================================ */
+/* ⚠️ Combo-only §11.4: все правила `.chip` ТОЛЬКО в combo с size (`.chip.medium24` / `.chip.large36`).
+   Голый `.chip` conflict'ит с `.radio-group.chip` (variant class, не Chip-компонент) —
+   применяет border/bg/radius к radio-group wrapper'у и создаёт ложную pill-обёртку.
+   В product-src Chip root всегда имеет size class (ChipSizes.medium24/large36 — не optional). */
+.chip.medium24,
+.chip.large36 {
+  --chip-color-border: var(--border-soft);
+  --chip-color-background: var(--bg-surface-1);
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--chip-block-padding) - 1px) calc(var(--chip-inline-padding) - 1px);
+  border: 1px solid var(--chip-color-border);
+  border-radius: var(--radius-full);
+  background: var(--chip-color-background);
+  color: var(--fg-soft);
+  cursor: default;
+  gap: var(--spacing-4);
+  user-select: none;
+  font-family: var(--font);
+  transition:
+    background-color var(--duration-fast-01) ease-out,
+    border-color var(--duration-fast-01) ease-out;
+}
+
+/* Sizes — Source: Chip/index.module.scss:3-11 */
+.chip.medium24 {
+  --chip-block-padding: var(--spacing-4);
+  --chip-inline-padding: var(--spacing-8);
+  font-size: 12px; font-weight: 400; line-height: 16px;  /* descriptionLarge */
+}
+.chip.large36 {
+  --chip-block-padding: var(--spacing-6);
+  --chip-inline-padding: var(--spacing-12);
+  font-size: 14px; font-weight: 400; line-height: 20px;  /* bodySmall */
+}
+
+/* States — Source: Chip/index.module.scss:29-39. Combo with size to avoid collision. */
+.chip.medium24.active,
+.chip.large36.active {
+  --chip-color-background: var(--accent-opaque-container-default);
+  --chip-color-border: var(--accent-muted);
+}
+.chip.medium24.inactive,
+.chip.large36.inactive {
+  --chip-color-background: var(--neutral-container-muted);
+  --chip-color-border: var(--border-muted);
+  color: var(--fg-disabled);
+}
+
+/* Interactive — Source: Chip/index.module.scss:51-87 */
+.chip.medium24.interactiveContainer,
+.chip.large36.interactiveContainer { cursor: pointer; }
+.chip.medium24.interactiveContainer:hover,
+.chip.large36.interactiveContainer:hover { --chip-color-background: var(--bg-surface-3); }
+.chip.medium24.interactiveContainer.active:hover,
+.chip.large36.interactiveContainer.active:hover { --chip-color-background: var(--accent-opaque-container-hover); }
+.chip.medium24.interactiveContainer[aria-disabled='true'],
+.chip.large36.interactiveContainer[aria-disabled='true'] { cursor: not-allowed; }
+.chip.medium24.interactiveContainer[aria-disabled='true'].active,
+.chip.large36.interactiveContainer[aria-disabled='true'].active {
+  --chip-color-background: var(--accent-container-muted);
+  --chip-color-border: var(--accent-container-default);
+}
+.chip.medium24:focus-visible,
+.chip.large36:focus-visible,
+.chip.medium24.interactiveContainer[data-is-focus-visible='true'],
+.chip.large36.interactiveContainer[data-is-focus-visible='true'] {
+  outline: 2px solid var(--focus-default);
+  outline-offset: 2px;
+}
+
+/* Inner text — 1:1 с product-src Chip/index.tsx:227-237:
+   <Typography tag='div' className={clsx('flex-1 ellipsis', isLarge ? 'px-4 py-2' : 'px-2')}
+               variant={isLarge ? bodySmall : descriptionLarge}>
+   Utility-классы .flex-1 / .ellipsis / .px-2 / .px-4 / .py-2 из layout.css.
+   Font-size/weight/line-height наследуется от .chip.medium24 / .chip.large36 root. */
+
+
+/* ============================================
+   6. CALLOUT
+   Source: services/notifications/components/Callout/index.module.scss + index.tsx
+   Source: services/notifications/notifications.module.scss (variant colors)
+   DOM (Callout/index.tsx:79-132):
+     <div class="callout {size} {variant}">
+       <Icon class="icon flex-none">
+       <div class="contentWrapper">
+         <div class="content">
+           <div class="textWrapper">
+             <Typography tag='h4' bodySmallStrong>  — title (если есть)
+             <Typography bodySmall>                 — subtitle
+           <div class="functionButtons">            — display:flex только в small8
+           [CloseButton.self-start]
+         <div class="functionButtons">              — display:flex только в medium16
+   ============================================ */
+.callout {
+  display: flex;
+  align-items: flex-start;
+  min-height: 40px;
+  border-radius: var(--radius-8);
+  background-color: var(--notification-light-container-color);
+  --callout-buttons-gap: var(--spacing-16);
+}
+
+/* Sizes — Source: Callout/index.module.scss:31-55 */
+.callout.small8 {
+  padding: var(--spacing-8) var(--spacing-12) var(--spacing-8) var(--spacing-4);
+  --content-left-margin: var(--spacing-8);
+  --callout-buttons-gap: var(--spacing-12);
+}
+.callout.medium16 {
+  padding: var(--spacing-16) var(--spacing-16) var(--spacing-16) var(--spacing-8);
+  --content-left-margin: var(--spacing-12);
+}
+
+/* Variant colors — Source: notifications.module.scss:14-57 */
+.callout.info {
+  --notification-default-color: var(--info-default);
+  --notification-light-container-color: var(--info-opaque-container-default);
+}
+.callout.success {
+  --notification-default-color: var(--success-default);
+  --notification-light-container-color: var(--success-opaque-container-default);
+}
+.callout.warning {
+  --notification-default-color: var(--warning-default);
+  --notification-light-container-color: var(--warning-opaque-container-default);
+}
+.callout.error {
+  --notification-default-color: var(--error-default);
+  --notification-light-container-color: var(--error-opaque-container-default);
+}
+.callout.neutral {
+  --notification-default-color: var(--neutral-default);
+  --notification-light-container-color: var(--neutral-opaque-container-default);
+}
+
+/* Icon — Source: Callout/index.module.scss:15-18 */
+/* Direct child (>) — чтобы не затронуть .icon внутри nested .close-btn / .fn-btn.
+   В product-src CSS Modules scope защищает автоматически, у нас flat CSS — нужен explicit > . */
+.callout > .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--spacing-8);
+  color: var(--notification-default-color);
+  flex: none;
+  outline: none;
+}
+.callout > .icon > .innerRoot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  min-width: 24px; min-height: 24px;
+}
+.callout > .icon > .innerRoot > svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+
+/* contentWrapper — Source: Callout/index.module.scss:57-59 */
+.callout .contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--content-left-margin);
+}
+
+/* content — Callout/index.tsx:99 'flex gap-12'
+   Reset layout.css global .content leak (BaseLayout page-scroll wrapper):
+   flex:1 + padding 24/48 + overflow-y:auto + scrollbar-gutter применяются
+   к ЛЮБОМУ .content в document. В product-src это не баг — CSS Modules скопят
+   styles.content. В нашем flat CSS нужен явный reset. */
+.callout .content {
+  display: flex;
+  gap: var(--spacing-12);
+  min-width: 0;
+  flex: none;
+  padding: 0;
+  overflow: visible;
+  scrollbar-gutter: auto;
+}
+
+/* textWrapper — Source: Callout/index.module.scss:20-22 + index.tsx:100-105 */
+.callout .textWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-2) 0;   /* py-2 */
+  margin-right: auto;
+  max-width: 800px;
+  min-width: 0;
+}
+.callout .textWrapper h4 {
+  margin: 0;
+  font-size: 14px; line-height: 20px; font-weight: 500;  /* bodySmallStrong */
+  color: var(--fg-default);
+}
+.callout .textWrapper p,
+.callout .textWrapper span {
+  margin: 0;
+  font-size: 14px; line-height: 20px; font-weight: 400;  /* bodySmall */
+  color: var(--fg-default);
+}
+
+/* functionButtons — Source: Callout/index.module.scss:24-29 */
+.callout .functionButtons {
+  display: flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: var(--callout-buttons-gap);
+}
+.callout .functionButtonItem {
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+/* Placement logic — Source: Callout/index.module.scss:36-47
+   small8: buttons в .content (скрыты в .contentWrapper)
+   medium16 (default): buttons в .contentWrapper (скрыты в .content) */
+.callout .content > .functionButtons { display: none; }
+.callout.small8 .content > .functionButtons { display: flex; }
+.callout.small8 .contentWrapper > .functionButtons { display: none; }
+.callout.medium16 .contentWrapper > .functionButtons { display: flex; }
+
+
+/* ============================================
+   7. TABS
+   Source: shared/components/Tabs/index.module.scss
+   DOM (Tabs/index.tsx + Tab component):
+     <div class="tabs {line|table}">
+       <div class="wrapper">
+         <div class="tabsWrapper">
+           <div class="tabsScrollContainer">
+             <a class="tab [active] [pressed] [focused]">text</a>
+         <div class="rightContent">
+   Variants: .line (подчёркивание), .table (рамка+фон). Default highlight
+   через --tab-highlight-background (CSS var), меняется по состоянию.
+   ============================================ */
+.tabs {
+  --tab-highlight-background: transparent;
+  --tab-highlight-height: 2px;
+  display: flex;
+  min-width: 0;
+  gap: var(--tabs-spacing);
+}
+.tabs .wrapper {
+  min-width: 0;
+  max-width: 100%;
+}
+.tabs .tabsWrapper {
+  min-width: 0;
+  flex-shrink: 1;
+}
+.tabs .tabsScrollContainer {
+  display: flex;
+  width: max-content;
+  gap: var(--tabs-gap);
+}
+.tabs .tab {
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  scroll-margin-block: 0 var(--tabs-gap);
+  font-family: var(--font);
+  text-decoration: none;
+}
+.tabs .tab.focused,
+.tabs .tab:focus-visible {
+  outline: 2px solid var(--focus-default);
+  outline-offset: -2px;
+}
+
+/* Variant: line — Source: Tabs/index.module.scss:38-94 */
+.tabs.line {
+  --tabs-spacing: var(--spacing-16);
+  --tabs-gap: var(--spacing-16);
+}
+.tabs.line .tabsScrollContainer { padding-right: var(--tabs-spacing); }
+.tabs.line .tab {
+  padding: var(--spacing-6) var(--spacing-4);
+  border-radius: var(--radius-8);
+  font-size: 16px; line-height: 24px; font-weight: 500;  /* bodyMediumStrong */
+  color: var(--fg-soft);
+}
+.tabs.line .tab:hover {
+  --tab-highlight-background: var(--neutral-container-hover);
+  text-decoration: none;
+}
+.tabs.line .tab.pressed { --tab-highlight-background: var(--neutral-container-active); }
+.tabs.line .tab.focused { --tab-highlight-background: var(--neutral-container-hover); }
+.tabs.line .tab.active {
+  --tab-highlight-background: var(--accent-default);
+  color: var(--fg-default);
+}
+.tabs.line .tab.active:hover    { --tab-highlight-background: var(--accent-hover); }
+.tabs.line .tab.active.pressed  { --tab-highlight-background: var(--accent-active); }
+.tabs.line .tab.active.focused  { --tab-highlight-background: var(--accent-hover); }
+.tabs.line .tab::after {
+  position: absolute;
+  right: 0; bottom: 0; left: 0;
+  height: var(--tab-highlight-height);
+  background: var(--tab-highlight-background);
+  content: '';
+}
+
+/* Variant: table — Source: Tabs/index.module.scss:96-140 */
+.tabs.table {
+  --tabs-spacing: var(--spacing-12);
+  --tabs-gap: var(--spacing-8);
+  align-items: center;
+  margin: calc(var(--tabs-spacing) * -1) 0;
+  gap: var(--tabs-gap);
+}
+.tabs.table .tabsScrollContainer { padding: var(--tabs-spacing) 0 0 0; }
+.tabs.table .tab {
+  --tab-background-color: var(--neutral-opaque-container-soft);
+  --tab-border-color: var(--tab-background-color);
+  padding: calc(var(--spacing-4) - 1px) calc(var(--spacing-6) - 1px);
+  border: 1px solid var(--tab-border-color);
+  border-radius: var(--radius-6);
+  background: var(--tab-background-color);
+  color: var(--neutral-on-container);
+  font-size: 14px; line-height: 20px; font-weight: 500;
+}
+.tabs.table .tab:not(:hover):not(.pressed):not(.focused):not(.active) {
+  --tab-background-color: transparent;
+}
+.tabs.table .tab.pressed { --tab-border-color: var(--neutral-container-default); }
+.tabs.table .tab.active {
+  color: var(--fg-default);
+}
+.tabs.table .tab.active:hover,
+.tabs.table .tab.active.pressed,
+.tabs.table .tab.active.focused { --tab-border-color: var(--neutral-container-default); }
+.tabs.table .rightContent {
+  margin-block: calc(var(--spacing-8) + var(--spacing-6));
+}
+
+
+/* ============================================
+   8. INPUT
+   Source: Input/index.module.scss + index.tsx
+   DOM в product-src: <div.root.{size}.{theme}> <div.inputContainer> <input.input/> </div> </div>
+   В HTML-шаблонах упрощено до одного <input class="input {size} {theme}">
+   (визуально эквивалент для простых form demo — padding/height/bg на root).
+   Typography: bodyMedium 16/400/24 (large48)
+               bodySmall 14/400/20 (medium36 default)
+               descriptionLarge 12/400/16 (small24)
+   ============================================ */
+.input {
+  width: 100%;
+  font-family: var(--font);
+  font-variant-numeric: lining-nums tabular-nums;
+  outline: none;
+  color: var(--fg-default);
+  border: var(--border-width-2, 2px) solid transparent;
+  transition:
+    background-color var(--duration-fast-01) ease-in-out,
+    border-color var(--duration-fast-01) ease-in-out;
+}
+.input::placeholder { color: var(--fg-muted); }
+
+/* Sizes — Source: Input/index.module.scss:3-31 */
+.input.large48 {
+  height: 48px;
+  padding: 0 var(--spacing-12);
+  border-radius: var(--radius-10);
+  font-size: 16px; font-weight: 400; line-height: 24px;  /* bodyMedium */
+}
+.input.medium36 {
+  height: 36px;
+  padding: 0 var(--spacing-8);
+  border-radius: var(--radius-8);
+  font-size: 14px; font-weight: 400; line-height: 20px;  /* bodySmall */
+}
+.input.small24 {
+  height: 24px;
+  padding: 0 var(--spacing-6);
+  border-radius: var(--radius-6);
+  font-size: 12px; font-weight: 400; line-height: 16px;  /* descriptionLarge */
+}
+
+/* Themes — Source: Input/index.module.scss:138-149 */
+.input.light { background: var(--color-static-white, #FFFFFF); }
+.input.light:hover { border-color: var(--neutral-opaque-container-hover); }
+.input.light:focus { border-color: var(--accent-muted); outline: 2px solid var(--focus-default); outline-offset: 0; }
+
+.input.dark { background: var(--neutral-30); }
+.input.dark:hover { border-color: var(--neutral-opaque-container-hover); }
+.input.dark:focus { background: var(--color-static-white, #FFFFFF); border-color: var(--accent-muted); outline: 2px solid var(--focus-default); outline-offset: 0; }
+
+/* Error state — Source: Input/index.module.scss:110-112 [aria-invalid='true'] */
+.input[aria-invalid='true'] { border-color: var(--error-muted); }
+.input[aria-invalid='true']:hover { border-color: var(--error-default); }
+.input[aria-invalid='true']:focus { border-color: var(--error-default); }
+
+/* Disabled — Source: Input/index.module.scss:114-127 */
+.input:disabled,
+.input[aria-disabled='true'] {
+  background: var(--neutral-container-muted);
+  color: var(--fg-muted);
+  border-color: transparent;
+  outline-color: transparent;
+  pointer-events: none;
+}
+
+/* ValuePrefix — Source: Input/index.module.scss:169-175 (COW-4658)
+   Inline prefix перед значением: "RU" для codeUNMM, "+7" для phone и т.д.
+   Использовать внутри .inputContainer рядом с <input>. Typography matches input size. */
+.input .valuePrefix,
+.valuePrefix {
+  flex: none;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre-wrap;
+  color: var(--fg-default);
+}
+.input.large48 .valuePrefix  { font-size: 16px; font-weight: 400; line-height: 24px; }
+.input.medium36 .valuePrefix { font-size: 14px; font-weight: 400; line-height: 20px; }
+.input.small24 .valuePrefix  { font-size: 12px; font-weight: 400; line-height: 16px; }
+.input.multiline .multilineValuePrefix {
+  padding: calc((var(--input-min-height, 72px) - 1lh) / 2) 0;
+}
+
+/* Multiline (textarea) — Source: Input/index.module.scss:166-191 */
+.input.multiline {
+  height: auto;
+  min-height: var(--input-min-height, 72px);
+  resize: vertical;
+  padding-block: calc((36px - 1lh) / 2);  /* center text at medium36 base */
+}
+.input.multiline.large48 { --input-min-height: 96px; }
+.input.multiline.medium36 { --input-min-height: 72px; }
+.input.multiline.small24 { --input-min-height: 48px; }
+
+
+/* ============================================
+   9. SELECT (simplified — basic variant)
+   Source: Select/index.module.scss + Select.tsx
+   Note: product-src Select имеет 7 variants (basic/styled/withBorder/full/
+         colored/popupSearch/withItemsList). Здесь реализован basic +
+         styled для HTML-прототипов.
+   ============================================ */
+.select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  width: 100%;
+  font-family: var(--font);
+  font-variant-numeric: lining-nums tabular-nums;
+  cursor: pointer;
+  color: var(--fg-default);
+  outline: none;
+  border: var(--border-width-2, 2px) solid transparent;
+  transition:
+    background-color var(--duration-fast-01) ease-in-out,
+    border-color var(--duration-fast-01) ease-in-out;
+}
+
+/* Sizes — Source: Select/index.module.scss:17-37 */
+.select.small24 {
+  height: 24px;
+  padding: 0 var(--spacing-6);
+  border-radius: var(--radius-4);
+  font-size: 12px; font-weight: 400; line-height: 16px;
+}
+.select.medium36 {
+  height: 36px;
+  padding: 0 var(--spacing-8);
+  border-radius: var(--radius-6);
+  font-size: 14px; font-weight: 400; line-height: 20px;
+}
+.select.large48 {
+  height: 48px;
+  padding: 0 var(--spacing-12);
+  border-radius: var(--radius-8);
+  font-size: 16px; font-weight: 400; line-height: 24px;
+}
+
+/* Themes — default = dark per Select.tsx signature */
+.select.light { background: var(--color-static-white, #FFFFFF); }
+.select.dark  { background: var(--neutral-30); }
+
+/* Inner elements */
+.select .icon {
+  width: 16px; height: 16px;
+  flex: none;
+  color: var(--fg-muted);
+}
+.select .chevron {
+  width: 16px; height: 16px;
+  margin-left: auto;
+  flex: none;
+  color: var(--fg-muted);
+  transition: transform var(--duration-fast-01) ease-in-out;
+}
+.select[aria-expanded='true'] .chevron { transform: rotate(180deg); }
+.select .placeholder { color: var(--fg-muted); }
+
+/* Dropdown popover — Source: Popover + DropdownMenu patterns */
+.dropdown {
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-8);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  overflow-y: auto;
+  max-height: 320px;
+  min-width: 180px;
+}
+.dropdown .option {
+  min-height: 40px;  /* Source: DropdownMenuOption/index.module.scss:28 --dropdown-menu-items-min-height */
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-6) var(--spacing-12);
+  font-size: 14px; font-weight: 400; line-height: 20px;
+  cursor: pointer;
+  transition: background-color var(--duration-fast-01) ease-in-out;
+}
+.dropdown .option:hover { background: var(--neutral-container-soft); }
+.dropdown .option.selected {
+  background: var(--accent-container-default);
+  color: var(--accent-default);
+}
+.dropdown .search {
+  padding: var(--spacing-8) var(--spacing-12);
+  border-bottom: 1px solid var(--border-muted);
+}
+
+
+/* ============================================
+   10. CHECKBOX
+   Source: Checkbox/index.module.scss + index.tsx
+   DOM: <label.root.{variant}[.colored][.withLabel]
+           aria-checked aria-disabled data-is-pressed data-is-focus-visible>
+          <span.border>
+            <Icon.icon variant="check" />
+          </span>
+          [<span.label>...]
+        </label>
+   Sizes — через CSS var --checkbox-size (default 20). В нашей библиотеке
+   реализовано через size-modifier классы .size-16/20/24 для определённости.
+   ============================================ */
+.checkbox {
+  --checkbox-color-default: var(--accent-default);
+  --checkbox-color-hover: var(--accent-hover);
+  --checkbox-color-pressed: var(--accent-active);
+  --checkbox-color: var(--checkbox-color-default);
+  --checkbox-color-background: var(--color-static-white, #FFFFFF);
+  --checkbox-color-border: var(--border-soft);
+  --checkbox-size: 20px;
+
+  position: relative;
+  display: inline-grid;
+  align-items: center;
+  grid-template-columns: auto;
+  gap: var(--spacing-4) var(--spacing-8);
+  cursor: pointer;
+  user-select: none;
+}
+.checkbox.withLabel { grid-template-columns: auto 1fr; }
+
+/* Size modifiers — Source: product-src uses --checkbox-size CSS var */
+.checkbox.size-16 { --checkbox-size: 16px; }
+.checkbox.size-20 { --checkbox-size: 20px; }
+.checkbox.size-24 { --checkbox-size: 24px; }
+
+/* Hover / pressed / focus */
+.checkbox:hover:not([aria-disabled='true']) {
+  --checkbox-color: var(--checkbox-color-hover);
+  --checkbox-color-background: var(--neutral-opaque-container-muted);
+  --checkbox-color-border: var(--border-default);
+}
+.checkbox[data-is-pressed='true'],
+.checkbox:active:not([aria-disabled='true']) {
+  --checkbox-color: var(--checkbox-color-pressed);
+  --checkbox-color-background: var(--neutral-opaque-container-default);
+  --checkbox-color-border: var(--border-default);
+}
+.checkbox[data-is-focus-visible='true'] .border {
+  outline: 2px solid var(--focus-default);
+}
+.checkbox:has(input:focus-visible) .border {
+  outline: 2px solid var(--focus-default);
+}
+.checkbox.colored { --checkbox-color-border: var(--checkbox-color); }
+
+/* Checked / indeterminate — Source: Checkbox/index.module.scss:103-111 aria-checked.
+   Переменные bg/border переключаются на общем scope; icon scale — только в .normal variant. */
+.checkbox[aria-checked='true'],
+.checkbox[aria-checked='mixed'] {
+  --checkbox-color-background: var(--checkbox-color);
+  --checkbox-color-border: var(--checkbox-color);
+}
+
+/* Disabled */
+.checkbox[aria-disabled='true'] {
+  --checkbox-color-background: var(--neutral-container-soft);
+  --checkbox-color-border: var(--neutral-container-muted);
+  color: var(--fg-disabled);
+  cursor: not-allowed;
+}
+.checkbox[aria-disabled='true'] .border { border: none; }
+.checkbox[aria-disabled='true'] .icon { color: var(--fg-disabled); }
+
+/* Inner: .border (box wrapper) + .icon (svg inside).
+   Source: Checkbox/index.module.scss:
+   - .border (base) — только layout (size, center); визуальная стилизация — в variants
+   - .normal .border — 2px border + bg (переключаются по aria-checked)
+   - .normal .icon — scale 0/1 trick + color white
+   - .icons .icon — всегда visible, color fg-soft (toggle visibility variant) */
+.checkbox .border {
+  display: flex;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-4);
+}
+
+/* .normal variant — classic checkbox: bordered box, icon shows on check via scale */
+.checkbox.normal .border {
+  border: var(--border-width-2, 2px) solid var(--checkbox-color-border);
+  background: var(--checkbox-color-background);
+  transition:
+    background var(--duration-fast-01) ease-out,
+    border-color var(--duration-fast-01) ease-out;
+}
+.checkbox.normal .icon {
+  color: var(--color-static-white, #FFFFFF);
+  scale: 0;
+  transition: scale var(--duration-fast-01) ease-out;
+}
+.checkbox.normal[aria-checked='true'] .icon,
+.checkbox.normal[aria-checked='mixed'] .icon { scale: 1; }
+
+/* .icons variant — not a checkbox, a visibility toggle. Only icon color changes,
+   border remains unstyled (transparent wrapper). Icon always visible.
+   Source: Checkbox/index.module.scss:119-123 (only rule inside .icons) */
+.checkbox.icons .icon {
+  color: var(--fg-soft);
+}
+
+.checkbox .icon svg { display: block; }
+.checkbox.size-16 .icon svg { width: 12px; height: 12px; }
+.checkbox.size-20 .icon svg { width: 14px; height: 14px; }
+.checkbox.size-24 .icon svg { width: 16px; height: 16px; }
+
+.checkbox .label { font-weight: 400; }
+.checkbox.size-16 .label { font-size: 12px; line-height: 16px; }
+.checkbox.size-20 .label { font-size: 14px; line-height: 20px; }
+.checkbox.size-24 .label { font-size: 16px; line-height: 24px; }
+
+
+/* ============================================
+   11. RADIO GROUP
+   Source: RadioGroup/index.module.scss + components/RadioButton + RadioSegmentedTab
+   DOM: <div.root.{variant}>
+          <div.items>
+            <label.item>...</label>
+            ...
+          </div>
+        </div>
+   Variants: .radio (default), .segmented, .chip, .verticalRadio
+   ============================================ */
+.radio-group {
+  --label-gap: var(--spacing-2);
+  --items-gap: var(--spacing-2);
+  display: grid;
+  gap: var(--label-gap);
+}
+.radio-group .items {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--items-gap);
+}
+
+/* Variants — Source: RadioGroup/index.module.scss:18-55 */
+.radio-group.radio { --items-gap: var(--spacing-16); }
+.radio-group.chip  { --items-gap: var(--spacing-6); }
+.radio-group.verticalRadio {
+  --label-gap: var(--spacing-12);
+  --items-gap: var(--spacing-12);
+}
+.radio-group.verticalRadio .items {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.radio-group.segmented {
+  --items-gap: var(--spacing-2);
+}
+.radio-group.segmented .items {
+  width: fit-content;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-8);
+  background: var(--neutral-container-soft);
+  gap: var(--spacing-2);
+}
+.radio-group.segmented .item { flex: 1; }
+
+/* Radio button (used in both .radio and .verticalRadio variants) — circle + label.
+   Source: RadioGroup/components/RadioButton — общий для обоих horizontal/vertical вариантов. */
+.radio-group.radio .item,
+.radio-group.verticalRadio .item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  cursor: pointer;
+}
+.radio-group.radio .item .circle,
+.radio-group.verticalRadio .item .circle {
+  width: 20px; height: 20px;
+  min-width: 20px;
+  border: var(--border-width-2, 2px) solid var(--border-default);
+  border-radius: var(--radius-full);
+  transition: border var(--duration-fast-01) ease-out;
+  box-sizing: border-box;
+}
+.radio-group.radio .item[aria-checked='true'] .circle,
+.radio-group.verticalRadio .item[aria-checked='true'] .circle {
+  border: 6px solid var(--accent-default);
+}
+.radio-group.radio .item:hover .circle,
+.radio-group.verticalRadio .item:hover .circle { border-color: var(--accent-soft); }
+
+/* RadioSegmentedTab — 1:1 с product-src RadioSegmentedTab.
+   Source: src/shared/components/RadioGroup/components/RadioSegmentedTab/index.module.scss
+   DOM:
+     <div.radio-group.segmented>
+       <div.items>
+         <label.root.{medium24|large36} [aria-checked][aria-disabled]>
+           <span.segmentedTabButton>
+             <b.descriptionLargeStrong|b.bodyMediumStrong>text</b>
+         </label>
+   root управляет цветом текста + CSS vars для inner кнопки,
+   .segmentedTabButton — сам visual (border, bg, padding, radius). */
+.radio-group.segmented .root {
+  --button-border-width: 1px;
+  --button-border-color-default: transparent;
+  --button-border-color-checked: var(--border-muted);
+  --button-bg-default: transparent;
+  --button-bg-checked: var(--bg-surface-1);
+  --button-bg-hover: var(--neutral-on-color, var(--neutral-container-soft));
+  --button-border-color-current: var(--button-border-color-default);
+  --button-bg-current: var(--button-bg-default);
+
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  color: var(--fg-soft);
+}
+.radio-group.segmented .root[aria-checked='true'] {
+  --button-border-color-current: var(--button-border-color-checked);
+  --button-bg-current: var(--button-bg-checked);
+  color: var(--fg-default);
+}
+.radio-group.segmented .root:not([aria-disabled='true']) .segmentedTabButton:hover {
+  --button-bg-current: var(--button-bg-hover);
+  --button-border-color-current: var(--button-border-color-checked);
+}
+.radio-group.segmented .root[aria-disabled='true'] {
+  color: var(--fg-disabled);
+  cursor: not-allowed;
+}
+
+/* Sizes — Source: index.module.scss:56-70 */
+.radio-group.segmented .root.medium24 {
+  --segmented-vertical-padding: var(--spacing-2);
+  --segmented-horizontal-padding: var(--spacing-6);
+  --segmented-tab-gap: var(--spacing-6);
+  font-size: 12px; font-weight: 500; line-height: 16px; /* descriptionLargeStrong */
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.radio-group.segmented .root.large36 {
+  --segmented-vertical-padding: var(--spacing-4);
+  --segmented-horizontal-padding: var(--spacing-8);
+  --segmented-tab-gap: var(--spacing-8);
+  font-size: 16px; font-weight: 500; line-height: 24px; /* bodyMediumStrong */
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Inner button visual — Source: index.module.scss:72-88.
+   DOM: <div.segmentedTabButton> из TSX (div, НЕ span). */
+.radio-group.segmented .segmentedTabButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--segmented-vertical-padding) - var(--button-border-width))
+           calc(var(--segmented-horizontal-padding) - var(--button-border-width));
+  border: var(--button-border-width) solid var(--button-border-color-current);
+  border-radius: var(--radius-6);
+  background: var(--button-bg-current);
+  gap: var(--segmented-tab-gap);
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast-01) ease-in-out,
+    border-color var(--duration-fast-01) ease-in-out;
+}
+/* Typography inside segmentedTabButton — product-src использует <Typography className="px-4">
+   с descriptionLargeStrong (medium24) / bodyMediumStrong (large36) → тег <b>.
+   Reset browser-default <b> font-weight 700 → inherit от .root. */
+.radio-group.segmented .segmentedTabButton > b {
+  font-weight: inherit;
+  font-style: normal;
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}
+
+
+/* ============================================
+   12. TOGGLE
+   Source: Toggle/index.module.scss + index.tsx
+   DOM: <label.root.{size}[aria-checked][aria-disabled][data-is-focus-visible]>
+          <span.track>
+            <span.thumb></span>
+          </span>
+          [<span.label>...</span>]
+   Sizes: small16, medium24 (default)
+   ============================================ */
+.toggle {
+  --track-width: 34px;
+  --track-height: 20px;
+  --thumb-size: 16px;
+  --thumb-padding: 2px;
+  --label-padding: 12px;
+  --thumb-translate: calc(var(--track-width) - var(--thumb-size) - var(--thumb-padding) * 2);
+  --thumb-color: var(--color-static-white, #FFFFFF);
+  --track-color-default: var(--neutral-container-hover);
+  --track-color-active: var(--neutral-container-active);
+  --track-color-disabled: var(--neutral-container-soft);
+  --track-current-color: var(--track-color-default);
+
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  cursor: pointer;
+  gap: var(--label-padding);
+  user-select: none;
+}
+
+/* Sizes — Source: Toggle/index.module.scss:81-97 */
+.toggle.small16 {
+  --track-width: 26px;
+  --track-height: 16px;
+  --thumb-size: 12px;
+  --thumb-padding: 2px;
+  --label-padding: 8px;
+}
+.toggle.medium24 {
+  --track-width: 34px;
+  --track-height: 20px;
+  --thumb-size: 16px;
+  --thumb-padding: 2px;
+  --label-padding: 12px;
+}
+
+/* Inner: .track + .thumb */
+.toggle .track {
+  width: var(--track-width);
+  min-width: var(--track-width);
+  height: var(--track-height);
+  padding: var(--thumb-padding);
+  border-radius: var(--radius-full);
+  background: var(--track-current-color);
+}
+.toggle .thumb {
+  display: block;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: var(--radius-full);
+  background: var(--thumb-color);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast-01) ease-out;
+}
+
+/* States — Source: Toggle/index.module.scss:50-78 */
+.toggle:hover { --track-current-color: var(--track-color-active); }
+.toggle[data-is-focus-visible='true'] {
+  --track-current-color: var(--track-color-active);
+}
+.toggle[data-is-focus-visible='true'] .track {
+  outline: 2px solid var(--focus-default);
+  outline-offset: 1px;
+}
+.toggle:has(input:focus-visible) .track {
+  outline: 2px solid var(--focus-default);
+  outline-offset: 1px;
+}
+.toggle[aria-checked='true'] {
+  --track-color-default: var(--accent-default);
+  --track-color-active: var(--accent-hover);
+  --track-color-disabled: var(--accent-container-active);
+}
+.toggle[aria-checked='true'] .thumb {
+  transform: translate3d(var(--thumb-translate), 0, 0);
+}
+.toggle[aria-disabled='true'] {
+  --track-current-color: var(--track-color-disabled);
+  color: var(--fg-disabled);
+  cursor: not-allowed;
+}
+
+.toggle .label { font-weight: 400; }
+.toggle.small16 .label { font-size: 12px; line-height: 16px; }
+.toggle.medium24 .label { font-size: 14px; line-height: 20px; }
+
+
+/* ============================================
+   13. AVATAR
+   Source: Avatar/index.module.scss + index.tsx
+   DOM: <span.root style="background-color: var(--color-X); --avatar-size: 24px">
+          [text | <img>]
+        </span>
+   Size: fixed 24×24 в коде. Цвет — inline style с color token.
+   В HTML-шаблонах упрощено через color-modifier классы.
+   ============================================ */
+
+/* Root — Source: Avatar/index.module.scss:3-12 */
+.avatar {
+  --avatar-size: 24px;
+  display: grid;
+  place-items: center;
+  width: var(--avatar-size);
+  min-width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: var(--radius-6);
+  font-size: 12px; font-weight: 500; line-height: 16px;  /* Typography descriptionLargeStrong — wrapper в product-src TSX */
+  color: var(--fg-soft);
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+}
+.avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* Color variants (combo with .avatar root)
+   Source: Avatar/index.tsx:70-75 — background = getColorTokenValue(color, ColorShades.containerDefault).
+   Text color inherits from .avatar root: var(--fg-soft). AVATAR_COLOR_VARIANTS excludes accent/neutral,
+   but we keep all classes available for flexibility — все через container-default (alpha 0.1). */
+.avatar.neutral  { background: var(--neutral-container-default); }
+.avatar.accent   { background: var(--accent-container-default); }
+.avatar.success  { background: var(--success-container-default); }
+.avatar.error    { background: var(--error-container-default); }
+.avatar.warning  { background: var(--warning-container-default); }
+.avatar.info     { background: var(--info-container-default); }
+.avatar.status01 { background: var(--status01-container-default); }
+.avatar.status02 { background: var(--status02-container-default); }
+.avatar.status03 { background: var(--status03-container-default); }
+.avatar.status04 { background: var(--status04-container-default); }
+.avatar.status05 { background: var(--status05-container-default); }
+.avatar.status06 { background: var(--status06-container-default); }
+
+
+/* ============================================
+   14. DATA-GRID (CSS-Grid таблица)
+   Source: Table/index.module.scss (573 строки) + index.tsx
+   Note: переименовано из .table → .data-grid во избежание collision
+         с product-src Tabs `.tabs.table` variant (который теперь 1:1).
+   ⚠ Drift: упрощённая реализация под прототипы.
+     Product-src использует subgrid (Table/index.module.scss:90-158):
+       .root          { display:grid; grid-template-columns:var(--table-columns); grid-template-rows:auto auto }
+       .thead, .tbody { display:grid; grid-column:1/-1; grid-template-columns:subgrid }
+       .row, .cell    { display:grid; grid-column:1/-1; grid-template-columns:subgrid }
+     Плюс sticky cells, print styles, nested tables, selection states, a11y.
+     Мы используем `display:contents` для rows/body — визуально близко, но механика другая.
+   TODO: если прототип требует sticky-колонок или nested-таблиц — взять паттерн из product-src.
+   Связанные --tokens: --table-row-height 36px, --table-cell-padding 8px 12px,
+                       --table-function-cell-width 36px, --table-border-radius 8px.
+   ============================================ */
+
+/* Root — Source: Table/index.module.scss:10-86 (root tokens + @media print).
+   Product-src `<table>.root` по умолчанию `withBorder=false` — БЕЗ border и без
+   border-radius. Рамку и radius даёт внешний wrapper (scrollContainer / panel
+   + shadow-border). Ставим только display: grid + overflow. */
+.data-grid {
+  display: grid;
+  overflow: hidden;
+}
+/* Header / headerCell — Source: Table/index.module.scss:251-276, 349-367 */
+.data-grid-header {
+  display: contents;  /* упрощение vs product-src subgrid */
+}
+.data-grid-header-cell {
+  padding: 8px 12px;  /* --table-cell-padding */
+  min-height: 36px;   /* --table-row-height */
+  background: var(--neutral-opaque-container-muted);  /* --table-header-background */
+  font-size: 12px; font-weight: 500; line-height: 16px;
+  color: var(--fg-default);
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+/* Body / row / cell — Source: Table/index.module.scss:236-329 */
+.data-grid-body {
+  display: contents;  /* упрощение vs product-src subgrid */
+}
+.data-grid-row {
+  display: contents;  /* упрощение vs product-src subgrid */
+}
+.data-grid-row:hover .data-grid-cell {
+  background: var(--neutral-opaque-container-soft);  /* :hover row — Table/index.module.scss:180-183 */
+}
+.data-grid-cell {
+  padding: 8px 12px;
+  font-size: 14px; font-weight: 400; line-height: 20px;
+  border-bottom: 1px solid var(--border-muted);
+  background: var(--bg-surface-1);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+.data-grid-body .data-grid-row:last-child .data-grid-cell {
+  border-bottom: none;
+}
+/* Right-aligned cell — no direct product-src equivalent class (achieved via cellContent justify-content) */
+.data-grid-cell-right {
+  text-align: right;
+  justify-content: flex-end;
+}
+
+/* Function cell — Source: Table/index.module.scss:430-438 (.functionCell) */
+.data-grid-fn-cell {
+  width: 36px;  /* --table-function-cell-width */
+  flex-shrink: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* ============================================
+   15. TOOLTIP
+   Source: Tooltip/index.module.scss
+   Note: в product-src файл содержит ТОЛЬКО .tooltipIcon (11 строк).
+         Сам tooltip-bubble строится через react-aria-components (Popover) + tokens,
+         без именованного класса в module.scss.
+   ⚠ Drift: .tooltip (bubble) — наша prototype-only имплементация для HTML (в product-src
+     нет CSS-класса этого bubble, т.к. react-aria рендерит popover inline).
+   ============================================ */
+
+/* Tooltip bubble — prototype-only (approximates product-src runtime Popover styling) */
+.tooltip {
+  background: var(--neutral-900);
+  color: var(--color-static-white, #FFFFFF);
+  border-radius: var(--radius-8);
+  padding: 8px 12px;
+  font-size: 14px; font-weight: 400; line-height: 20px;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  max-width: 240px;
+  pointer-events: none;
+}
+
+/* Tooltip icon — Source: Tooltip/index.module.scss:3-10 (.tooltipIcon) */
+.tooltip-icon {
+  width: 16px; height: 16px;
+  color: var(--fg-muted);
+  cursor: help;
+  flex-shrink: 0;
+  transition: color 0.1s;
+}
+.tooltip-icon:hover { color: var(--neutral-hover); }
+
+
+/* ============================================
+   16. LOADER / SKELETON
+   Source: Loader/index.module.scss (5 строк) + index.tsx
+           Skeleton/components/SkeletonBlock/index.module.scss (15 строк) + index.tsx
+   Product-src Loader: <div.root role="status"><Icon variant=spinner size=20 color=accentSoft/></div>
+   Product-src SkeletonBlock DOM: <div role="status" aria-busy aria-live="polite">
+                                  <div class="full-width inner [rounded-full]" style="height,borderRadius"/>
+                                </div>
+   ============================================ */
+
+/* Loader root — Source: Loader/index.module.scss:1-4 */
+.loader {
+  display: grid;
+  place-items: center;
+}
+
+/* Loader spinner — Icon color+size задаются в Loader/index.tsx:29-30
+   (size=20, color=TOKENS.colorAccentSoft); animation — на самой иконке spinner */
+.loader-spinner {
+  color: var(--accent-soft);
+  animation: spin 1s linear infinite;
+}
+
+/* Skeleton — Source: SkeletonBlock/index.module.scss:3-14 (.inner + @keyframes --keyframes-pulse)
+   Background-pulse (default ↔ soft) 1:1 с product-src. */
+.skeleton {
+  background: var(--neutral-container-default);
+  border-radius: var(--radius-4);
+  animation: skeleton-pulse var(--duration-pulse, 2s) var(--easing-pulse, cubic-bezier(0.4, 0, 0.6, 1)) infinite;
+}
+.skeleton-text { height: 1em; width: 100%; }
+.skeleton-block { display: block; }
+@keyframes skeleton-pulse {
+  /* 1:1 product-src SkeletonBlock/index.module.scss:10-14 — меняем background, не opacity */
+  50% { background: var(--neutral-container-soft); }
+}
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/* ============================================
+   17. LABEL
+   Source: Label/index.module.scss + index.tsx
+   DOM: <label.root role="label"> (Typography bodySmall, overflow-hidden)
+          <span.ellipsis>{children}</span>
+          [<span.asterisk>&nbsp;*</span> — если isRequired]
+          [<span class="text-muted ml-4">({descriptionText})</span> — если isOptional]
+        </label>
+   Typography bodySmall: 14/400/20. Color: var(--fg-soft).
+   ============================================ */
+
+/* Root — Source: Label/index.module.scss:3-13 */
+.label {
+  --label-color: var(--fg-soft);
+  display: inline-flex;
+  align-items: center;
+  color: var(--label-color);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  overflow: hidden;
+}
+/* Disabled — Source: Label/index.module.scss:10-12 ([aria-disabled='true']) */
+.label[aria-disabled='true'],
+.label.disabled { color: var(--fg-muted); }
+
+/* Error — Source: Label/index.module.scss:15-17 (.error) */
+.label.error { --label-color: var(--error-default); }
+
+/* Asterisk — Source: Label/index.module.scss:19-21 (.asterisk) + index.tsx (&nbsp;* inline) */
+.label .asterisk { color: var(--error-default); }
+.label .required { color: var(--error-default); margin-left: 2px; }  /* legacy alias — product-src использует .asterisk */
+.label .optional { color: var(--fg-muted); margin-left: 4px; }       /* legacy alias — в product-src это Typography class="text-muted ml-4" */
+.label .ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ============================================
+   18. TEXT LINK
+   Source: TextLink/index.module.scss (только .root { text-decoration: underline; @media print })
+           + TextLink/index.tsx (composes styles.root + typographyStyles[variant])
+           + styles/global.scss:46 (global a { color: fg-default } — источник цвета)
+
+   Product-src DOM (TextLink/index.tsx:57-73):
+     <a|Link class="root {typography-variant} {custom}">children</a>
+     - styles.root             — ТОЛЬКО text-decoration: underline
+     - typographyStyles[variant] — font-size/weight/line-height (default bodySmall)
+     - Color:                   — наследуется от global a { color: fg-default }
+     - НЕТ :hover / :focus / :active / :visited — только underline + inherited color
+     - isDisabled=true          — рендерится как <Typography variant> БЕЗ underline
+
+   Usage в HTML: <a class="text-link bodySmall">...</a>
+     (Typography-класс из layout.css — bodySmall/bodyMedium/bodyMediumStrong/descriptionLarge)
+
+   ✅ T6 устранён (2026-04-21): убран хардкод accent-color и :hover/:active.
+   Теперь 1:1 с product-src — color: fg-default, только underline + print override.
+   ============================================ */
+
+/* Root — Source: TextLink/index.module.scss:3-9 (.root) + global.scss:46 (a { color }) */
+.text-link {
+  color: var(--fg-default);        /* product-src: приходит от global `a { color: fg-default }` */
+  text-decoration: underline;      /* Source: TextLink/index.module.scss:4 */
+  cursor: pointer;
+}
+
+/* Disabled — Source: TextLink/index.tsx:42-55 (isDisabled → <Typography> без underline).
+   Цвет НЕ меняется на muted — остаётся fg-default. Если нужно «приглушённо» —
+   внешний wrapper `text-muted` или Typography variant с нужным цветом. */
+.text-link.disabled {
+  text-decoration: none;
+  pointer-events: none;
+}
+
+@media print {
+  /* Source: TextLink/index.module.scss:6-8 */
+  .text-link { text-decoration: none; }
+}
+
+
+/* ============================================
+   19. EMPTY STATE
+   Source: prototype-only pattern — в product-src нет стандалон-компонента EmptyState.
+   Используется в mock-прототипах. При появлении в product-src — заменить.
+   ============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px var(--content-pad);
+  text-align: center;
+}
+.empty-icon {
+  width: 64px; height: 64px;
+  background: var(--bg-surface-3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: var(--fg-muted);
+}
+.empty-icon svg { width: 28px; height: 28px; }
+.empty-title {
+  font-size: 16px; font-weight: 700; line-height: 20px;
+  color: var(--fg-default);
+  margin-bottom: 8px;
+}
+.empty-sub {
+  font-size: 14px; font-weight: 400; line-height: 20px;
+  color: var(--fg-muted);
+  max-width: 360px;
+  margin-bottom: 24px;
+}
+.empty-link { text-decoration: none; }
+
+
+/* ============================================
+   20. FIELD FEEDBACK
+   Source: FieldFeedback/index.module.scss (3 строки — только .icon { height: 1lh })
+           + FieldFeedback/index.tsx:50-87 (композиция всей стилистики через Typography + utility)
+   Product-src DOM (FieldFeedback/index.tsx:60-85):
+     <Typography variant="descriptionLarge" tag="div" class="flex items-baseline {text-muted|text-info|text-error}">
+       <Icon size=16 class="mr-4 [styles.icon]"/>
+       <span class="wrap-break-word">{content}</span>
+     </Typography>
+   Note: всё оформление собирается из Typography utility-классов; SCSS-файл
+         содержит только .icon { height: 1lh } для alignment иконки к line-height.
+   .field-feedback-{neutral|info|error} — наш shorthand-алиас для product-src
+         text-{muted|info|error} utility-классов (см. layout.css).
+   ============================================ */
+
+/* Root — composed в TSX (flex items-baseline + Typography descriptionLarge 12/400/16) */
+.field-feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Variant colors — Source: FieldFeedback/index.tsx:68-70 (text-muted/text-info/text-error) */
+.field-feedback-neutral { color: var(--fg-muted); }
+.field-feedback-info    { color: var(--info-default); }
+.field-feedback-error   { color: var(--error-default); }
+
+/* Icon — Source: FieldFeedback/index.module.scss:1-3 (.icon { height: 1lh }) + index.tsx:74-80 (size=16) */
+.field-feedback-icon {
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+}
+
+
+/* ============================================
+   21. POPOVER / DROPDOWN
+   Source: Popover/index.module.scss (22 строки)
+           + DropdownMenu/components/DropdownMenu/index.module.scss (142 строки)
+           + DropdownMenu/components/DropdownMenuOption/index.module.scss (121 строка)
+   ⚠ Drift: DropdownMenu упрощён. Product-src содержит .root/.popup/.bottomSheet/
+     .floatingElementRoot/.list/.itemsWrapper/.header/.bottomActionWrapper/.confirmButtonWrapper
+     с полным набором --dropdown-menu-* CSS-переменных. Мы реализовали только базовый
+     .dropdown-menu + items для prototype-use. TODO: расширить при необходимости
+     (header/footer/confirm-action). См. T7 в PRODUCT-SRC_SYNC.md.
+   ============================================ */
+
+/* Popover — Source: Popover/index.module.scss:3-12 (.root) */
+.popover {
+  background: var(--bg-surface-1);                      /* product-src: color-static-white */
+  border-radius: var(--radius-8);                       /* = border-radius-8 */
+  box-shadow: var(--shadow-lg);                         /* = shadow-large */
+  z-index: 1000;                                        /* product-src: var(--z-index-popover) ~ 5000 */
+  overflow: hidden;
+}
+.popover-content { padding: 8px 0; }
+
+/* Dropdown menu container — Source: DropdownMenu/.../DropdownMenu/index.module.scss:3-34 (.root) */
+.dropdown-menu {
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-8);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  min-width: 180px;                                     /* product-src: max(min-content, var(--dropdown-menu-width)) */
+  overflow-y: auto;
+  max-height: 320px;                                    /* product-src .floatingElementRoot: 340px */
+}
+
+/* Dropdown item — Source: DropdownMenuOption/index.module.scss:1-121 (сокращено)
+   min-height 40px — Source: DropdownMenuOption/index.module.scss:29 (--dropdown-menu-items-min-height) */
+.dropdown-item {
+  padding: 6px 12px;                                    /* product-src contentWrapper: var(--spacing-6) */
+  font-size: 14px; font-weight: 400; line-height: 20px;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;                                             /* product-src contentWrapper: var(--spacing-4) */
+  align-items: center;
+  transition: background-color 0.1s;
+}
+/* States — Source: DropdownMenuOption/index.module.scss:60-78 (:hover, .interactive focus-visible) */
+.dropdown-item:hover {
+  background: var(--neutral-container-soft);           /* product-src: var(--color-accent-opaque-container-hover) */
+}
+/* Selected — Source: DropdownMenuOption/index.module.scss:40-45 ([aria-selected='true']) */
+.dropdown-item.selected {
+  background: var(--accent-container-default);         /* = --color-accent-opaque-container-default */
+  color: var(--accent-default);                        /* = --dropdown-menu-item-color-selected */
+}
+/* Icon — Source: DropdownMenuOption/index.module.scss:111-115 (.icon) */
+.dropdown-item-icon {
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+  color: var(--fg-muted);
+}
+/* Divider — Source: DropdownMenu/index.module.scss:115-119 (.delimiter) */
+.dropdown-divider {
+  height: 1px;                                          /* = --border-width-1 */
+  background: var(--border-muted);                      /* = --color-border-muted */
+  margin: 4px 0;                                        /* product-src: var(--spacing-4) calc(var(--dropdown-menu-padding) * -1) */
+}
+
+
+/* ============================================
+   22. BOTTOM SHEET (mobile)
+   Source: BottomSheet/index.module.scss:1-100
+
+   Product-src DOM:
+     <div class="bottom-sheet-overlay"/>                — full-width bg-блокер
+     <div class="bottom-sheet">                         — root (max-width 560, центрован)
+       <div class="bottom-sheet-drag-area">             — touch-grab зона (охватывает handle + header)
+         <div class="bottom-sheet-handle"/>             — visual indicator (28×4 rounded)
+         <div class="bottom-sheet-header">
+           <div class="bottom-sheet-title-section">     — 2-ярусный (title + subtitle)
+             <Typography class="bottom-sheet-title">...</Typography>
+             [<Typography class="bottom-sheet-subtitle">...</Typography>]
+           </div>
+           <button class="close-btn close-btn-md bottom-sheet-close-button">...</button>
+         </div>
+       </div>
+       <div class="bottom-sheet-content">               — scrollable контент с safe-area
+     </div>
+
+   Key tokens:
+     --bottom-sheet-max-width: min(560px, 100%)   — центрован через left:50%
+     --bottom-sheet-max-height: calc(100dvh - --mobile-header-sm)
+     --bottom-sheet-padding: var(--spacing-16)
+     --bottom-sheet-padding-bottom: var(--spacing-24)
+     --bottom-sheet-radius: var(--radius-16) var(--radius-16) 0 0
+     --bottom-sheet-drag-indicator: var(--size-28) × var(--size-4)
+
+   ::after pseudo — bottom-spacer ниже 100dvh (на случай overscroll bounce),
+   inherits background от root чтобы не было видно при вытягивании.
+
+   ✅ T8 устранён (2026-04-21): добавлены --bottom-sheet-* токены, max-width 560
+      с центрированием через left:50%+translateX, .bottom-sheet-drag-area,
+      .bottom-sheet-title-section + .bottom-sheet-subtitle, ::after bottom-spacer,
+      overlay цвет через --neutral-container-active token (не rgba выдумка),
+      content padding с env(safe-area-inset-bottom).
+   ============================================ */
+
+/* Overlay — Source: BottomSheet/index.module.scss:1-5 (.overlay) */
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  z-index: 5000;                                        /* = --z-index-popover */
+  background: var(--neutral-container-active);          /* 1:1 product-src (не rgba) */
+}
+
+/* Root — Source: BottomSheet/index.module.scss:7-42 (.root) */
+.bottom-sheet {
+  --bottom-sheet-max-height: calc(100dvh - var(--mobile-header-sm, 64px));
+  --bottom-sheet-max-width: min(560px, 100%);
+  --bottom-sheet-padding: var(--spacing-16);
+  --bottom-sheet-padding-bottom: var(--spacing-24);
+  --bottom-sheet-radius: var(--radius-16) var(--radius-16) 0 0;
+  --bottom-sheet-drag-indicator-width: 28px;            /* = var(--size-28) */
+  --bottom-sheet-drag-indicator-height: 4px;            /* = var(--size-4) */
+
+  position: fixed;
+  z-index: 5001;                                        /* = calc(--z-index-popover + 1) */
+  right: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);                          /* центрирование с max-width */
+  display: flex;
+  width: var(--bottom-sheet-max-width);
+  max-height: var(--bottom-sheet-max-height);
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: var(--bottom-sheet-radius);
+  background: var(--bg-surface-1);                      /* = --color-bg-surface-1 */
+  will-change: transform;
+}
+
+/* Bottom-spacer — Source: BottomSheet/index.module.scss:33-41 (::after)
+   Чтобы при overscroll/bounce снизу не было видно page-bg. */
+.bottom-sheet::after {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: 100vh;
+  background: inherit;
+  content: '';
+}
+
+/* Drag area — Source: BottomSheet/index.module.scss:44-52 (.dragArea) */
+.bottom-sheet-drag-area {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.bottom-sheet-drag-area:active {
+  cursor: grabbing;
+}
+
+/* Handle — Source: BottomSheet/index.module.scss:54-60 (.handle) */
+.bottom-sheet-handle {
+  width: var(--bottom-sheet-drag-indicator-width);
+  height: var(--bottom-sheet-drag-indicator-height);
+  border-radius: var(--radius-full);
+  margin: var(--spacing-8) auto;
+  background: var(--neutral-opaque-container-default);
+}
+
+/* Header — Source: BottomSheet/index.module.scss:62-72 (.header) */
+.bottom-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--bottom-sheet-padding) var(--spacing-20);
+  gap: var(--spacing-12);
+}
+/* :has(.subtitle) → align-items: flex-start (product-src :has) */
+.bottom-sheet-header:has(.bottom-sheet-subtitle) {
+  align-items: flex-start;
+}
+
+/* Title section (2-ярусный title + subtitle) — Source: BottomSheet/index.module.scss:74-77 */
+.bottom-sheet-title-section {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+/* Title — composed через Typography bodyLargeStrong или headingLarge */
+.bottom-sheet-title {
+  /* Typography-класс используется в HTML: <div class="bottom-sheet-title bodyLargeStrong">.
+     Сам класс .bottom-sheet-title в product-src пустой — только структурный маркер. */
+}
+
+/* Subtitle — Source: BottomSheet/index.module.scss:79-81 (.subtitle) */
+.bottom-sheet-subtitle {
+  color: var(--fg-soft);                                /* product-src: var(--color-neutral-text-secondary) */
+}
+
+/* Close button — Source: BottomSheet/index.module.scss:83-88 (.closeButton)
+   Расширенная touch-зона через padding + отрицательный margin. */
+.bottom-sheet-close-button {
+  flex: 0;
+  padding: var(--spacing-12);
+  margin: calc(-1 * var(--spacing-12));
+  touch-action: none;
+}
+
+/* Content — Source: BottomSheet/index.module.scss:90-100 (.content) */
+.bottom-sheet-content {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0 var(--bottom-sheet-padding)
+    calc(var(--bottom-sheet-padding-bottom) + env(safe-area-inset-bottom));
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+}
+
+
+/* ============================================
+   23. ACCORDION / EXPANDABLE
+   Source: Accordion/index.module.scss + Accordion.tsx
+   DOM: <div.root.{size}[.is-open][.chevron-left][panel-class]>
+          <div.header[.pressable] aria-expanded="...">
+            [Chevron-FunctionButton или свой chevron]
+            <h{2-4}.title>...</h{2-4}>
+            [rightTitleContent]
+          </div>
+          <div.children>...</div>
+        </div>
+   Sizes: .medium (default), .large
+   Styles панели (bg/radius) приходят из composed Panel компонента
+   (panel.module.scss .panel-light-medium / .panel-light-large).
+   ============================================ */
+.accordion {
+  --accordion-padding: var(--spacing-16);
+  --accordion-horizontal-padding: var(--accordion-padding);
+  --accordion-header-bottom-padding: var(--accordion-padding);
+
+  padding-bottom: calc(var(--accordion-padding) - var(--accordion-header-bottom-padding));
+  overflow: hidden;
+}
+
+/* Sizes — Source: Accordion/index.module.scss:3-17 */
+.accordion.medium {
+  --accordion-padding: var(--spacing-16);
+  --accordion-horizontal-padding: var(--accordion-padding);
+  --accordion-header-bottom-padding: var(--accordion-padding);
+}
+.accordion.large {
+  --accordion-padding: var(--spacing-24);
+  --accordion-header-bottom-padding: var(--spacing-16);
+  --accordion-horizontal-padding: var(--accordion-padding);
+}
+
+/* Header — Source: Accordion/index.module.scss:25-35 */
+.accordion .header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--accordion-padding) var(--accordion-horizontal-padding) var(--accordion-header-bottom-padding);
+  background: transparent;
+  border: none;
+  width: 100%;
+  font-family: var(--font);
+  color: var(--fg-default);
+  text-align: left;
+}
+.accordion .header.pressable {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Chevron — file-local helper (Accordion в product-src использует FunctionButton
+   с icon chevron-down, здесь упрощено до svg wrapper) */
+.accordion .chevron {
+  width: 20px; height: 20px;
+  flex-shrink: 0;
+  color: var(--fg-muted);
+  transition: transform var(--duration-fast-01) ease-in-out;
+}
+.accordion[aria-expanded='true'] .chevron,
+.accordion.is-open .chevron { transform: rotate(0); }
+.accordion:not([aria-expanded='true']):not(.is-open) .chevron { transform: rotate(-90deg); }
+
+/* Children — Source: Accordion/index.module.scss:37-65.
+   ⚠️ Direct-child `>` ОБЯЗАТЕЛЕН: `.children` это inner-class нескольких компонентов
+   (Button/FunctionButton тоже имеют `.children` для text wrapper'а). Если кнопка
+   лежит в rightTitleContent аккордеона — descendant selector матчит её `.children`
+   и ломает layout через ::after pseudo (раздувает кнопку на padding-bottom). */
+.accordion > .children {
+  position: relative;
+  overflow: clip;
+  padding: 0 var(--accordion-horizontal-padding);
+  transition:
+    max-height var(--duration-fast-01) ease-out,
+    padding-bottom var(--duration-fast-01) ease-out,
+    padding-top var(--duration-fast-01) ease-out;
+}
+.accordion:not(.is-open) > .children {
+  max-height: 0;
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+/* Panel themes — composed из panel.module.scss (отдельный SCSS в product-src). */
+.accordion.panel-light-medium,
+.accordion.panel-light-large {
+  background: var(--bg-surface-1);
+}
+.accordion.panel-light-medium { border-radius: var(--radius-8); }
+.accordion.panel-light-large  { border-radius: var(--radius-12); }
+
+/* Expandable — отдельный компонент (ExpandableBlock/ExpandableTitle).
+   Упрощённая версия — title с кликабельным chevron. */
+.expandable-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-8);
+  cursor: pointer;
+}
+.expandable-title .chevron {
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+  transition: transform var(--duration-fast-01) ease-in-out;
+  color: var(--fg-muted);
+}
+
+
+/* ============================================
+   24. FAVORITE (star)
+   Source: Favorite/index.module.scss:3-50 (.root + все состояния)
+
+   Product-src использует CSS-vars для icon fill/stroke/outline и переключает их
+   через .selected / :hover / .focused / .pressed. Палитра — accent (бренд).
+   Icon внутри — inline <svg> с `stroke="var(--star-icon-stroke-color)"` и
+   `fill="var(--star-icon-fill-color)"`, НЕ sprite-based (sprite не поддерживает
+   раздельные stroke/fill через CSS vars).
+
+   Usage в HTML:
+     <button class="favorite" aria-pressed="false">
+       <svg width="20" height="20" viewBox="0 0 20 20">
+         <path d="M10 1l2.6 5.3 5.9.9-4.3 4.2 1 5.8L10 14.5 4.8 17.2l1-5.8L1.5 7.2l5.9-.9z"
+               stroke="var(--star-icon-stroke-color)"
+               stroke-width="1.5"
+               fill="var(--star-icon-fill-color)"/>
+       </svg>
+     </button>
+     С .selected: стар залит accent-default.
+     С :hover (не selected): залит neutral-default.
+     С :hover .selected: залит accent-hover.
+     С .focused: outline accent focus-default.
+     С .pressed: залит accent-active.
+
+   ✅ T9 устранён (2026-04-21): добавлены --icon-* и --star-icon-* CSS-vars,
+      palette сменена warning → accent (семантика product-src), добавлены
+      .focused и .pressed состояния.
+   ============================================ */
+
+/* Root — Source: Favorite/index.module.scss:3-18 */
+.favorite {
+  --icon-default-color: var(--neutral-default);
+  --icon-hover-color: var(--accent-hover);
+  --icon-pressed-color: var(--accent-active);
+  --icon-selected-color: var(--accent-default);
+
+  --star-icon-stroke-color: var(--icon-default-color);
+  --star-icon-fill-color: transparent;
+  --star-icon-outline-color: transparent;
+
+  position: relative;                  /* нужно для VisuallyHidden label (A11y в product-src) */
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Selected — Source: Favorite/index.module.scss:19-23 (.selected) */
+.favorite.selected {
+  --star-icon-fill-color: var(--icon-selected-color);
+  --star-icon-stroke-color: transparent;
+  --star-icon-outline-color: transparent;
+}
+
+/* Hover — Source: Favorite/index.module.scss:25-33 (:hover + .selected combo) */
+.favorite:hover {
+  --star-icon-fill-color: var(--icon-default-color);
+  --star-icon-stroke-color: transparent;
+  --star-icon-outline-color: transparent;
+}
+.favorite:hover.selected {
+  --star-icon-fill-color: var(--icon-hover-color);
+}
+
+/* Focused — Source: Favorite/index.module.scss:35-43 (.focused + .selected combo) */
+.favorite.focused {
+  --star-icon-fill-color: var(--icon-default-color);
+  --star-icon-stroke-color: transparent;
+  --star-icon-outline-color: var(--focus-default);
+}
+.favorite.focused.selected {
+  --star-icon-fill-color: var(--icon-hover-color);
+}
+
+/* Pressed — Source: Favorite/index.module.scss:45-49 (.pressed) */
+.favorite.pressed {
+  --star-icon-fill-color: var(--icon-pressed-color);
+  --star-icon-stroke-color: transparent;
+  --star-icon-outline-color: transparent;
+}
+
+
+/* ============================================
+   25. SHORTCUT
+   Source: Shortcut/index.module.scss:1-24
+
+   Product-src DOM:
+     <div class="shortcut-root">                        — container + tokens
+       <span class="shortcut [special-key]">            — keycap (border + radius + color)
+         <span class="shortcut-text">Ctrl</span>        — inner text (margin -1px optical)
+       </span>
+       +
+       <span class="shortcut"><span class="shortcut-text">K</span></span>
+     </div>
+
+   CSS-vars:
+     --shortcut-border-color: border-soft (default) | accent-soft (selected/focused)
+     --shortcut-fg-color: fg-disabled (default) | fg-muted (.special-key) | accent-soft (selected/focused)
+
+   Usage:
+     <div class="shortcut-root">
+       <span class="shortcut special-key"><span class="shortcut-text">Ctrl</span></span>
+       <span class="shortcut"><span class="shortcut-text">K</span></span>
+     </div>
+
+   Parent `[aria-selected='true']` или `[data-is-focus-visible='true']` на .shortcut
+   триггерит accent-soft border+color.
+
+   ✅ T10 устранён (2026-04-21): иерархия приведена к product-src (.shortcut-root
+      контейнер → .shortcut клавиша → .shortcut-text inner), добавлены
+      .special-key модификатор и aria-selected/data-is-focus-visible состояния.
+   ============================================ */
+
+/* Root (container) — Source: Shortcut/index.module.scss:1-4 (.root) */
+.shortcut-root {
+  --shortcut-border-color: var(--border-soft);
+  --shortcut-fg-color: var(--fg-disabled);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Keycap — Source: Shortcut/index.module.scss:10-14 (.shortcut)
+   ⚠ Inner-class: .shortcut есть ТОЛЬКО в combo с .shortcut-root.
+   Bare `.shortcut {...}` запрещён (см. правило §11.4). */
+.shortcut-root .shortcut {
+  padding: 2px 4px;
+  border: 1px solid var(--shortcut-border-color);
+  border-radius: var(--radius-4);
+  color: var(--shortcut-fg-color);
+  font-size: 11px; font-weight: 400; line-height: 16px;  /* Typography descriptionSmall */
+}
+
+/* Special key (Ctrl / Cmd / Shift / Enter / …) — Source: Shortcut/index.module.scss:6-8 */
+.shortcut-root .shortcut.special-key {
+  --shortcut-fg-color: var(--fg-muted);
+}
+
+/* Inner text — Source: Shortcut/index.module.scss:22-24 (.shortcutText) */
+.shortcut-root .shortcut-text {
+  margin: -1px;          /* optical alignment (-border-width) */
+}
+
+/* Selected / focus-visible — Source: Shortcut/index.module.scss:16-20 */
+[aria-selected='true'] .shortcut-root .shortcut,
+[data-is-focus-visible='true'] .shortcut-root .shortcut {
+  --shortcut-border-color: var(--accent-soft);
+  --shortcut-fg-color: var(--accent-soft);
+}
+
+
+/* ============================================
+   26. MARKDOWN
+   Source: Markdown/index.module.scss:1-136 + index.tsx (React markdown mapper)
+
+   Product-src использует CSS-module-classes на маппинг-JSX:
+     .root, .blockquoteWrapper, .pre, .list, .listItemOrdered,
+     .tableWrapper, .table, .thead, .tr, .th, .td, .link
+
+   Library hybrid approach:
+   - Tag-selectors (.markdown h1, .markdown p, .markdown code) для raw-rendered
+     контента — простых случаев 80% (AI-сборка прототипов в HTML).
+   - Wrapper-classes (.markdown-blockquote-wrapper, .markdown-pre,
+     .markdown-table-wrapper) когда нужен 1:1 с product-src (bg-box вокруг
+     blockquote, horizontal-scroll вокруг wide table).
+
+   Usage (простой):
+     <div class="markdown">
+       <h2>Заголовок</h2>
+       <p>Текст с <code>inline</code>.</p>
+       <ul><li>пункт</li></ul>
+     </div>
+
+   Usage (1:1 wrapper для blockquote с bg-box):
+     <div class="markdown">
+       <div class="markdown-blockquote-wrapper">
+         <blockquote>Цитата в bg-container-muted боксе</blockquote>
+       </div>
+     </div>
+
+   Usage (wide table с horizontal scroll):
+     <div class="markdown">
+       <div class="markdown-table-wrapper">
+         <table>...</table>
+       </div>
+     </div>
+
+   ✅ T11 устранён (2026-04-21): vertical-rhythm через `> * + *` (не margin-bottom),
+      pre — light-тема (container-muted bg + inherit text), blockquote-wrapper и
+      table-wrapper добавлены, table border-collapse: separate + border-bottom only
+      (1:1 product-src), `b/strong` → bodySmallStrong внутри table.
+   ============================================ */
+
+/* Root — Source: Markdown/index.module.scss:3-23 (.root) */
+.markdown {
+  --table-outer-horizontal-padding: 0px;                 /* может быть переопределён в tableWrapper */
+  font-size: 14px; font-weight: 400; line-height: 20px;  /* bodySmall (Typography wrapper в product-src) */
+  color: var(--fg-default);
+}
+/* Vertical-rhythm через `> * + *` — Source: Markdown/index.module.scss:6-8 */
+.markdown > * + * {
+  margin-top: var(--spacing-16);
+}
+.markdown ul,
+.markdown ol {
+  margin-block-start: var(--spacing-16);
+  padding-inline-start: var(--spacing-20);
+}
+.markdown li + li {
+  margin-top: var(--spacing-16);
+}
+.markdown hr {
+  margin: var(--spacing-16) 0;
+}
+
+/* Headings — Typography heading-1/2/3 в product-src mapper */
+.markdown h1 { font-size: 24px; font-weight: 700; line-height: 32px; }
+.markdown h2 { font-size: 20px; font-weight: 700; line-height: 28px; }
+.markdown h3 { font-size: 16px; font-weight: 700; line-height: 20px; }
+
+/* Inline code — product-src: через Typography + bg-container-muted */
+.markdown code {
+  background: var(--neutral-container-muted);
+  border-radius: var(--radius-4);
+  padding: 2px 4px;
+  font-size: 12px; font-weight: 400; line-height: 16px;
+}
+
+/* Pre (code block) — Source: Markdown/index.module.scss:36-42 (.pre)
+   1:1: light-тема (не dark как было), padding-12, radius-12. */
+.markdown pre,
+.markdown .markdown-pre {
+  overflow: auto;
+  max-width: 100%;
+  padding: var(--spacing-12);
+  border-radius: var(--radius-12);
+  background: var(--neutral-opaque-container-muted);     /* 1:1 product-src (light) */
+}
+
+/* Blockquote wrapper — Source: Markdown/index.module.scss:25-34 (.blockquoteWrapper + blockquote)
+   Wrap blockquote в bg-box когда нужен "call-out" look. */
+.markdown .markdown-blockquote-wrapper {
+  padding: var(--spacing-16) var(--spacing-24);
+  border-radius: var(--radius-8);
+  background: var(--neutral-opaque-container-muted);
+}
+.markdown .markdown-blockquote-wrapper blockquote {
+  padding-left: var(--spacing-12);
+  border-left: 2px solid var(--border-muted);
+  color: var(--fg-default);
+  margin: 0;
+}
+/* Blockquote без wrapper — simpler inline вариант (prototype-convenience) */
+.markdown blockquote:not(.markdown-blockquote-wrapper blockquote) {
+  padding-left: var(--spacing-12);
+  border-left: 2px solid var(--border-muted);
+  color: var(--fg-soft);
+  margin: 0;
+}
+
+/* Table wrapper — Source: Markdown/index.module.scss:52-80 (.tableWrapper)
+   Horizontal-scroll для wide tables. В HTML-прототипах — optional wrapper. */
+.markdown .markdown-table-wrapper {
+  --negative-horizontal-margin: calc(-1 * var(--table-outer-horizontal-padding));
+  display: flex;
+  overflow: auto hidden;
+  width: calc(100% + var(--table-outer-horizontal-padding) * 2);
+  align-items: stretch;
+  padding-left: var(--table-outer-horizontal-padding);
+  margin-right: var(--negative-horizontal-margin);
+  margin-left: var(--negative-horizontal-margin);
+  overscroll-behavior-x: contain;
+}
+
+/* Table — Source: Markdown/index.module.scss:82-131 (.table/.thead/.tr/.th/.td) */
+.markdown table {
+  width: 100%;
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-8);
+  border-collapse: separate;                             /* 1:1 product-src */
+}
+/* b/strong → bodySmallStrong — Source: Markdown/index.module.scss:88-91 */
+.markdown table b,
+.markdown table strong {
+  font-size: 14px; font-weight: 500; line-height: 20px;
+}
+.markdown thead {
+  overflow: hidden;
+  border-top-left-radius: var(--radius-8);
+  border-top-right-radius: var(--radius-8);
+}
+/* tr rounded-corners для первой/последней строк — Source: Markdown/index.module.scss:104-117 */
+.markdown tr:first-child th:first-child { border-top-left-radius: var(--radius-8); }
+.markdown tr:first-child th:last-child  { border-top-right-radius: var(--radius-8); }
+.markdown th,
+.markdown tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border-muted);
+}
+.markdown th,
+.markdown td {
+  padding: var(--spacing-8) var(--spacing-12);
+  text-align: left;
+}
+.markdown th {
+  background: var(--neutral-opaque-container-muted);
+}
+.markdown td {
+  white-space: pre-wrap;                                 /* 1:1 product-src .td */
+}
+
+/* Link (внутри markdown) — Source: Markdown/index.module.scss:133-136 (.link) */
+.markdown .markdown-link,
+.markdown a {
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+
+/* ============================================
+   27. AI ASSISTANT BUTTON (FAB)
+   Source: widgets/aiAssistant/components/AiAssistantButton/index.module.scss
+   DOM (AiAssistantButton/index.tsx:100-139):
+     <FloatingPortal>
+       <AiAssistantPopover>
+         <button class="ai-assistant-btn" data-is-floating-element aria-expanded="false">
+           <Icon variant="arkasha" size="32" />          — 32×32 icon wrapper
+           <Typography class="px-4" variant="bodyMediumStrong">Чат с ИИ</Typography>
+         </button>
+       </AiAssistantPopover>
+     </FloatingPortal>
+   Position: fixed, right:32, bottom:32. На мобиле текст скрывается (`mobile:none`).
+   ============================================ */
+/* Root — Source: AiAssistantButton/index.module.scss:9-30 (.root) */
+.ai-assistant-btn {
+  position: fixed;
+  z-index: 9998;                                         /* product-src: calc(var(--z-index-notifications) - 2) */
+  right: var(--spacing-32);
+  bottom: var(--spacing-32);                             /* product-src: calc(var(--ai-assistant-bottom-offset, var(--spacing-32)) + env(safe-area-inset-bottom)) */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
+  border: 1px solid var(--border-muted);                 /* = --border-width-1 solid --color-border-muted */
+  border-radius: var(--radius-10);                       /* = --border-radius-10 */
+  background: var(--accent-on-color, #FFFFFF);           /* = --color-accent-on-color */
+  box-shadow: var(--shadow-lg);                          /* = --shadow-large */
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--fg-soft);                                 /* = --color-fg-soft */
+  transition:
+    box-shadow var(--duration-fast-01) ease-out,
+    bottom var(--duration-fast-01) ease-out;
+}
+/* Hover / active — Source: AiAssistantButton/index.module.scss:31-37 */
+.ai-assistant-btn:hover  { box-shadow: var(--shadow-md); }   /* = shadow-medium */
+.ai-assistant-btn:active { box-shadow: var(--shadow-sm); }   /* = shadow-small */
+
+/* Expanded (скрыт когда popover открыт) — Source: AiAssistantButton/index.module.scss:39-43 */
+.ai-assistant-btn[aria-expanded='true'] {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Inner Icon wrapper — product-src Icon DOM: span.root > span.innerRoot > svg */
+.ai-assistant-btn .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.ai-assistant-btn .icon > .innerRoot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  min-width: 32px; min-height: 32px;
+}
+.ai-assistant-btn .icon > .innerRoot > svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+
+/* Label "Чат с ИИ" — bodyMediumStrong 16/500/24 + px-4.
+   class children здесь — 1:1 с Typography wrapper в product-src.
+   Mobile breakpoint: текст скрывается (mobile:none в product-src className). */
+.ai-assistant-btn .children {
+  padding: 0 var(--spacing-4);
+  font-size: 16px; font-weight: 500; line-height: 24px;  /* bodyMediumStrong */
+}
+@media (max-width: 767px) {
+  .ai-assistant-btn .children { display: none; }
+}
+
+
+/* ============================================
+   28. DATA BLOCKED MESSAGE
+   Source: shared/components/DataBlockedMessage/index.module.scss:3-8 (.root, весь файл)
+           + index.tsx:54-106 (DOM composition)
+
+   Product-src DOM (DataBlockedMessage/index.tsx:65-105):
+     <div class="data-blocked">
+       [<Icon class="icon text-muted mb-4"/>]        — если iconVariant passed (default infoCircleFilled)
+       [<Loader class="mb-12"/>]                     — если isLoading (mb-12 только при isLarge)
+       <Typography variant="{bodySmallStrong | bodyLargeStrong}">{message}</Typography>
+       [<Typography class="text-soft descriptionLarge">{description}</Typography>]
+       [<Button class="mt-12">...</Button>]
+     </div>
+
+   Sizes (через isLarge prop):
+     default    → message=bodySmallStrong (14/500/20), icon size=20, loader size=24
+     isLarge    → message=bodyLargeStrong (18/500/24), icon size=32, loader size=32
+
+   Usage в HTML:
+     <div class="data-blocked">
+       <svg class="icon text-muted mb-4" width="20" height="20">
+         <use href="../shared/icons.svg#info-circle-filled"/>
+       </svg>
+       <div class="bodySmallStrong">Нет данных за выбранный период</div>
+       <div class="descriptionLarge text-soft">Попробуйте другой период или фильтр</div>
+       <a class="mt-12"><button class="btn btn-md btn-secondary-neutral">
+         <span class="btn-text">Обновить</span>
+       </button></a>
+     </div>
+
+   ✅ T3 устранён (2026-04-21): .data-blocked теперь 1:1 с product-src .root.
+   Старые .data-blocked-icon / .data-blocked-text удалены — используй Icon + Typography utility.
+   ============================================ */
+.data-blocked {
+  display: grid;                      /* product-src: display: grid */
+  gap: var(--spacing-12);             /* = var(--spacing-12) = 12px */
+  place-items: center;                /* product-src: place-items: center */
+  text-align: center;                 /* product-src: text-align: center */
+}
+
+
+/* ============================================
+   29. DEFINITION LIST
+   Source: shared/components/DefinitionList/index.module.scss (54 строки)
+           + index.tsx:118-168 (DOM + responsive logic)
+
+   Product-src DOM (index.tsx:118-168):
+     <div class="def-list [list|wrapped]" role="list" style="--data-sheet-columns-count">
+       <div class="def-list-content">
+         <div class="def-list-column">                          — bordered rounded
+           <div class="def-list-item flex" role="listitem">     — border-top между items
+             <div class="def-list-label flex-1 text-soft py-8 px-12">
+               <Typography bodySmall>{label}</Typography>
+             </div>
+             <div class="def-list-value flex-1 py-8 px-12 min-w-0">
+               <Typography bodySmall>{value}</Typography>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+
+   Modes:
+     .list    — single column, длинные значения wrap (overflow-wrap: anywhere)
+     .wrapped — multi-column grid с container-queries. Columns count задаётся JS'ом
+                в product-src (ResizeObserver + breakpoints 673/1008px),
+                в HTML без JS — вручную через inline style="--data-sheet-columns-count: N".
+                ellipsis + nowrap вместо wrap.
+
+   Typography: label и value оба bodySmall (14/400/20) — используй utility класс
+               из layout.css (<div class="bodySmall">).
+   Empty value: product-src рендерит через renderOrMdash — «—». В HTML писать «—» руками.
+
+   ✅ T4 устранён (2026-04-21): заменён native <dl><dt><dd> на product-src-1:1 DOM.
+      Naming: .def-list (контейнер, 1:1 product-src .root) + .def-list-* для inner classes
+      (префикс для избежания collision с product-src .content/.column/.item у других компонентов).
+   ============================================ */
+
+/* Root — Source: DefinitionList/index.module.scss:3-6 (.root) */
+.def-list {
+  --data-sheet-label-min-width: 0px;
+  --data-sheet-label-max-width: 260px;
+}
+
+/* Wrapped mode — Source: DefinitionList/index.module.scss:8-27 (.wrapped) */
+.def-list.wrapped {
+  container-type: inline-size;
+}
+.def-list.wrapped .def-list-content {
+  display: grid;
+  align-items: start;
+  gap: var(--spacing-24);
+  grid-template-columns: repeat(var(--data-sheet-columns-count, 1), minmax(0, 1fr));
+}
+@container (width > 673px) {
+  /* Source: DefinitionList/index.module.scss:21-25 ($container-md-breakpoint) */
+  .def-list.wrapped { --data-sheet-label-min-width: 180px; }
+}
+
+/* Column — Source: DefinitionList/index.module.scss:29-33 (.column) */
+.def-list-column {
+  overflow: hidden;
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-8);
+}
+
+/* Item — Source: DefinitionList/index.module.scss:35-39 (.item)
+   Product-src: .item { & + & { border-top } } + в TSX clsx('flex') */
+.def-list-item {
+  display: flex;
+}
+.def-list-item + .def-list-item {
+  border-top: 1px solid var(--border-muted);
+}
+
+/* Label — Source: DefinitionList/index.module.scss:41-44 (.label) + TSX flex-1 text-soft py-8 px-12 */
+.def-list-label {
+  flex: 1;
+  min-width: var(--data-sheet-label-min-width);
+  max-width: var(--data-sheet-label-max-width);
+  padding: 8px 12px;                          /* = py-8 px-12 */
+  color: var(--fg-soft);                      /* = text-soft */
+}
+
+/* Value — Source: DefinitionList/index.module.scss + TSX flex-1 py-8 px-12 min-w-0 */
+.def-list-value {
+  flex: 1;
+  min-width: 0;                               /* = min-w-0 */
+  padding: 8px 12px;
+}
+
+/* List mode (default) — Source: DefinitionList/index.module.scss:46-48 */
+.def-list.list .def-list-label,
+.def-list.list .def-list-value {
+  overflow-wrap: anywhere;
+}
+
+/* Wrapped mode — ellipsis instead of wrap — Source: DefinitionList/index.module.scss:50-54 */
+.def-list.wrapped .def-list-label,
+.def-list.wrapped .def-list-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================
+   ARKA Layout — Page Shell, Sidebar, Content,
+   Layout Patterns & Utility Classes
+   Разметка страниц и утилиты продукта АРКА.
+
+   ╔══════════════════════════════════════════════════════════════════╗
+   ║  🔴 ПРАВИЛО №0 — СТРОГИЙ 1:1 С ПРОДУКТОМ                          ║
+   ║                                                                    ║
+   ║  Utility-классы (flex, grid, gap-N, p-N, text-*, bodyMedium,      ║
+   ║  displaySmall, rounded-N, background-bg-surface-N и т.д.) должны  ║
+   ║  дословно совпадать с утилитами продукта.                  ║
+   ║                                                                    ║
+   ║  Typography values (bodyMediumStrong=16/500/24, displaySmall=     ║
+   ║  32/500/44, descriptionLarge=12/400/16 и т.д.) — из               ║
+   ║  typography-mixins.scss. НЕ менять.          ║
+   ║                                                                    ║
+   ╚══════════════════════════════════════════════════════════════════╝
+   ============================================ */
+
+
+/* ============================================
+   1. PAGE SHELL
+   body is flex row: sidebar + main
+   ============================================ */
+:scope {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+
+/* ============================================
+   2. SIDEBAR — 248px, CSS Grid 3 rows
+   Source: NavigationMenu/index.module.scss
+   ============================================ */
+.sidebar {
+  width: var(--nav-width);
+  min-width: var(--nav-width);
+  background: var(--bg-surface-2);
+  display: grid;
+  grid-template-columns: 100%;
+  /* Source: NavigationMenu .root grid-template-rows: auto 1fr auto
+     (header+search | menuItems | bottomPanel) */
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  overflow: hidden;
+  padding: 24px 0;
+  transition: width 0.2s, min-width 0.2s;
+}
+
+/* Scrollable menu items container */
+.nav-menu-items {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 0;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  transition: border-color 0.2s;
+}
+.nav-menu-items.scroll-top { border-top-color: var(--border-muted); }
+.nav-menu-items.scroll-bottom { border-bottom-color: var(--border-muted); }
+.nav-menu-items::-webkit-scrollbar { width: 8px; }
+.nav-menu-items::-webkit-scrollbar-track { background: transparent; }
+.nav-menu-items::-webkit-scrollbar-thumb {
+  background: var(--neutral-active);
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background-clip: content-box;
+}
+
+/* Sidebar Header — wrapper "pt-4 pb-16" around [logo row] + [cowSearch].
+   Source: NavigationMenu/index.tsx:
+     <div className="pt-4 pb-16">
+       <div className="flex gap-12 py-4 pl-24"> burger + brand </div>
+       <div className="cowSearch"> search </div>
+     </div>
+   The 16px bottom padding creates the gap between search and menuItems. */
+.sidebar-header {
+  padding: 4px 0 16px;
+}
+
+/* Logo row — flex gap-12 py-4 pl-24 */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 4px 24px;
+}
+.sidebar-logo .menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--fg-soft);
+  background: none;
+  border: none;
+  padding: 0;
+}
+.sidebar-logo .brand-svg {
+  height: 24px;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+/* Sidebar Search — NavigationCowSearchSelect (CowAsyncSelect, variant=full, 36px).
+   Source:
+     features/layouts/components/BaseLayout/components/NavigationCowSearchSelect/index.tsx
+     shared/components/Select/index.module.scss → .medium36 + .full (withBorder)
+   Trigger рендерит renderSelectedItem (по умолчанию getItemText) — то есть только
+   текст `formatCow(item, { prefix: '' })` = «№ 1234 · Зорька». Description/badge/avatar
+   видны только в dropdown-items, не в triggere. */
+.sidebar-search {
+  padding: 20px 16px 0;
+  position: relative;
+}
+.nav-cow-search {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 8px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background: var(--neutral-container-muted);
+  color: var(--fg-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.1s, background 0.1s;
+}
+.nav-cow-search:hover {
+  background: var(--neutral-container-soft);
+}
+.nav-cow-search .search-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Selected state: trigger показывает formatCow-текст вместо placeholder —
+   color переключается с fg-muted на fg-default (как у Select .styled когда value). */
+.nav-cow-search.selected .search-label {
+  color: var(--fg-default);
+}
+.nav-cow-search .search-chevron {
+  flex-shrink: 0;
+  margin-left: 8px;
+  color: var(--fg-muted);
+}
+
+/* ============================================
+   NAV ITEMS
+   Source: NavigationMenuItem/index.module.scss
+   ============================================ */
+
+/* Nav Section wrapper */
+.nav-section {
+  padding-left: 16px;
+  padding-right: 8px;          /* 16px - 8px scrollbar */
+}
+
+/* Nav Item Root — 2-level: root > link */
+.nav-item-root {
+  padding: 2px 0;
+  color: var(--fg-soft);
+  cursor: pointer;
+  user-select: none;
+}
+.nav-item-root:hover .nav-link { background: var(--neutral-container-soft); }
+.nav-item-root:active .nav-link { background: var(--neutral-container-default); }
+.nav-item-root.active { color: var(--accent-default); }
+.nav-item-root.active .nav-link { background: var(--accent-container-default); }
+.nav-item-root.active:hover .nav-link { background: var(--accent-container-hover); }
+
+/* Link inside nav item — CSS Grid layout */
+.nav-link {
+  display: grid;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: var(--radius-8);
+  gap: 12px;
+  grid-template-columns: 24px auto;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.15s;
+  color: inherit;
+  text-decoration: none;
+}
+.nav-link.with-chevron {
+  grid-template-columns: 24px auto 1fr;
+}
+
+/* Nav icon — 24x24 slot */
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  color: inherit;
+}
+
+/* Section header — bodyMediumStrong: 16px / 500 / 24px */
+.nav-section-label {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+/* Sub-item — bodyMedium: 16px / 400 / 24px */
+.nav-sub-label {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* Chevron in section header */
+.nav-chevron {
+  width: 16px;
+  height: 16px;
+  justify-self: end;
+  color: var(--fg-muted);
+  transition: transform 0.2s;
+}
+
+/* Top-level items outside sections */
+.nav-toplevel {
+  padding-left: 16px;
+  padding-right: 8px;
+}
+
+/* Spacer — empty 24px slot for sub-items without icon */
+.nav-spacer {
+  width: 24px;
+  height: 24px;
+}
+
+/* Nav Badge (counter) */
+.nav-badge {
+  background: var(--accent-default);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  justify-self: end;
+  line-height: 18px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Sidebar Bottom — matches .bottomPanel */
+.sidebar-bottom {
+  padding: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 16px;
+  padding-right: 8px;
+}
+.sidebar-bottom .nav-item-root { padding: 0; }
+.company-selector {
+  background: var(--neutral-container-muted) !important;
+}
+.company-selector:hover {
+  background: var(--neutral-container-soft) !important;
+}
+
+/* ============================================
+   SIDEBAR COLLAPSED STATE — 72px
+   ============================================ */
+.sidebar.collapsed {
+  width: var(--nav-width-collapsed);
+  min-width: var(--nav-width-collapsed);
+}
+/* CowSearch wrapper — padding 16/20px 16px 0
+   Source: NavigationMenu/index.module.scss .cowSearch */
+.sidebar-search {
+  padding: 20px 16px 0;
+}
+/* In collapsed: search becomes NavigationMenuSelect icon-only with neutral-muted bg
+   Source: NavigationMenuSelect/index.module.scss */
+.sidebar.collapsed .sidebar-search {
+  padding: 20px 0 0;
+  display: flex;
+  justify-content: center;
+}
+.sidebar.collapsed .sidebar-search .nav-link {
+  background: var(--neutral-container-muted);
+}
+.sidebar.collapsed .sidebar-search .nav-link:hover {
+  background: var(--neutral-container-soft);
+}
+
+/* Source: NavigationMenu uses .px-16 around bottom items.
+   In collapsed mode, nav-menu-items still scrolls but scrollbar-gutter is reset
+   (no space for label, scrollbar would break icon centering).
+   Collapsed items align to center of 72px sidebar via padding on nav-link. */
+.sidebar.collapsed .nav-menu-items {
+  scrollbar-gutter: auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+.sidebar.collapsed .sidebar-bottom {
+  padding-left: 0;
+  padding-right: 0;
+}
+.sidebar.collapsed .sidebar-logo {
+  padding: 4px 0;
+  justify-content: center;
+}
+/* Center each nav-item-root inside the 72px sidebar */
+.sidebar.collapsed .nav-item-root {
+  display: flex;
+  justify-content: center;
+}
+
+/* In collapsed mode, link is 40×36 (padding 6px 8px + 24px icon),
+   bg highlight fills exactly this area. Label column collapses. */
+.sidebar.collapsed .nav-link {
+  grid-template-columns: 24px;
+}
+
+/* Icon-with-counter: in collapsed, hide the icon (opacity:0) and show
+   absolute-positioned counter at the center of the icon slot.
+   Source: NavigationMenuItem — .hideForCollapsedWithTransition + .collapsedCounter */
+.sidebar.collapsed .nav-link.with-counter {
+  position: relative;
+}
+.sidebar.collapsed .nav-link.with-counter .nav-icon {
+  opacity: 0;
+}
+.sidebar.collapsed .nav-counter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* Badge variant=counter, color=warning, size=large24
+     Source: Badge/index.module.scss .large24 (padding 2/4, radius 6)
+     + .counter (radius full) */
+  background: var(--warning-container-default);
+  color: var(--warning-default);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  min-width: 24px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Avatar — 24x24, radius 6, typography bodyMedium (16/400/24)
+   Used in CompanySelector (single letter/digit) */
+.nav-avatar {
+  display: grid;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--radius-6);
+  place-items: center;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--fg-soft);
+  user-select: none;
+  background: var(--neutral-container-default);
+}
+/* Optional color variants (status colors for different companies) */
+/* Source: product-src tokens.css --status{01..06}-soft + --status{01..06}-container-default */
+.nav-avatar-status01 { background: var(--status01-container-default); color: var(--status01-soft); }
+.nav-avatar-status02 { background: var(--status02-container-default); color: var(--status02-soft); }
+.nav-avatar-status03 { background: var(--status03-container-default); color: var(--status03-soft); }
+.nav-avatar-status04 { background: var(--status04-container-default); color: var(--status04-soft); }
+.nav-avatar-status05 { background: var(--status05-container-default); color: var(--status05-soft); }
+.nav-avatar-status06 { background: var(--status06-container-default); color: var(--status06-soft); }
+.sidebar.collapsed .sidebar-logo .brand-svg {
+  display: none;
+}
+.sidebar.collapsed .nav-section-label,
+.sidebar.collapsed .nav-sub-label {
+  display: none;
+}
+.sidebar.collapsed .nav-chevron {
+  display: none;
+}
+.sidebar.collapsed .nav-badge {
+  display: none;
+}
+
+
+/* ============================================
+   3. MAIN CONTENT AREA
+   ============================================ */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-page);
+}
+
+/* Scrollable content — padding moved here so scrollbar sits at viewport edge.
+   Source: BaseLayout .content grid-template-rows: var(--content-grid-gap) ...
+   First row = 24px gap (--content-grid-gap) — aligns PageHeader with sidebar burger. */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 48px 48px;
+  scrollbar-gutter: stable;
+}
+.content::-webkit-scrollbar { width: 8px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb {
+  background: var(--neutral-active);
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background-clip: content-box;
+}
+
+/* Content grid responsive padding */
+@media (max-width: 767px) {
+  .content { padding: 16px 16px 48px; }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .content { padding: 24px 24px 48px; }
+}
+@media (min-width: 1280px) {
+  .content { padding: 24px 48px 48px; }
+}
+
+
+/* ============================================
+   4. PAGE HEADER
+   Source: PageHeader component
+   ============================================ */
+/* Page header.
+   Source: PageHeader/index.module.scss
+     .root { composes: headerContainer; padding-bottom: 24px; }
+     .title:not(has rightContent) { padding-block: 6px; }  (via has-check)
+   .headerContainer: flex, flex-wrap: wrap, gap: 12px */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+/* When no right content — title has its own vertical padding 6px */
+.page-header:not(:has(.page-header-right)) .page-header-title {
+  padding-block: 6px;
+}
+.page-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Heading 1: 28px / 32px / 700 */
+/* Heading 2: 22px / 700 / 24px — PageHeader uses TypographyVariants.heading2 */
+.page-header-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--fg-default);
+}
+/* bodySmall: 14px / 400 / 20px */
+.page-header-description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+}
+.page-header-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* Source: PageHeader/index.module.scss .rightContent — margin-left: auto */
+.page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.page-header-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+.page-header-back:hover {
+  color: var(--fg-soft);
+}
+
+
+/* ============================================
+   5. PANEL CARD + CARD HEADER
+   ============================================ */
+.panel-card {
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-12);
+  padding: 24px;
+}
+/* Inter-card spacing in product-src is applied via explicit `mb-24` on each
+   non-last card (см. overview.tsx `p-content-grid grid gap-24 mb-24`), не через
+   adjacent-sibling. Оставлять как adjacent-правило было бы некорректно в случаях
+   со `state-only` скрытыми сёстрами — рулят они, даже будучи display:none. */
+
+/* Card Header — on gray bg */
+.card-header {
+  padding: 24px 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+/* Heading 2: 22px / 24px / 700 */
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--fg-default);
+}
+.card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+
+/* ============================================
+   6. TILE GRID
+   ============================================ */
+.tile-grid {
+  display: grid;
+  gap: 16px;
+}
+.tile-grid-sm {
+  grid-template-columns: repeat(auto-fill, minmax(244px, 1fr));
+}
+.tile-grid-md {
+  grid-template-columns: repeat(auto-fill, minmax(296px, 1fr));
+}
+.tile-grid-lg {
+  grid-template-columns: repeat(auto-fill, minmax(428px, 1fr));
+}
+
+/* Tile — Source: src/features/layouts/components/Tile/index.module.scss
+   .root { border-radius: 8, background: surface-1, outline: none }
+   &:hover/active/focus-visible { bg surface-2, outline: 2px border-muted }
+   БЕЗ border и БЕЗ box-shadow. */
+.tile {
+  position: relative;
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-8);
+  padding: 16px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tile:hover,
+.tile:active,
+.tile:focus-visible {
+  background: var(--bg-surface-2);
+  outline: 2px solid var(--border-muted);
+}
+.tile-sm { min-height: 100px; }
+.tile-md { min-height: 196px; }
+.tile-lg { min-height: 260px; }
+
+.tile-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tile-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--fg-muted);
+}
+/* bodySmallStrong: 14px / 500 / 20px */
+.tile-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--fg-default);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* bodySmall: 14px / 400 / 20px */
+.tile-description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--fg-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.tile-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.tile-actions {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+
+/* ============================================
+   7. MOBILE HEADER
+   ============================================ */
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-surface-1);
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-muted);
+}
+.mobile-header-sm { height: 64px; }
+.mobile-header-md { height: 80px; }
+
+@media (max-width: 767px) {
+  .mobile-header { display: flex; }
+  .sidebar { display: none; }
+  :scope { flex-direction: column; }
+  .main { padding-top: 64px; }
+}
+
+
+/* ============================================
+   8. ROUTER TABS
+   Source: tabs within content area
+   ============================================ */
+.router-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-page);
+  padding-bottom: 2px;
+}
+.router-tabs-content {
+  display: flex;
+  gap: 16px;
+  height: 38px;
+  overflow-x: auto;
+}
+.router-tabs-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+
+/* ============================================
+   9. UTILITY CLASSES
+   ============================================ */
+
+/* ---- Display ---- */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.grid { display: grid; }
+.hidden { display: none !important; }
+.contents { display: contents; }
+
+/* ---- Flex ---- */
+.flex-col { flex-direction: column; }
+.flex-col-reverse { flex-direction: column-reverse; }
+.flex-row-reverse { flex-direction: row-reverse; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.flex-none { flex: none; }
+.shrink-0 { flex-shrink: 0; }
+
+/* ---- Alignment ---- */
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.justify-end { justify-content: flex-end; }
+.self-start { align-self: flex-start; }
+.self-center { align-self: center; }
+.self-end { align-self: flex-end; }
+.self-stretch { align-self: stretch; }
+.place-items-center { place-items: center; }
+.place-self-center { place-self: center; }
+
+/* ---- Gap (spacing tokens) ---- */
+.gap-2 { gap: 2px; }
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.gap-24 { gap: 24px; }
+.gap-32 { gap: 32px; }
+.gap-40 { gap: 40px; }
+.gap-48 { gap: 48px; }
+
+/* ---- Grid ---- */
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-full { grid-column: 1 / -1; }
+
+/* ---- Spacing: Margin ---- */
+.m-0 { margin: 0; }
+.m-2 { margin: 2px; }
+.m-4 { margin: 4px; }
+.m-6 { margin: 6px; }
+.m-8 { margin: 8px; }
+.m-12 { margin: 12px; }
+.m-16 { margin: 16px; }
+.m-20 { margin: 20px; }
+.m-24 { margin: 24px; }
+.m-32 { margin: 32px; }
+.m-40 { margin: 40px; }
+.m-48 { margin: 48px; }
+
+.mt-0 { margin-top: 0; }
+.mt-2 { margin-top: 2px; }
+.mt-4 { margin-top: 4px; }
+.mt-6 { margin-top: 6px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; }
+.mt-40 { margin-top: 40px; }
+.mt-48 { margin-top: 48px; }
+
+.mr-0 { margin-right: 0; }
+.mr-2 { margin-right: 2px; }
+.mr-4 { margin-right: 4px; }
+.mr-6 { margin-right: 6px; }
+.mr-8 { margin-right: 8px; }
+.mr-12 { margin-right: 12px; }
+.mr-16 { margin-right: 16px; }
+.mr-20 { margin-right: 20px; }
+.mr-24 { margin-right: 24px; }
+.mr-32 { margin-right: 32px; }
+.mr-40 { margin-right: 40px; }
+.mr-48 { margin-right: 48px; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: 2px; }
+.mb-4 { margin-bottom: 4px; }
+.mb-6 { margin-bottom: 6px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-32 { margin-bottom: 32px; }
+.mb-40 { margin-bottom: 40px; }
+.mb-48 { margin-bottom: 48px; }
+
+.ml-0 { margin-left: 0; }
+.ml-2 { margin-left: 2px; }
+.ml-4 { margin-left: 4px; }
+.ml-6 { margin-left: 6px; }
+.ml-8 { margin-left: 8px; }
+.ml-12 { margin-left: 12px; }
+.ml-16 { margin-left: 16px; }
+.ml-20 { margin-left: 20px; }
+.ml-24 { margin-left: 24px; }
+.ml-32 { margin-left: 32px; }
+.ml-40 { margin-left: 40px; }
+.ml-48 { margin-left: 48px; }
+
+.mx-0 { margin-left: 0; margin-right: 0; }
+.mx-2 { margin-left: 2px; margin-right: 2px; }
+.mx-4 { margin-left: 4px; margin-right: 4px; }
+.mx-6 { margin-left: 6px; margin-right: 6px; }
+.mx-8 { margin-left: 8px; margin-right: 8px; }
+.mx-12 { margin-left: 12px; margin-right: 12px; }
+.mx-16 { margin-left: 16px; margin-right: 16px; }
+.mx-20 { margin-left: 20px; margin-right: 20px; }
+.mx-24 { margin-left: 24px; margin-right: 24px; }
+.mx-32 { margin-left: 32px; margin-right: 32px; }
+.mx-40 { margin-left: 40px; margin-right: 40px; }
+.mx-48 { margin-left: 48px; margin-right: 48px; }
+
+.my-0 { margin-top: 0; margin-bottom: 0; }
+.my-2 { margin-top: 2px; margin-bottom: 2px; }
+.my-4 { margin-top: 4px; margin-bottom: 4px; }
+.my-6 { margin-top: 6px; margin-bottom: 6px; }
+.my-8 { margin-top: 8px; margin-bottom: 8px; }
+.my-12 { margin-top: 12px; margin-bottom: 12px; }
+.my-16 { margin-top: 16px; margin-bottom: 16px; }
+.my-20 { margin-top: 20px; margin-bottom: 20px; }
+.my-24 { margin-top: 24px; margin-bottom: 24px; }
+.my-32 { margin-top: 32px; margin-bottom: 32px; }
+.my-40 { margin-top: 40px; margin-bottom: 40px; }
+.my-48 { margin-top: 48px; margin-bottom: 48px; }
+
+.ml-auto { margin-left: auto; }
+.mr-auto { margin-right: auto; }
+.mt-auto { margin-top: auto; }
+
+/* ---- Spacing: Padding ---- */
+.p-0 { padding: 0; }
+.p-2 { padding: 2px; }
+.p-4 { padding: 4px; }
+.p-6 { padding: 6px; }
+.p-8 { padding: 8px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-20 { padding: 20px; }
+.p-24 { padding: 24px; }
+.p-32 { padding: 32px; }
+.p-40 { padding: 40px; }
+.p-48 { padding: 48px; }
+
+.pt-0 { padding-top: 0; }
+.pt-2 { padding-top: 2px; }
+.pt-4 { padding-top: 4px; }
+.pt-6 { padding-top: 6px; }
+.pt-8 { padding-top: 8px; }
+.pt-12 { padding-top: 12px; }
+.pt-16 { padding-top: 16px; }
+.pt-20 { padding-top: 20px; }
+.pt-24 { padding-top: 24px; }
+.pt-32 { padding-top: 32px; }
+.pt-40 { padding-top: 40px; }
+.pt-48 { padding-top: 48px; }
+
+.pr-0 { padding-right: 0; }
+.pr-2 { padding-right: 2px; }
+.pr-4 { padding-right: 4px; }
+.pr-6 { padding-right: 6px; }
+.pr-8 { padding-right: 8px; }
+.pr-12 { padding-right: 12px; }
+.pr-16 { padding-right: 16px; }
+.pr-20 { padding-right: 20px; }
+.pr-24 { padding-right: 24px; }
+.pr-32 { padding-right: 32px; }
+.pr-40 { padding-right: 40px; }
+.pr-48 { padding-right: 48px; }
+
+.pb-0 { padding-bottom: 0; }
+.pb-2 { padding-bottom: 2px; }
+.pb-4 { padding-bottom: 4px; }
+.pb-6 { padding-bottom: 6px; }
+.pb-8 { padding-bottom: 8px; }
+.pb-12 { padding-bottom: 12px; }
+.pb-16 { padding-bottom: 16px; }
+.pb-20 { padding-bottom: 20px; }
+.pb-24 { padding-bottom: 24px; }
+.pb-32 { padding-bottom: 32px; }
+.pb-40 { padding-bottom: 40px; }
+.pb-48 { padding-bottom: 48px; }
+
+.pl-0 { padding-left: 0; }
+.pl-2 { padding-left: 2px; }
+.pl-4 { padding-left: 4px; }
+.pl-6 { padding-left: 6px; }
+.pl-8 { padding-left: 8px; }
+.pl-12 { padding-left: 12px; }
+.pl-16 { padding-left: 16px; }
+.pl-20 { padding-left: 20px; }
+.pl-24 { padding-left: 24px; }
+.pl-32 { padding-left: 32px; }
+.pl-40 { padding-left: 40px; }
+.pl-48 { padding-left: 48px; }
+
+.px-0 { padding-left: 0; padding-right: 0; }
+.px-2 { padding-left: 2px; padding-right: 2px; }
+.px-4 { padding-left: 4px; padding-right: 4px; }
+.px-6 { padding-left: 6px; padding-right: 6px; }
+.px-8 { padding-left: 8px; padding-right: 8px; }
+.px-12 { padding-left: 12px; padding-right: 12px; }
+.px-16 { padding-left: 16px; padding-right: 16px; }
+.px-20 { padding-left: 20px; padding-right: 20px; }
+.px-24 { padding-left: 24px; padding-right: 24px; }
+.px-32 { padding-left: 32px; padding-right: 32px; }
+.px-40 { padding-left: 40px; padding-right: 40px; }
+.px-48 { padding-left: 48px; padding-right: 48px; }
+
+.py-0 { padding-top: 0; padding-bottom: 0; }
+.py-2 { padding-top: 2px; padding-bottom: 2px; }
+.py-4 { padding-top: 4px; padding-bottom: 4px; }
+.py-6 { padding-top: 6px; padding-bottom: 6px; }
+.py-8 { padding-top: 8px; padding-bottom: 8px; }
+.py-12 { padding-top: 12px; padding-bottom: 12px; }
+.py-16 { padding-top: 16px; padding-bottom: 16px; }
+.py-20 { padding-top: 20px; padding-bottom: 20px; }
+.py-24 { padding-top: 24px; padding-bottom: 24px; }
+.py-32 { padding-top: 32px; padding-bottom: 32px; }
+.py-40 { padding-top: 40px; padding-bottom: 40px; }
+.py-48 { padding-top: 48px; padding-bottom: 48px; }
+
+/* ---- Sizing ---- */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-w-0 { min-width: 0; }
+.min-w-full { min-width: 100%; }
+.max-w-full { max-width: 100%; }
+
+/* ---- Text ---- */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.whitespace-nowrap { white-space: nowrap; }
+.capitalize { text-transform: capitalize; }
+.text-underline { text-decoration: underline; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ellipsis-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ellipsis-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---- Typography utility classes ----
+   Source: src/styles/__generated__/typography.module.scss + typography-mixins.scss.
+   Product-src использует Typography component с variant={TypographyVariants.X} → class {X}.
+   Эти utility-классы позволяют ставить те же имена классов 1:1 в HTML. */
+.bodyLarge          { font-size: 18px; font-weight: 400; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; }
+.bodyLargeStrong    { font-size: 18px; font-weight: 500; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.bodyMedium         { font-size: 16px; font-weight: 400; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; }
+.bodyMediumStrong   { font-size: 16px; font-weight: 500; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.bodySmall          { font-size: 14px; font-weight: 400; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; }
+.bodySmallStrong    { font-size: 14px; font-weight: 500; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.descriptionLarge   { font-size: 12px; font-weight: 400; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; }
+.descriptionLargeStrong  { font-size: 12px; font-weight: 500; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.descriptionMedium  { font-size: 11px; font-weight: 400; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; }
+.descriptionMediumStrong { font-size: 11px; font-weight: 500; line-height: 16px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.descriptionSmall   { font-size: 10px; font-weight: 400; line-height: 12px; font-variant-numeric: lining-nums tabular-nums; }
+.descriptionSmallStrong  { font-size: 10px; font-weight: 500; line-height: 12px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.displayLarge       { font-size: 48px; font-weight: 500; line-height: 56px; font-variant-numeric: lining-nums tabular-nums; }
+.displayLargeStrong { font-size: 48px; font-weight: 700; line-height: 56px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.displayMedium      { font-size: 40px; font-weight: 500; line-height: 48px; font-variant-numeric: lining-nums tabular-nums; }
+.displayMediumStrong{ font-size: 40px; font-weight: 700; line-height: 48px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.displaySmall       { font-size: 32px; font-weight: 500; line-height: 44px; font-variant-numeric: lining-nums tabular-nums; }
+.displaySmallStrong { font-size: 32px; font-weight: 700; line-height: 44px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+.heading1           { font-size: 28px; font-weight: 700; line-height: 32px; font-variant-numeric: lining-nums tabular-nums; }
+.heading2           { font-size: 22px; font-weight: 700; line-height: 24px; font-variant-numeric: lining-nums tabular-nums; }
+.heading3           { font-size: 18px; font-weight: 700; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; }
+.heading4           { font-size: 16px; font-weight: 700; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; }
+.heading5           { font-size: 14px; font-weight: 700; line-height: 20px; font-variant-numeric: lining-nums tabular-nums; font-style: normal; }
+
+
+/* ---- Text Colors ---- */
+.text-default { color: var(--fg-default); }
+.text-soft { color: var(--fg-soft); }
+.text-muted { color: var(--fg-muted); }
+.text-disabled { color: var(--fg-disabled); }
+.text-accent { color: var(--accent-default); }
+.text-accent-soft { color: var(--accent-soft); }
+.text-success { color: var(--success-default); }
+.text-error { color: var(--error-default); }
+.text-warning { color: var(--warning-default); }
+.text-info { color: var(--info-default); }
+
+/* ---- Overflow ---- */
+.overflow-auto { overflow: auto; }
+.overflow-hidden { overflow: hidden; }
+.overflow-clip { overflow: clip; }
+
+/* ---- Display ---- */
+.hidden { display: none !important; }
+.hidden-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ---- Pointer / Interaction ---- */
+.pointer-events-none { pointer-events: none; }
+.cursor-default { cursor: default; }
+.cursor-pointer { cursor: pointer; }
+.cursor-grab { cursor: grab; }
+.cursor-grabbing { cursor: grabbing; }
+
+/* ---- Borders ---- */
+.rounded-full { border-radius: 9999px; }
+.rounded-4 { border-radius: var(--radius-4); }
+.rounded-6 { border-radius: var(--radius-6); }
+.rounded-8 { border-radius: var(--radius-8); }
+.rounded-10 { border-radius: var(--radius-10); }
+.rounded-12 { border-radius: var(--radius-12); }
+
+/* Background utilities (bg-surface-N) — Source: product-src atoms background/surface */
+.background-bg-surface-1 { background: var(--bg-surface-1); }
+.background-bg-surface-2 { background: var(--bg-surface-2); }
+.background-bg-surface-3 { background: var(--bg-surface-3); }
+.background-bg-page      { background: var(--bg-page); }
+.border-muted { border: 1px solid var(--border-muted); }
+.border-soft { border: 1px solid var(--border-soft); }
+.shadow-border { box-shadow: 0 0 0 1px var(--neutral-75); }
+
+/* ---- Position ---- */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+
+/* ---- Opacity ---- */
+.opacity-0 { opacity: 0; }
+.opacity-50 { opacity: 0.5; }
+
+
+/* ============================================
+   10. CUSTOM SCROLLBAR
+   ============================================ */
+.custom-scroll::-webkit-scrollbar { width: 8px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: var(--neutral-active);
+  border: 2px solid transparent;
+  border-radius: var(--radius-8);
+  background-clip: content-box;
+}
+
+:scope { color-scheme: light; font-size: 14px; line-height: normal; font-feature-settings: normal; }
+}
+@scope (.arka-prototype[data-screen="calendar"]) {
+
+  /* Экран «Календарь» — заготовка тестового задания. Режим «Неделя».
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.bodyMediumStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Filters row (Source: features/filters Filters/index.module.scss) */
+  .filters-root { display: flex; align-items: center; gap: var(--spacing-6); margin-bottom: var(--spacing-24); }
+  .filters-wrapper { display: flex; align-items: center; gap: 10px; flex: 1 1; min-width: 0; }
+  .filters-list { display: flex; align-items: center; gap: var(--spacing-6); overflow-x: auto; }
+  .filters-search { width: var(--input-width-default, 240px); display: flex; align-items: center; gap: var(--spacing-6); flex-shrink: 0; cursor: text; }
+  .filters-search input { border: none; outline: none; background: transparent; font: inherit; color: inherit; width: 100%; }
+  .filters-search input::placeholder { color: var(--fg-muted); }
+
+  /* Доска недели (Source: features/board Board/index.module.scss + DayBoard/index.module.scss) */
+  .board-scroll { overflow-x: auto; margin: 0 -48px; padding: 0 48px; }
+  .board-days { display: grid; align-items: start; grid-template-columns: repeat(7, 1fr); gap: var(--spacing-8); min-width: max-content; }
+  .day-board { min-width: 260px; background: var(--neutral-container-muted); border-radius: var(--radius-12); padding: var(--spacing-8); }
+  .day-board-header { display: flex; align-items: center; gap: var(--spacing-8); padding-bottom: var(--spacing-8); }
+  .day-board-empty { text-align: center; color: var(--fg-muted); padding: var(--spacing-24); }
+
+  /* BlueprintTile size S (Source: Tile/index.module.scss + BlueprintTile/index.module.scss) */
+  .tile-root { position: relative; display: flex; flex-direction: column; height: 100px; padding: var(--spacing-12); border-radius: var(--radius-8); background: var(--bg-surface-1); color: inherit; text-decoration: none; cursor: pointer; }
+  .tile-root:hover, .tile-root:focus-visible { background: var(--bg-surface-2); outline: 2px solid var(--border-muted); }
+  .tile-root .tile-title-icon { height: 1lh; color: var(--fg-soft); flex-shrink: 0; }
+  .tile-root .tile-title-text { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .tile-fn-buttons { display: grid; align-items: end; grid-template-columns: var(--favorite-button-width, 0); gap: 0; margin-left: -12px; }
+  .tile-fn-buttons.with-autostart { grid-template-columns: auto var(--favorite-button-width, 0); margin-left: 0; gap: var(--spacing-8); }
+  .tile-fn-buttons .favorite { width: var(--favorite-button-width, 0); opacity: var(--favorite-button-opacity, 0); overflow: hidden; transition: all var(--duration-fast) ease-in-out; }
+  .tile-fn-buttons .favorite.selected { --favorite-button-width: 16px; --favorite-button-opacity: 1; }
+  .tile-root:hover .tile-fn-buttons, .tile-root:focus-within .tile-fn-buttons { --favorite-button-width: 16px; --favorite-button-opacity: 1; gap: var(--spacing-8); margin-left: 0; }
+  .day-board .tiles-col { display: flex; flex-direction: column; gap: var(--spacing-8); }
+
+}
+@scope (.arka-prototype[data-screen="commands"]) {
+
+  /* Экран «Команды» — заготовка тестового задания. Вид «Карточки», размер S.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Filters row (Source: features/filters Filters/index.module.scss) */
+  .filters-root { display: flex; align-items: center; gap: var(--spacing-6); margin-bottom: var(--spacing-12); padding: var(--spacing-12) 0; }
+  .filters-wrapper { display: flex; align-items: center; gap: 10px; flex: 1 1; min-width: 0; }
+  .filters-list { display: flex; align-items: center; gap: var(--spacing-6); overflow-x: auto; }
+  .filters-search { width: var(--input-width-default, 240px); display: flex; align-items: center; gap: var(--spacing-6); flex-shrink: 0; cursor: text; }
+  .filters-search input { border: none; outline: none; background: transparent; font: inherit; color: inherit; width: 100%; }
+  .filters-search input::placeholder { color: var(--fg-muted); }
+  .filter-chip-value { max-width: 155px; }
+
+
+  /* Табличный вид (Source: BlueprintsTable/index.module.scss):
+     ссылка названия, звезда избранного видна на hover строки или если включена */
+  .bp-name-link { color: var(--fg-default); text-decoration: underline; }
+  .data-grid-row .row-favorite { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .data-grid-row:hover .row-favorite { opacity: 1; }
+
+}
+@scope (.arka-prototype[data-screen="list-bulls"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-culling"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-dry"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-fresh"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-heifers"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-insem"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-inseminated"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-lame"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-sick"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list-work"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}
+@scope (.arka-prototype[data-screen="list"]) {
+
+  /* Экран «запущенный список» — заготовка тестового задания.
+     Результат запуска списка с экрана «Команды»: таблица животных.
+     Структура сверена с продуктом. Ниже — только то, чего нет в shared. */
+  b.bodySmallStrong, b.descriptionLargeStrong { font-weight: 500; font-style: normal; }
+
+  /* Таблица результата (Source: BlueprintExecutionResults/TableExecutionResult/index.module.scss) */
+  .exec-table {
+    --cell-padding: 8px 4px 8px 12px;
+    --cell-border-color: var(--border-muted);
+    --table-header-height: 40px;
+    width: 100%; min-width: 50vw;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .exec-table td { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); }
+  .exec-table thead { position: sticky; top: 0; z-index: 1; height: var(--table-header-height); }
+  .exec-table thead tr { background: var(--bg-page); }
+  .exec-table thead th { padding: var(--cell-padding); border-bottom: 1px solid var(--cell-border-color); text-align: left; }
+  .exec-table thead th:first-child, .exec-table td:first-child { padding-left: 12px; }
+  .exec-table .header-cell { color: var(--fg-muted); }
+  .exec-table .header-cell:hover { color: var(--fg-soft); }
+  .exec-table .header-cell:hover .col-settings-btn { opacity: 1; }
+  .col-settings-btn { opacity: 0; transition: opacity var(--duration-fast) ease-in-out; }
+  .exec-table .row:hover { background: var(--neutral-opaque-container-hover); }
+  /* группирующая строка (Source: GroupedTableRow/index.module.scss) */
+  .group-row { cursor: pointer; }
+  .group-row td { background: var(--neutral-opaque-container-default); }
+  .group-row:hover td { background: var(--neutral-opaque-container-hover); }
+  .group-row.first-level { position: sticky; top: var(--table-header-height); z-index: 1; }
+  .group-row .icon svg { fill: var(--fg-soft); }
+  .cow-link { text-decoration: underline; color: var(--fg-default); }
+
+}

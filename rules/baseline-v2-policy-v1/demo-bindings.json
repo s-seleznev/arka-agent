@@ -1,0 +1,42 @@
+{
+  "version": "synthetic-policy/v1",
+  "provenance": "SIMULATION: explicit test-only company to farm assignment. No identity relationship to source companies is asserted. flat_and/sql_null/no_predicate and alive=>ACTIVE are synthetic execution policies, not confirmed original export semantics.",
+  "policies": {
+    "rootPolicy": "flat_and",
+    "vitalityPolicy": "life_state",
+    "nullPolicy": "sql_null",
+    "emptySelectionPolicy": "no_predicate"
+  },
+  "companyFarms": {
+    "1": "2911f095-dd8c-5878-a8f3-2e027513ad6a",
+    "2": "5addf364-4bff-5189-ac00-4eace4643d72",
+    "3": "8ce17f63-6c33-5128-ac34-87b3c74f2d8e",
+    "4": "407f1a3d-2fee-5066-8aa3-84948473132e",
+    "5": "b0a509b8-464f-5880-af31-3d6e75e9170d",
+    "6": "b1d512f9-f277-5b97-9744-28fd3210c545",
+    "7": "2911f095-dd8c-5878-a8f3-2e027513ad6a",
+    "8": "5addf364-4bff-5189-ac00-4eace4643d72",
+    "9": "8ce17f63-6c33-5128-ac34-87b3c74f2d8e",
+    "10": "407f1a3d-2fee-5066-8aa3-84948473132e",
+    "11": "b0a509b8-464f-5880-af31-3d6e75e9170d",
+    "12": "b1d512f9-f277-5b97-9744-28fd3210c545",
+    "13": "2911f095-dd8c-5878-a8f3-2e027513ad6a",
+    "14": "5addf364-4bff-5189-ac00-4eace4643d72",
+    "15": "8ce17f63-6c33-5128-ac34-87b3c74f2d8e",
+    "16": "407f1a3d-2fee-5066-8aa3-84948473132e",
+    "17": "b0a509b8-464f-5880-af31-3d6e75e9170d",
+    "18": "b1d512f9-f277-5b97-9744-28fd3210c545",
+    "19": "2911f095-dd8c-5878-a8f3-2e027513ad6a",
+    "20": "5addf364-4bff-5189-ac00-4eace4643d72",
+    "21": "8ce17f63-6c33-5128-ac34-87b3c74f2d8e",
+    "22": "407f1a3d-2fee-5066-8aa3-84948473132e",
+    "23": "b0a509b8-464f-5880-af31-3d6e75e9170d",
+    "24": "b1d512f9-f277-5b97-9744-28fd3210c545",
+    "25": "2911f095-dd8c-5878-a8f3-2e027513ad6a",
+    "26": "5addf364-4bff-5189-ac00-4eace4643d72",
+    "27": "8ce17f63-6c33-5128-ac34-87b3c74f2d8e",
+    "28": "407f1a3d-2fee-5066-8aa3-84948473132e",
+    "29": "b0a509b8-464f-5880-af31-3d6e75e9170d",
+    "30": "b1d512f9-f277-5b97-9744-28fd3210c545"
+  }
+}
