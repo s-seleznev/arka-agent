@@ -18,6 +18,10 @@ Production deployment: `dpl_C1SPaY2yLMQsyNnF2yAMKWKQ9rT8`, статус READY. �
 
 Production-сборка задана в `agent-app/vercel.json`: сборка скиллов и `next build`, без автоматического запуска миграций. Изменения схемы выпускаются отдельно.
 
+## Локальная модель
+
+Локальный `.env.local`: `AI_RUNTIME=codex-app-server`, `CODEX_MODEL=gpt-5.6-luna`. Файл исключён из Git и пакета публикации. В production остаётся OpenRouter; переключение локальной модели не меняет переменные Vercel.
+
 ## Модель и данные
 
 - Vercel Hobby с Fluid Compute; модель — OpenRouter `openrouter/free`. Платные модели и переход на платный Gateway в этом режиме запрещены кодом.

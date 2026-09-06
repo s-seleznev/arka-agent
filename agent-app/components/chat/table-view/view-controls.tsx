@@ -1933,6 +1933,10 @@ export function TableViewControls({
         <div
           aria-label="Настройка выборки"
           className="flex min-w-0 items-center gap-1"
+          onScroll={(event) => {
+            const toolbar = event.currentTarget;
+            toolbar.dataset.scrolledLeft = String(toolbar.scrollLeft > 1);
+          }}
           role="toolbar"
         >
 

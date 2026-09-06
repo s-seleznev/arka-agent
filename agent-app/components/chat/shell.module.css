@@ -1,10 +1,36 @@
-.workspace :global([data-testid="farm-toolbar"]) {
+.workspace :global([data-testid="farm-toolbar"][data-testid="farm-toolbar"]) {
   padding-right: 100px;
+  min-width: 0;
 }
 
 .workspace :global([data-testid="farm-toolbar"] > [role="toolbar"]) {
+  flex: 1;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
+  padding-right: 24px;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+
+.workspace :global([data-testid="farm-toolbar"] > [role="toolbar"][data-scrolled-left="true"]) {
+  mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+}
+
+.workspace :global([data-testid="farm-toolbar"] > [role="toolbar"] > *) {
+  flex-shrink: 0;
+}
+
+.tableActions {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--app-bar-height);
+  padding: 0 12px 0 8px;
+  background: var(--bg-topbar, var(--background));
 }
 
 .fullscreenTable {

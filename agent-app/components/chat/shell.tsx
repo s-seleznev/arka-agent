@@ -337,7 +337,7 @@ export function ChatShell() {
         )}
       </div>
 
-      <div className="fixed right-3 z-40 flex items-center gap-1" style={{ top: "calc((var(--app-bar-height) - 36px) / 2)" }}>
+      <div className={styles.tableActions}>
         {isTableVisible && !isMobile && <Button
           ref={fullscreenButtonRef}
           variant="ghost" size="icon"
