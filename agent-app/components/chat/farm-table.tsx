@@ -6,6 +6,7 @@ import {
   MoreHorizontalIcon,
   PanelRightOpenIcon,
   RefreshCwIcon,
+  XIcon,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -36,13 +37,6 @@ import {
 import { TableExportFooter } from "@/components/chat/table-view/export-footer";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { useActiveChat } from "@/hooks/use-active-chat";
 import {
   initialWorkspacePreview,
@@ -1090,14 +1084,6 @@ export function FarmTableWorkspace() {
         viewId={view.id}
       />
 
-      {preview.animalCard ? (
-        <AnimalDetailsSheet
-          animal={preview.animalCard}
-          onClose={closeAnimalCard}
-          openerRef={animalCardOpenerRef}
-        />
-      ) : null}
-
       <div className="relative min-h-0 flex-1" ref={gridRef} style={{ containerType: "inline-size" }}>
         {pages.isInitialLoading ? (
           <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
@@ -1152,6 +1138,14 @@ export function FarmTableWorkspace() {
             onToggle={pages.toggleGroup}
           />
         )}
+      {preview.animalCard ? (
+        <AnimalDetailsPanel
+          animal={preview.animalCard}
+          onClose={closeAnimalCard}
+          openerRef={animalCardOpenerRef}
+        />
+      ) : null}
+
       </div>
 
       <TableExportFooter
@@ -1224,7 +1218,7 @@ const animalDetailSections: Array<{
   },
 ];
 
-function AnimalDetailsSheet({
+function AnimalDetailsPanel({
   animal,
   onClose,
   openerRef,
@@ -1233,32 +1227,41 @@ function AnimalDetailsSheet({
   onClose: () => void;
   openerRef: React.RefObject<HTMLButtonElement | null>;
 }) {
-  const handleOpenChange = useCallback(
-    (open: boolean) => {
-      if (!open) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
+  const closePanel = useCallback(() => {
+    onClose();
+    openerRef.current?.focus();
+  }, [onClose, openerRef]);
   const number = formatValue(animal.primary_identifier);
   const name = formatValue(animal.name);
 
   return (
-    <Sheet onOpenChange={handleOpenChange} open>
-      <SheetContent
-        className="w-full sm:max-w-md"
-        data-testid="animal-card"
-        onCloseAutoFocus={(event) => {
+    <aside
+      aria-label={`Животное № ${number}`}
+      className="absolute inset-y-0 right-0 z-30 flex w-full max-w-md flex-col border-l bg-background motion-safe:animate-in motion-safe:slide-in-from-right-4 motion-safe:duration-200"
+      data-testid="animal-card"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
           event.preventDefault();
-          openerRef.current?.focus();
-        }}
-        side="right"
-      >
-        <SheetHeader className="border-b">
-          <SheetTitle>Животное № {number}</SheetTitle>
-          <SheetDescription>{name}</SheetDescription>
-        </SheetHeader>
+          event.stopPropagation();
+          closePanel();
+        }
+      }}
+    >
+      <header className="flex shrink-0 items-start gap-3 border-b p-6">
+        <div className="min-w-0 flex-1">
+          <h2 className="font-semibold text-base">Животное № {number}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{name}</p>
+        </div>
+        <Button
+          aria-label="Закрыть карточку животного"
+          className="shrink-0"
+          onClick={closePanel}
+          size="icon"
+          variant="ghost"
+        >
+          <XIcon className="size-4" />
+        </Button>
+      </header>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
           {animalDetailSections.map((section) => (
             <section
@@ -1279,8 +1282,7 @@ function AnimalDetailsSheet({
             </section>
           ))}
         </div>
-      </SheetContent>
-    </Sheet>
+    </aside>
   );
 }
 

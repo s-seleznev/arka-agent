@@ -1,8 +1,9 @@
 "use client";
 
 import { DownloadIcon, LoaderCircleIcon, PrinterIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { TableAssistantControlContext } from "./assistant-control";
 
 type Props = {
   viewId: string;
@@ -18,6 +19,7 @@ export function TableExportFooter({
   loading,
   disabled,
 }: Props) {
+  const assistantControl = useContext(TableAssistantControlContext);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const controller = useRef<AbortController | null>(null);
@@ -80,8 +82,9 @@ export function TableExportFooter({
         style={{ borderTop: "1px solid var(--divider-color)" }}
         data-testid="farm-export-footer"
       >
+        {assistantControl}
         <span
-          className="mr-auto min-w-0 text-xs text-muted-foreground"
+          className="ml-auto shrink-0 whitespace-nowrap text-sm text-muted-foreground"
           aria-live="polite"
           data-testid="farm-row-count"
           role="status"

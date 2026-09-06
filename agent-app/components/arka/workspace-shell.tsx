@@ -36,9 +36,9 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
   if (!isWorkspace) return children;
   return (
     <SidebarProvider defaultOpen className={styles.provider}>
-      <div className={styles.shell}>
+      <div className={styles.shell} data-workspace-shell>
         <WorkspacePreviewPersistence />
-        <aside className={styles.sidebar} ref={sidebar}>
+        <aside className={styles.sidebar} data-workspace-sidebar ref={sidebar}>
           <WorkspaceNavigation isArka={isArka} onSelect={setIsArka} />
           <div className={styles.navigation}>
             <AnimatePresence mode="wait" initial={false}>

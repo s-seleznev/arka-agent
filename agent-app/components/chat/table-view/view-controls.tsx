@@ -2089,9 +2089,10 @@ export function TableViewControls({
 
       {filterRowOpen ? (
         <div
-          className="flex h-[var(--app-bar-height)] shrink-0 flex-nowrap items-center gap-2 overflow-x-auto border-b bg-background px-3"
+          className="flex h-[var(--app-bar-height)] shrink-0 items-center gap-2 border-b bg-background px-3"
           data-testid="farm-applied-rules"
         >
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
           <AppliedFilterExpression
             fieldMap={fieldMap}
             group={filters}
@@ -2123,6 +2124,28 @@ export function TableViewControls({
               />
             </PopoverContent>
           </Popover>
+          </div>
+          <Button
+            className="shrink-0"
+            size="xs"
+            variant="ghost"
+            aria-label="Сбросить все фильтры"
+            title="Сбросить все фильтры"
+            disabled={isMutating || filterConditions.length === 0}
+            onClick={() => {
+              setAddFilterOpen(false);
+              void runBackgroundMutation({
+                kind: "operations",
+                operations: filterConditions.map(condition => ({
+                  type: "filter.remove" as const,
+                  nodeId: condition.id,
+                })),
+              });
+            }}
+          >
+            <RotateCcwIcon data-icon="inline-start" />
+            Сбросить
+          </Button>
         </div>
       ) : null}
 

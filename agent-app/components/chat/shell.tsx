@@ -1,6 +1,11 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { Maximize2, Minimize2, PanelRight, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import styles from "./shell.module.css";
+import { TableAssistantControlContext } from "./table-view/assistant-control";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
@@ -39,6 +44,7 @@ import { WorkspacePreviewPanel } from "./workspace-preview";
 
 export function ChatShell() {
   const reduceMotion = useReducedMotion();
+  const pathname = usePathname();
   const {
     chatId,
     messages,
@@ -70,6 +76,63 @@ export function ChatShell() {
   const { preview, setPreview } = useWorkspacePreview();
   const isMobile = useIsMobile();
   const isWorkspaceVisible = isArtifactVisible || preview.isVisible;
+  const [tableFullscreen, setTableFullscreen] = useState(false);
+  const [compactChatOpen, setCompactChatOpen] = useState(false);
+  const [keyboardTransition, setKeyboardTransition] = useState(false);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const compactChatRef = useRef<HTMLDivElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const fullscreenButtonRef = useRef<HTMLButtonElement>(null);
+  const isTableVisible = preview.isVisible && preview.type !== "file";
+  const fullscreen = tableFullscreen && isTableVisible && !isMobile && (pathname === "/" || pathname.startsWith("/chat/"));
+  const transition = { duration: reduceMotion || keyboardTransition ? 0 : 0.24, ease: [0.32, 0.72, 0, 1] as const };
+
+  const closeCompactChat = useCallback(() => {
+    setCompactChatOpen(false);
+    requestAnimationFrame(() => launcherRef.current?.focus({ preventScroll: true }));
+  }, []);
+
+  useEffect(() => {
+    setTableFullscreen(false);
+    setCompactChatOpen(false);
+  }, [chatId, pathname]);
+
+  useEffect(() => {
+    if (!isTableVisible || isMobile) {
+      setTableFullscreen(false);
+      setCompactChatOpen(false);
+    }
+  }, [isTableVisible, isMobile]);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const sidebar = shellRef.current?.closest("[data-workspace-shell]")?.querySelector<HTMLElement>("[data-workspace-sidebar]");
+    const wasInert = sidebar?.inert;
+    if (sidebar) sidebar.inert = true;
+    return () => { if (sidebar) sidebar.inert = wasInert ?? false; };
+  }, [fullscreen]);
+
+  useEffect(() => {
+    if (!fullscreen || !compactChatOpen) return;
+    const frame = requestAnimationFrame(() => compactChatRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [fullscreen, compactChatOpen]);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      setKeyboardTransition(true);
+      if (compactChatOpen) closeCompactChat();
+      else {
+        setTableFullscreen(false);
+        fullscreenButtonRef.current?.focus({ preventScroll: true });
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [fullscreen, compactChatOpen, closeCompactChat]);
+
 
   const stopRef = useRef(stop);
   stopRef.current = stop;
@@ -128,8 +191,21 @@ export function ChatShell() {
   }, []);
 
   const chatPane = (
-    <div className="flex size-full min-w-0 flex-col bg-background">
-      <ChatHeader key={chatId} />
+    <motion.div
+      layout
+      initial={false}
+      animate={{ opacity: fullscreen && !compactChatOpen ? 0 : 1, y: fullscreen && !compactChatOpen && !reduceMotion ? 12 : 0, scale: fullscreen && !compactChatOpen && !reduceMotion ? 0.97 : 1 }}
+      transition={transition}
+      ref={compactChatRef}
+      id="compact-assistant-chat"
+      className={`flex size-full min-w-0 flex-col bg-background ${fullscreen ? styles.compactChat : ""}`}
+      aria-label={fullscreen ? "Чат с ассистентом" : undefined}
+      role={fullscreen ? "region" : undefined}
+      aria-hidden={fullscreen && !compactChatOpen || undefined}
+      inert={fullscreen && !compactChatOpen}
+      style={{ pointerEvents: fullscreen && !compactChatOpen ? "none" : undefined }}
+    >
+      <ChatHeader key={chatId} compact={fullscreen} onClose={closeCompactChat} />
 
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
         <Messages
@@ -180,7 +256,7 @@ export function ChatShell() {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 
   const workspacePane = preview.isVisible ? (
@@ -208,9 +284,16 @@ export function ChatShell() {
     <WorkspacePreviewPanel />
   );
 
+  const assistantControl = fullscreen && !compactChatOpen ? (
+    <Button ref={launcherRef} variant="ghost" size="sm"
+      aria-label="Открыть ассистента" aria-expanded={false} aria-controls="compact-assistant-chat"
+      onClick={(event) => { setKeyboardTransition(event.detail === 0); setCompactChatOpen(true); }}
+    ><Sparkles strokeWidth={1.5} /><span>Ассистент</span>{(status === "streaming" || status === "submitted") && <span className="size-1.5 rounded-full bg-current" aria-label="Готовит ответ" />}</Button>
+  ) : null;
+
   return (
-    <>
-      <div className="h-dvh w-full overflow-hidden">
+    <TableAssistantControlContext.Provider value={assistantControl}>
+      <div ref={shellRef} className="h-dvh w-full overflow-hidden">
         {isMobile || !isWorkspaceVisible ? (
           chatPane
         ) : (
@@ -231,6 +314,8 @@ export function ChatShell() {
             </ResizablePanel>
             <ResizableHandle
               aria-label="Изменить ширину чата"
+              disabled={fullscreen}
+              aria-hidden={fullscreen || undefined}
               data-testid="chat-resize-handle"
               id="chat-resize-handle"
               style={{ width: 1, backgroundColor: "transparent", borderRight: "1px solid var(--border)", boxSizing: "border-box" }}
@@ -242,15 +327,42 @@ export function ChatShell() {
               minSize="30%"
             >
               <motion.div
-                className="h-full min-w-0"
-                initial={{ x: reduceMotion ? 0 : 64, opacity: reduceMotion ? 1 : 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                layout="position"
+                className={`h-full min-w-0 ${styles.workspace} ${fullscreen ? styles.fullscreenTable : ""}`}
+                initial={false}
+                transition={transition}
               >{workspacePane}</motion.div>
             </ResizablePanel>
           </ResizablePanelGroup>
         )}
       </div>
+
+      <div className="fixed right-3 z-40 flex items-center gap-1" style={{ top: "calc((var(--app-bar-height) - 36px) / 2)" }}>
+        {isTableVisible && !isMobile && <Button
+          ref={fullscreenButtonRef}
+          variant="ghost" size="icon"
+          aria-label={fullscreen ? "Вернуть таблицу рядом с чатом" : "Развернуть таблицу на весь экран"}
+          title={fullscreen ? "Вернуть таблицу рядом с чатом" : "Развернуть таблицу на весь экран"}
+          aria-pressed={fullscreen}
+          onClick={(event) => {
+            setKeyboardTransition(event.detail === 0);
+            setCompactChatOpen(!fullscreen);
+            setTableFullscreen(!fullscreen);
+          }}
+        >{fullscreen ? <Minimize2 strokeWidth={1.5} /> : <Maximize2 strokeWidth={1.5} />}</Button>}
+        <Button variant="ghost" size="icon"
+          aria-label={preview.isVisible ? "Закрыть таблицу" : "Открыть таблицу"}
+          title={preview.isVisible ? "Закрыть таблицу" : "Открыть таблицу"}
+          aria-pressed={preview.isVisible}
+          onClick={(event) => {
+            setKeyboardTransition(event.detail === 0);
+            setTableFullscreen(false);
+            setCompactChatOpen(false);
+            setPreview(current => ({ ...(current ?? initialWorkspacePreview), attachment: null, type: "table", isVisible: !current?.isVisible }), false);
+          }}
+        ><PanelRight strokeWidth={1.5} /></Button>
+      </div>
+
 
       <DataStreamHandler />
 
@@ -274,6 +386,6 @@ export function ChatShell() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </TableAssistantControlContext.Provider>
   );
 }

@@ -48,7 +48,7 @@ export default function Page() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Новый аккаунт</h1>
-      <p className="text-sm text-muted-foreground">Создайте аккаунт Аркаши</p>
+      <p className="text-sm text-muted-foreground">Создайте аккаунт Арки</p>
       <AuthForm action={handleSubmit} defaultEmail={email}>
         <SubmitButton isSuccessful={isSuccessful}>Создать</SubmitButton>
         <p className="text-center text-[13px] text-muted-foreground">

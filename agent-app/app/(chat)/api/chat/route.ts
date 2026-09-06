@@ -90,7 +90,7 @@ function serializeConversation(messages: ChatMessage[]) {
       if (!content) {
         return null;
       }
-      const role = chatMessage.role === "user" ? "Пользователь" : "Аркаша";
+      const role = chatMessage.role === "user" ? "Пользователь" : "Ассистент";
       return `${role}: ${content}`;
     })
     .filter(Boolean)

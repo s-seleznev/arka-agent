@@ -1,8 +1,7 @@
 "use client";
 
-import { PanelRight } from "lucide-react";
+import { Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { initialWorkspacePreview, useWorkspacePreview } from "@/hooks/use-workspace-preview";
 import { usePathname } from "next/navigation";
 import {
   type ChangeEvent,
@@ -19,9 +18,8 @@ import { Input } from "@/components/ui/input";
 import { useActiveChat } from "@/hooks/use-active-chat";
 import { getChatHistoryPaginationKey } from "./sidebar-history";
 
-export function ChatHeader() {
+export function ChatHeader({ compact = false, onClose }: { compact?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
-  const { preview, setPreview } = useWorkspacePreview();
   const { chatId, chatTitle, isReadonly, setChatTitle } = useActiveChat();
   const { mutate } = useSWRConfig();
   const [draftTitle, setDraftTitle] = useState(chatTitle);
@@ -108,8 +106,9 @@ export function ChatHeader() {
 
   return (
     <header
-      className="flex h-[var(--app-bar-height)] shrink-0 items-center border-b border-border bg-background px-3"
+      className={`flex h-[var(--app-bar-height)] shrink-0 items-center border-b border-border bg-background px-3 ${compact ? "" : "pr-14"}`}
       data-testid="chat-header"
+      data-compact={compact || undefined}
     >
       <Input
         aria-label="Название чата"
@@ -122,9 +121,7 @@ export function ChatHeader() {
         value={draftTitle}
         variant="title"
       />
-      <Button className="fixed right-3 z-40 shrink-0" style={{ top: "calc((var(--app-bar-height) - 36px) / 2)" }} variant="ghost" size="icon" aria-label={preview.isVisible ? "Закрыть таблицу" : "Открыть таблицу"} title={preview.isVisible ? "Закрыть таблицу" : "Открыть таблицу"} aria-pressed={preview.isVisible} onClick={() => setPreview(current => ({ ...(current ?? initialWorkspacePreview), attachment: null, type: "table", isVisible: !current?.isVisible }), false)}>
-        <PanelRight strokeWidth={1.5} />
-      </Button>
+      {compact && <Button className="ml-2 shrink-0" variant="ghost" size="icon" aria-label="Свернуть чат" title="Свернуть чат" onClick={onClose}><Minus className="size-4" strokeWidth={1.5} /></Button>}
     </header>
   );
 }

@@ -25,6 +25,7 @@
 .main [data-testid="chat-header"],
 .main [data-testid="farm-toolbar"],
 .main [data-testid="workspace-preview-header"] { padding-right: 60px; }
+.main [data-testid="chat-header"][data-compact="true"] { padding-right: 12px; }
 .navigation :global(.arka-navigation) { display: contents; }
 .main :global(.arka-screen) { display: flex; flex: 1; min-width: 0; height: 100%; }
 .navigation [data-sidebar="group"] { padding: 2px 16px; }

@@ -25,9 +25,9 @@ export type ChatModel = {
 
 export const chatModels: ChatModel[] = [
   {
-    description: "Модель агента Аркаша",
+    description: "Модель ассистента",
     id: "arkasha",
-    name: "Аркаша",
+    name: "Ассистент",
     provider: "arkasha",
   },
 ];
