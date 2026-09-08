@@ -2,8 +2,8 @@ import * as T from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
 import {createWorld} from './farm/world.js?v=21';
 import {createGrass} from './farm/grass.js?v=20';
-import {createHerd,HERD_SIZE} from './farm/herd.js?v=19';
-import {createBridge,createPicking} from './farm/bridge.js?v=5';
+import {createHerd,HERD_SIZE} from './farm/herd.js?v=20';
+import {createBridge,createPicking} from './farm/bridge.js?v=6';
 
 const query=new URLSearchParams(location.search);
 const bridge=query.has('embed')&&parent!==window?createBridge(query):null;

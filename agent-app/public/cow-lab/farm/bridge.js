@@ -44,7 +44,7 @@ export function createPicking({renderer,camera,controls,world,getHerd,bridge,inv
   if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>5){dragging=true;clearHover();}
   invalidate();wakeAfter(220);
  });
- canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};dragging=false;clearHover();});
+ canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};dragging=false;});
  canvas.addEventListener('pointerup',e=>{
   const clicked=down&&!dragging&&e.button===0&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<=5;
   down=null;dragging=false;pending=null;stillSince=performance.now();lastPick=0;
@@ -58,9 +58,10 @@ export function createPicking({renderer,camera,controls,world,getHerd,bridge,inv
  });
  canvas.addEventListener('pointercancel',()=>{down=null;dragging=false;clearHover();});
  canvas.addEventListener('pointerleave',()=>{pointer=null;pending=null;wakeAfter(250);});
+ canvas.addEventListener('wheel',()=>{clearHover();wakeAfter(220);},{passive:true});
  button.addEventListener('pointerenter',()=>{lastHit=performance.now();clearTimeout(wakeTimer);});
  button.addEventListener('pointerleave',()=>{lastHit=performance.now();wakeAfter(250);});
- controls.addEventListener('start',()=>{keyboard=false;clearHover();});
+ controls.addEventListener('start',()=>{keyboard=false;});
  controls.addEventListener('end',()=>{stillSince=performance.now();wakeAfter(220);});
  canvas.addEventListener('keydown',e=>{
   if(e.key==='Escape'){bridge.send('escape');return;}

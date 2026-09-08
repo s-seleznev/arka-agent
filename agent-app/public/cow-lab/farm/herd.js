@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {appearanceSeed,coatShader} from '../appearance.js';
 import {infographicPlan} from './infographic.js?v=3';
 import { random } from './layout.js';
 import {createBehavior} from './behavior.js?v=10';
@@ -100,14 +101,15 @@ export async function createHerd(scene,world,records=null){
  function animateShader(material,pass){
   material.onBeforeCompile=s=>{
    s.uniforms.herdPoses={value:texture};s.uniforms.herdPoseSize={value:new T.Vector2(meta.bones*4,height)};
-   s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\n'+shaderCode+'\nattribute float animalOpacity; varying float cowOpacity;')
-    .replace('void main() {','void main() {\ncowOpacity=animalOpacity;mat4 herdSkin = herdSkinning();')
+   s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\n'+shaderCode+'\nattribute float animalOpacity; varying float cowOpacity; attribute float animalCoatSeed; varying vec3 coatPosition; varying float coatSeed;')
+    .replace('void main() {','void main() {\ncoatPosition=position;coatSeed=animalCoatSeed;cowOpacity=animalOpacity;mat4 herdSkin = herdSkinning();')
     .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nobjectNormal = mat3(herdSkin) * objectNormal;')
     .replace('#include <begin_vertex>','vec3 transformed = (herdSkin * vec4(position, 1.0)).xyz;');
    s.fragmentShader=s.fragmentShader.replace('void main() {',`varying float cowOpacity;\nvoid main() {\n${pass==='ghost'?'if(cowOpacity>=.999)discard;':'if(cowOpacity<.999)discard;'}`);
-   if(pass==='ghost')s.fragmentShader=s.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb=mix(vec3(.66,.74,.78),diffuseColor.rgb,smoothstep(.14,1.,cowOpacity));diffuseColor.a*=cowOpacity;');
+   if(pass==='solid'||pass==='ghost')s.fragmentShader=s.fragmentShader.replace('#include <common>','#include <common>\n'+coatShader).replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb=animalCoat(diffuseColor.rgb);');
+   if(pass==='ghost')s.fragmentShader=s.fragmentShader.replace('diffuseColor.rgb=animalCoat(diffuseColor.rgb);','diffuseColor.rgb=animalCoat(diffuseColor.rgb);\ndiffuseColor.rgb=mix(vec3(.66,.74,.78),diffuseColor.rgb,smoothstep(.14,1.,cowOpacity));diffuseColor.a*=cowOpacity;');
   };
-  material.customProgramCacheKey=()=> 'herd-skinning-ghost-2-'+pass;return material;
+  material.customProgramCacheKey=()=> 'herd-skinning-coat-v1-'+pass;return material;
  }
  const batches=[];
  for(const kind of kinds){
@@ -115,6 +117,7 @@ export async function createHerd(scene,world,records=null){
   const geometry=new T.BufferGeometry();
   for(const [name,size] of [['position',3],['normal',3],['color',3],['skinIndex',4],['skinWeight',4]])geometry.setAttribute(name,new T.BufferAttribute(source.section(name),size));
   geometry.setIndex(new T.BufferAttribute(Uint16Array.from(source.section('index')),1));
+  geometry.setAttribute('animalCoatSeed',new T.InstancedBufferAttribute(Float32Array.from(ids,i=>appearanceSeed(rows[i].animalId)),1));
   geometry.setAttribute('animalRow',new T.InstancedBufferAttribute(Float32Array.from(ids),1));
   const opacity=new T.InstancedBufferAttribute(Float32Array.from(ids,i=>rows[i].matched?1:.13),1);opacity.setUsage(T.DynamicDrawUsage);geometry.setAttribute('animalOpacity',opacity);
   const material=animateShader(new T.MeshStandardMaterial({vertexColors:true,roughness:.9}),'solid');
@@ -152,7 +155,7 @@ export async function createHerd(scene,world,records=null){
    const c=animals[id];c.record=rows[id];c.batch=batch;c.instance=i;c.source=sources[batch.kind];
    c.clip=clipFor(c);c.phase=rng()*meta.clips[c.clip].duration;c.walkPhase=rng()*meta.clips.Walk.duration;
    c.blend=1;c.previous=new Float32Array(stride);c.opacity=c.record.matched?1:.13;
-   batch.mesh.setColorAt(i,new T.Color().setRGB(.77+rng()*.38,.79+rng()*.3,.81+rng()*.23));
+   batch.mesh.setColorAt(i,new T.Color(1,1,1));
    sample(c.source,c.clip,c.phase,poses,c.id*stride);behavior.setFiltered(id,!c.record.matched);
   });
   batch.ghosts.instanceColor=batch.mesh.instanceColor;

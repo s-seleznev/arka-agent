@@ -94,7 +94,7 @@ export function FarmScene({ active, view, fields, onOpenAnimal, onViewport, onRe
         key={attempt}
         ref={iframe}
         title="3D-модель фермы"
-        src={`${base}/cow-lab/index.html?scene=farm&embed=1&channel=${encodeURIComponent(channel)}&v=42`}
+        src={`${base}/cow-lab/index.html?scene=farm&embed=1&channel=${encodeURIComponent(channel)}&v=43`}
         className="h-full w-full border-0"
         tabIndex={active && !pending ? 0 : -1}
         style={{ pointerEvents: pending || !active ? "none" : undefined }}

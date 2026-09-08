@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { applyAnimalAppearance } from './appearance.js';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 
-export async function loadAnimal(kind) {
+export async function loadAnimal(kind, appearanceId=null) {
   const file = kind === 'bull' ? 'Bull' : 'Cow';
   const gltf = await new GLTFLoader().loadAsync(`./models/ultimate-animals/${file}.gltf`);
   const asset = gltf.scene;
@@ -31,6 +32,10 @@ export async function loadAnimal(kind) {
     if (!node.isMesh) return;
     node.castShadow = true;
     node.receiveShadow = true;
+    if(appearanceId!==null){
+      const personalize=material=>{const copy=material.clone();applyAnimalAppearance(copy,appearanceId);return copy;};
+      node.material=Array.isArray(node.material)?node.material.map(personalize):personalize(node.material);
+    }
     originals.set(node, node.material);
     node.frustumCulled = false;
   });

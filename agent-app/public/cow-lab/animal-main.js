@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { loadAnimal } from './quaternius-cow.js?v=ultimate-animals-1';
+import { loadAnimal } from './quaternius-cow.js?v=coat-1';
 
 const card=new URLSearchParams(location.search).has('card');
 if(card)document.body.classList.add('animal-card-mode');
@@ -38,7 +38,7 @@ backdrop.rotation.x=-Math.PI/2;backdrop.position.y=.015;backdrop.receiveShadow=t
 let cow;
 const animals={};
 try {
- const models=await Promise.all(['cow','bull'].map(loadAnimal));
+ const models=await Promise.all(['cow','bull'].map(kind=>loadAnimal(kind,new URLSearchParams(location.search).get('id'))));
  ['cow','bull'].forEach((name,i)=>{animals[name]=models[i];scene.add(models[i].root);models[i].root.visible=name==='cow';});
  cow=animals.cow;
 }

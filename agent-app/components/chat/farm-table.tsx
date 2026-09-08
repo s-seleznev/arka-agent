@@ -1286,7 +1286,7 @@ function AnimalDetailsPanel({
           <iframe
             key={String(animal.animal_id ?? animal.primary_identifier)}
             title="3D-модель животного — потяните для поворота"
-            src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/cow-lab/animal.html?card=1&animal=${animal.sex === "MALE" ? "bull" : "cow"}`}
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/cow-lab/animal.html?card=1&id=${encodeURIComponent(String(animal.animal_id ?? animal.animalId ?? animal.primary_identifier))}&animal=${animal.sex === "MALE" ? "bull" : "cow"}`}
             className="mt-4 h-56 w-full rounded-xl border-0"
           />
           {animalDetailSections.map((section) => (

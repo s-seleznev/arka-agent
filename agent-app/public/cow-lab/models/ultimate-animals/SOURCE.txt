@@ -19,5 +19,6 @@ Cow file ID: 1lS3t1Sof0FVne1C1WXfdX48qaHES_pDG
 Bull file ID: 1M9gyr2UikIDW_Ynp-OfgiK-JjI7ziPd3
 
 Original glTF files are unmodified and have embedded buffers.
-The viewer only applies uniform scale, orientation, placement and animation blending.
+The viewer applies uniform scale, orientation, placement and animation blending.
+The application also applies a procedural black-and-white coat shader; original glTF files remain unchanged.
 Walk playback speed follows scene movement speed. No geometry or skin weights are rebuilt.
