@@ -17,6 +17,7 @@ export type WorkspacePreview = {
   type: "file" | "list" | "table" | null;
   view: ReportViewState | null;
   viewportRowIds: string[];
+  displayMode: "table" | "farm";
 };
 
 export const initialWorkspacePreview: WorkspacePreview = {
@@ -28,6 +29,7 @@ export const initialWorkspacePreview: WorkspacePreview = {
   type: null,
   view: null,
   viewportRowIds: [],
+  displayMode: "table",
 };
 
 export function useWorkspacePreview() {

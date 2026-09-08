@@ -1,0 +1,17 @@
+Cow by Quaternius
+License: Creative Commons CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Original author and asset pack:
+https://opengameart.org/content/lowpoly-animated-farm-animal-pack
+https://quaternius.itch.io/lowpoly-animated-animals
+
+The glTF conversion used here is distributed in the official Three.js manual.
+Its article credits Quaternius and links to the original animal pack:
+https://threejs.org/manual/en/game.html
+https://threejs.org/manual/examples/resources/models/animals/Cow.gltf
+https://threejs.org/manual/examples/resources/models/animals/Cow.bin
+
+The downloaded geometry, materials, skeleton and animation files are unchanged.
+The viewer applies only a uniform display scale, orientation and translation.
+Animation clips in this file: Idle, Walk, WalkSlow, Jump, Death.

@@ -53,6 +53,7 @@ import type {
 import { applyViewOperations } from "@/lib/farm/view-model";
 import { cn, fetchWithErrorHandlers } from "@/lib/utils";
 import { getChatHistoryPaginationKey } from "./sidebar-history";
+import { FarmScene } from "./farm-scene";
 
 
 type FarmResponse = { farms: FarmSummary[]; fields: TableField[] };
@@ -272,6 +273,9 @@ export function FarmTableWorkspace() {
   const pathname = usePathname();
   const router = useRouter();
   const { preview, setPreview } = useWorkspacePreview();
+  const farmMode = preview.displayMode === "farm";
+  const [sceneMounted, setSceneMounted] = useState(farmMode);
+  useEffect(() => { if (farmMode) setSceneMounted(true); }, [farmMode]);
   const chatId = activeChatId;
   const { mutate: mutateCache } = useSWRConfig();
   const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -734,6 +738,7 @@ export function FarmTableWorkspace() {
           (currentPreview) => ({
             ...(currentPreview ?? initialWorkspacePreview),
             animalCard: payload.animal,
+            selectedIds: [row.animalId],
           }),
           false
         );
@@ -889,6 +894,7 @@ export function FarmTableWorkspace() {
   }, [applyOperations, fieldMap, mutatingCount, openAnimal, pages, view, visibleColumns]);
 
   const scanViewport = useCallback(() => {
+    if (farmMode) return;
     if (scanFrameRef.current !== null) {
       cancelAnimationFrame(scanFrameRef.current);
     }
@@ -940,7 +946,13 @@ export function FarmTableWorkspace() {
         }
       }
     });
-  }, [pages, setPreview]);
+  }, [farmMode, pages, setPreview]);
+
+  const reportSceneViewport = useCallback((ids: string[]) => {
+    if (sameIds(viewportIdsRef.current, ids)) return;
+    viewportIdsRef.current = ids;
+    setPreview(current => ({ ...(current ?? initialWorkspacePreview), viewportRowIds: ids }), false);
+  }, [setPreview]);
 
   useEffect(() => {
     scanViewport();
@@ -1085,6 +1097,7 @@ export function FarmTableWorkspace() {
       />
 
       <div className="relative min-h-0 flex-1" ref={gridRef} style={{ containerType: "inline-size" }}>
+        <div className="absolute inset-0" aria-hidden={farmMode} inert={farmMode} style={{ visibility: farmMode ? "hidden" : undefined }}>
         {pages.isInitialLoading ? (
           <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
             <RefreshCwIcon className="size-4 animate-spin" /> Загружаем животных…
@@ -1138,6 +1151,10 @@ export function FarmTableWorkspace() {
             onToggle={pages.toggleGroup}
           />
         )}
+        </div>
+        {(sceneMounted || farmMode) && <div className="absolute inset-0" aria-hidden={!farmMode} inert={!farmMode} style={{ visibility: farmMode ? undefined : "hidden", pointerEvents: farmMode ? undefined : "none" }}>
+          <FarmScene active={farmMode} view={view} fields={fields} onOpenAnimal={openAnimal} onViewport={reportSceneViewport} onRefresh={refreshViewSnapshot} />
+        </div>}
       {preview.animalCard ? (
         <AnimalDetailsPanel
           animal={preview.animalCard}
@@ -1227,6 +1244,8 @@ function AnimalDetailsPanel({
   onClose: () => void;
   openerRef: React.RefObject<HTMLButtonElement | null>;
 }) {
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => { closeButton.current?.focus({ preventScroll: true }); }, []);
   const closePanel = useCallback(() => {
     onClose();
     openerRef.current?.focus();
@@ -1253,6 +1272,7 @@ function AnimalDetailsPanel({
           <p className="mt-1 text-sm text-muted-foreground">{name}</p>
         </div>
         <Button
+          ref={closeButton}
           aria-label="Закрыть карточку животного"
           className="shrink-0"
           onClick={closePanel}
@@ -1263,6 +1283,12 @@ function AnimalDetailsPanel({
         </Button>
       </header>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+          <iframe
+            key={String(animal.animal_id ?? animal.primary_identifier)}
+            title="3D-модель животного — потяните для поворота"
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/cow-lab/animal.html?card=1&animal=${animal.sex === "MALE" ? "bull" : "cow"}`}
+            className="mt-4 h-56 w-full rounded-xl border-0"
+          />
           {animalDetailSections.map((section) => (
             <section
               className="border-b py-5 last:border-b-0"
@@ -1274,7 +1300,7 @@ function AnimalDetailsPanel({
                   <div key={key}>
                     <dt className="text-muted-foreground text-xs">{label}</dt>
                     <dd className="mt-0.5 font-medium">
-                      {formatValue(animal[key], { type, unit })}
+                      {key === "sex" && animal[key] === "MALE" ? "Бык" : key === "sex" && animal[key] === "FEMALE" ? "Корова" : formatValue(animal[key], { type, unit })}
                     </dd>
                   </div>
                 ))}

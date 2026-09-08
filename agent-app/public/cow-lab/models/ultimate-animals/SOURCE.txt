@@ -1,0 +1,23 @@
+Cow.gltf and Bull.gltf
+Author: Quaternius
+Pack: Ultimate Animated Animal Pack (2021)
+License: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Official author page:
+https://quaternius.com/packs/ultimateanimatedanimals.html
+User-selected collection:
+https://poly.pizza/bundle/Animated-Animal-Pack-ILAPXeUYiS
+User-selected cow:
+https://poly.pizza/m/26zM1outCr
+
+Downloaded from the author's public Google Drive, linked by the official page:
+https://drive.google.com/drive/folders/1uJ3N5HfB7jKTseJUNQr3N4YaN0UuEtHk
+glTF folder:
+https://drive.google.com/drive/folders/1yJXdB1iSrI8Db7hG77zxZ66vKsqIt0ry
+Cow file ID: 1lS3t1Sof0FVne1C1WXfdX48qaHES_pDG
+Bull file ID: 1M9gyr2UikIDW_Ynp-OfgiK-JjI7ziPd3
+
+Original glTF files are unmodified and have embedded buffers.
+The viewer only applies uniform scale, orientation, placement and animation blending.
+Walk playback speed follows scene movement speed. No geometry or skin weights are rebuilt.

@@ -1,5 +1,5 @@
 .workspace :global([data-testid="farm-toolbar"][data-testid="farm-toolbar"]) {
-  padding-right: 100px;
+  padding-right: 140px;
   min-width: 0;
 }
 
@@ -31,6 +31,8 @@
   height: var(--app-bar-height);
   padding: 0 12px 0 8px;
   background: var(--bg-topbar, var(--background));
+  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
 }
 
 .fullscreenTable {

@@ -15,7 +15,7 @@ import { getChatHistoryPaginationKey } from "./sidebar-history";
 
 export function DataStreamHandler() {
   const { dataStream, setDataStream } = useDataStream();
-  const { setChatTitle } = useActiveChat();
+  const { setChatTitle, chatId } = useActiveChat();
   const { mutate } = useSWRConfig();
 
   const { artifact, setArtifact, setMetadata } = useArtifact();
@@ -36,7 +36,7 @@ export function DataStreamHandler() {
         continue;
       }
       if (delta.type === "data-view-state") {
-        setPreview(
+        if (delta.data.chatId === chatId) setPreview(
           (current) => ({
             ...(current ?? initialWorkspacePreview),
             attachment: null,
@@ -52,7 +52,7 @@ export function DataStreamHandler() {
         );
         mutate(
           (key) =>
-            typeof key === "string" && key.includes("/api/views?chatId="),
+            typeof key === "string" && key.endsWith(`/api/views?chatId=${delta.data.chatId}`),
           { view: delta.data },
           { revalidate: false }
         );
@@ -129,6 +129,7 @@ export function DataStreamHandler() {
       });
     }
   }, [
+    chatId,
     dataStream,
     setArtifact,
     setMetadata,

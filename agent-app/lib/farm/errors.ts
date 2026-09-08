@@ -24,6 +24,7 @@ const publicCodes = new Set([
   "UNGROUPABLE_FARM_FIELD",
   "UNSORTABLE_FARM_FIELD",
   "VIEW_NOT_FOUND",
+  "SCENE_CAPACITY_EXCEEDED",
 ]);
 
 export function publicFarmError(error: unknown, fallback: string) {

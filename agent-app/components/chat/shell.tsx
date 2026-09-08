@@ -6,6 +6,7 @@ import { Maximize2, Minimize2, PanelRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import styles from "./shell.module.css";
 import { TableAssistantControlContext } from "./table-view/assistant-control";
+import { CowIcon } from "./cow-icon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
@@ -84,6 +85,7 @@ export function ChatShell() {
   const launcherRef = useRef<HTMLButtonElement>(null);
   const fullscreenButtonRef = useRef<HTMLButtonElement>(null);
   const isTableVisible = preview.isVisible && preview.type !== "file";
+  const farmMode = preview.displayMode === "farm";
   const fullscreen = tableFullscreen && isTableVisible && !isMobile && (pathname === "/" || pathname.startsWith("/chat/"));
   const transition = { duration: reduceMotion || keyboardTransition ? 0 : 0.24, ease: [0.32, 0.72, 0, 1] as const };
 
@@ -339,10 +341,19 @@ export function ChatShell() {
 
       <div className={styles.tableActions}>
         {isTableVisible && !isMobile && <Button
+          variant="ghost" size="icon"
+          aria-label={farmMode ? "Показать таблицу" : "Показать 3D-ферму"}
+          title={farmMode ? "Показать таблицу" : "Показать 3D-ферму"}
+          aria-pressed={farmMode}
+          data-testid="farm-view-toggle"
+          className={farmMode ? "bg-muted text-foreground" : undefined}
+          onClick={() => setPreview(current => ({ ...(current ?? initialWorkspacePreview), displayMode: current?.displayMode === "farm" ? "table" : "farm" }), false)}
+        ><CowIcon /></Button>}
+        {isTableVisible && !isMobile && <Button
           ref={fullscreenButtonRef}
           variant="ghost" size="icon"
-          aria-label={fullscreen ? "Вернуть таблицу рядом с чатом" : "Развернуть таблицу на весь экран"}
-          title={fullscreen ? "Вернуть таблицу рядом с чатом" : "Развернуть таблицу на весь экран"}
+          aria-label={fullscreen ? `Вернуть ${farmMode ? "ферму" : "таблицу"} рядом с чатом` : `Развернуть ${farmMode ? "ферму" : "таблицу"} на весь экран`}
+          title={fullscreen ? "Вернуть рядом с чатом" : "Развернуть на весь экран"}
           aria-pressed={fullscreen}
           onClick={(event) => {
             setKeyboardTransition(event.detail === 0);

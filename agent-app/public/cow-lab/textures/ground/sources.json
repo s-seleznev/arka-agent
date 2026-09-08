@@ -1,0 +1,93 @@
+{
+  "provider": "Poly Haven",
+  "license": "https://polyhaven.com/license",
+  "assets": [
+    {
+      "asset": "dry_mud_field_001",
+      "source": "https://polyhaven.com/a/dry_mud_field_001",
+      "license": "CC0-1.0",
+      "authors": {
+        "Rob Tuytel": "Photography",
+        "Rico Cilliers": "Processing"
+      },
+      "dimensions": [
+        3000,
+        3000.000238418579
+      ]
+    },
+    {
+      "asset": "gravel_ground_01",
+      "source": "https://polyhaven.com/a/gravel_ground_01",
+      "license": "CC0-1.0",
+      "authors": {
+        "Rob Tuytel": "All"
+      },
+      "dimensions": [
+        3000,
+        3000
+      ]
+    },
+    {
+      "asset": "sparse_grass",
+      "source": "https://polyhaven.com/a/sparse_grass",
+      "license": "CC0-1.0",
+      "authors": {
+        "Amal Kumar": "Creation"
+      },
+      "dimensions": [
+        2000,
+        2000
+      ]
+    }
+  ],
+  "files": [
+    {
+      "file": "soil-color.jpg",
+      "bytes": 339575,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dry_mud_field_001/dry_mud_field_001_diff_1k.jpg"
+    },
+    {
+      "file": "soil-normal.jpg",
+      "bytes": 587518,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dry_mud_field_001/dry_mud_field_001_nor_gl_1k.jpg"
+    },
+    {
+      "file": "soil-roughness.jpg",
+      "bytes": 272484,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dry_mud_field_001/dry_mud_field_001_rough_1k.jpg"
+    },
+    {
+      "file": "gravel-color.jpg",
+      "bytes": 954257,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/gravel_ground_01/gravel_ground_01_diff_1k.jpg"
+    },
+    {
+      "file": "gravel-normal.jpg",
+      "bytes": 1314248,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/gravel_ground_01/gravel_ground_01_nor_gl_1k.jpg"
+    },
+    {
+      "file": "gravel-roughness.jpg",
+      "bytes": 379669,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/gravel_ground_01/gravel_ground_01_rough_1k.jpg"
+    },
+    {
+      "file": "sward-color.jpg",
+      "bytes": 955945,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_diff_1k.jpg",
+      "md5": "5d0aba796e1b5882555161c16b10ee9d"
+    },
+    {
+      "file": "sward-mask.jpg",
+      "bytes": 1052897,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_mask_1k.jpg",
+      "md5": "d3899d8e33a29a927344d6b2a7983ab1"
+    },
+    {
+      "file": "sward-normal.jpg",
+      "bytes": 1440314,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/sparse_grass/sparse_grass_nor_gl_1k.jpg",
+      "md5": "3307e6ce47413c6b4e85885d4b8ae932"
+    }
+  ]
+}

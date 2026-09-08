@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Корова и бык · Quaternius</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./animal-style.css?v=card-2" />
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+</head>
+<body>
+  <main id="viewport" aria-label="Исходные 3D-модели Quaternius"></main>
+  <header class="toolbar">
+    <div class="title"><span class="status-dot"></span>Quaternius · Animated Animals</div>
+    <button id="reset" class="quiet-button" title="Вернуть исходный ракурс">Сбросить ракурс</button>
+  </header>
+  <nav class="animal-switch" aria-label="Модель животного">
+    <button data-animal="cow" aria-pressed="true">Корова</button>
+    <button data-animal="bull" aria-pressed="false">Бык</button>
+  </nav>
+  <nav class="model-tools" aria-label="Просмотр формы">
+    <button data-view="three" aria-pressed="true">¾</button>
+    <button data-view="side" aria-pressed="false">Сбоку</button>
+    <button data-view="front" aria-pressed="false">Спереди</button>
+    <button id="clay" aria-pressed="false">Без окраски</button>
+  </nav>
+  <div id="loading" role="status">Загружаем корову и быка…</div>
+  <div id="error" role="alert" hidden>Не удалось открыть 3D-сцену. Для неё нужен браузер с поддержкой WebGL 2.</div>
+  <div class="scene-hint">Потяни, чтобы повернуть · Колесо для приближения</div>
+  <footer class="controls">
+    <div class="control-row">
+      <div class="modes" role="group" aria-label="Поведение животного">
+        <button data-mode="auto" aria-pressed="true">Свободно</button>
+        <button data-mode="idle" aria-pressed="false">Стоит</button>
+        <button data-mode="walk" aria-pressed="false">Идёт</button>
+        <button data-mode="slow" aria-pressed="false">Медленно</button>
+        <button data-mode="graze" aria-pressed="false">Пасётся</button>
+      </div>
+      <button id="pause" class="pause-button" aria-label="Приостановить движения" aria-pressed="false" title="Пауза · Пробел">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 5v14M16 5v14"/></svg>
+      </button>
+    </div>
+    <div class="caption"><span id="activity" aria-live="polite">Стоит</span><span class="separator">·</span><a href="https://quaternius.com/packs/ultimateanimatedanimals.html" target="_blank" rel="noopener noreferrer">Ultimate Animated Animal Pack · CC0</a></div>
+  </footer>
+  <script>window.addEventListener('error',()=>{document.getElementById('loading').hidden=true;document.getElementById('error').hidden=false;});</script>
+  <script type="module" src="./animal-main.js?v=card-2"></script>
+</body>
+</html>

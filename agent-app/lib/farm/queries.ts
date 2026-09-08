@@ -35,6 +35,7 @@ import {
   groupRuleListSchema,
   MAX_VIEW_COLUMNS,
   type RuleContext,
+  type ReportViewState,
   type SortRule,
   sortRuleSchema,
 } from "./types";
@@ -587,6 +588,42 @@ export async function queryAnimals({
       totalGroups: 0,
       totalRows: Number(totals[0]?.count ?? 0),
     };
+  });
+}
+
+/** One snapshot for both visible cattle and filtered-out ghosts; never page by groups. */
+export async function querySceneAnimals(userId: string, view: ReportViewState) {
+  const asOf = view.ruleContext?.asOf ?? new Date().toISOString();
+  const farms = await assertFilterFarmAccess(userId, view.filters, asOf);
+  const farmIds = farms.map((farm) => farm.id).sort();
+  const registry = await getAuthorizedFieldRegistry(userId, asOf);
+  const filters = validateFilterGroup(view.filters, registry);
+  const { groupBy } = validateQueryRules(view.sort, view.groupBy, registry);
+  const group = groupBy[0];
+  const groupSql = group ? requireFarmField(group.field, registry).sql : "NULL";
+  await ensureFreshProjection(farmIds, asOf);
+  return getFarmClient().begin(async (transaction) => {
+    await transaction.unsafe("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY");
+    await transaction.unsafe("SET LOCAL ROLE arka_reader");
+    await setFarmScope(transaction, farmIds);
+    await transaction.unsafe("SET LOCAL statement_timeout = '5s'");
+    await assertRegistrySnapshot(transaction, registry, farmIds, asOf);
+    const snapshot = await readSnapshot(transaction);
+    await assertRuleSnapshot(transaction, farmIds, asOf, snapshot, view.ruleContext?.snapshot);
+    const parameters: SqlParameters = [farmIds];
+    const filterSql = compileFilter(filters, parameters, { asOf, registry, timezoneSql: "f.timezone" });
+    const rows = await transaction.unsafe<Record<string, unknown>[]>(
+      `SELECT s.animal_id AS "animalId", s.farm_id AS "farmId",
+        s.primary_identifier AS "primaryIdentifier", s.name, s.sex,
+        ${groupSql} AS "groupValue",
+        COALESCE((${filterSql})${group?.hideEmpty ? ` AND ${groupSql} IS NOT NULL` : ""}, false) AS matched
+       FROM animal_state_query s JOIN farm f ON f.id = s.farm_id
+       WHERE s.farm_id = ANY($1::uuid[]) ORDER BY s.farm_id, s.animal_id LIMIT 2001`,
+      parameters as never[]
+    );
+    // Never silently replace a larger herd with a sample carrying misleading IDs.
+    if (rows.length > 2000) throw new Error("SCENE_CAPACITY_EXCEEDED");
+    return { animals: rows.map(rowFromResult), snapshot, revision: view.revision, viewId: view.id };
   });
 }
 
